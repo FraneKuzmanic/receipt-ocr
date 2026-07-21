@@ -1,0 +1,6 @@
+/doc-guard/
+/daip/
+AGENTS.md
+CONTEXT.md
+__pycache__/
+*.py[cod]
