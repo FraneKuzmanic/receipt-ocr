@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Not started — Task 01 is next.
+**Status:** Task 01 done (`b965482`) — Task 02 is next.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **plan → execute → validate → document** cycle, sized to fit comfortably in a single agent
@@ -123,7 +123,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (recor
 
 | #   | Task                                             | PRD phase | Status | Plan                                              | History |
 | --- | ------------------------------------------------ | --------- | ------ | ------------------------------------------------- | ------- |
-| 01  | Monorepo scaffold, app shell & i18n              | 1         | ⬜     | [plan](plans/monorepo-scaffold-app-shell-i18n.md) | —       |
+| 01  | Monorepo scaffold, app shell & i18n              | 1         | ✅     | [plan](plans/monorepo-scaffold-app-shell-i18n.md) | [history](history/01-monorepo-scaffold-app-shell-i18n.md) |
 | 02  | Canonical domain model & shared contracts        | 1         | ⬜     | —                                                 | —       |
 | 03  | Supabase database schema & private storage       | 1         | ⬜     | —                                                 | —       |
 | 04  | Authentication & ownership enforcement           | 1         | ⬜     | —                                                 | —       |
