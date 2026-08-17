@@ -1,0 +1,19 @@
+{
+  "common": {
+    "appName": "Receipt Scanner",
+    "retry": "Try again",
+    "loading": "Loading",
+    "language": "Language"
+  },
+  "home": {
+    "title": "Receipt digitization",
+    "subtitle": "Photograph a receipt or upload a file, check the extracted data and save it.",
+    "apiStatus": "Service status",
+    "apiOnline": "Available",
+    "apiOffline": "Unavailable"
+  },
+  "errors": {
+    "network": "The service could not be reached. Check your connection and try again.",
+    "notFound": "The page you are looking for does not exist."
+  }
+}

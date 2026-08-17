@@ -1,0 +1,19 @@
+{
+  "common": {
+    "appName": "Skener računa",
+    "retry": "Pokušaj ponovno",
+    "loading": "Učitavanje",
+    "language": "Jezik"
+  },
+  "home": {
+    "title": "Digitalizacija računa",
+    "subtitle": "Fotografirajte račun ili priložite datoteku, provjerite očitane podatke i spremite ih.",
+    "apiStatus": "Stanje usluge",
+    "apiOnline": "Dostupna",
+    "apiOffline": "Nedostupna"
+  },
+  "errors": {
+    "network": "Usluga nije dostupna. Provjerite vezu i pokušajte ponovno.",
+    "notFound": "Tražena stranica ne postoji."
+  }
+}
