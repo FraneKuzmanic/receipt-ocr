@@ -293,6 +293,33 @@ Phase 7 must grow with the product. When a task below ships, add its journey and
 
 ---
 
+## Maintaining this file
+
+**Do not re-run `/ultimate_validate_command` to refresh this file.** That command is a one-shot
+generator, it writes to this exact path, and it overwrites rather than merges. Its template defines
+only five phases — lint, typecheck, style, unit tests, E2E. Phase 0, the whole of Phase 6, the port
+hygiene in Phase 7 and all of Phase 8 are **not** in that template: they came from real incidents
+during Task 01, not from reading the code, so a regeneration cannot recover them and would silently
+delete roughly 140 lines.
+
+Instead, **extend this file by hand at step 6 of every task**:
+
+- new tests → add a row to the Phase 4 table saying what they protect
+- a new user-facing flow → add a journey to Phase 7 and delete its row from Phase 8
+- a new class of mistake → add a check that would have caught it
+- new env vars → they are covered automatically by 6.1, 6.1b and 6.6
+
+There is one case where running the generator is worth it: when a task introduces **new tooling** it
+could discover — Supabase and migrations in Task 03, Playwright and deployment in Task 12. Even then:
+
+1. generate to a scratch path, never over this file
+2. diff it against this file
+3. cherry-pick only genuinely new commands or phases
+4. keep every existing phase
+
+A task that adds only application code within the existing toolchain — Task 02, for instance — gains
+nothing from the generator, because the commands it would find are already here.
+
 ## Success criteria
 
 `/validate` passes only when **all** of these hold:
