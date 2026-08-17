@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./shared" },
+    { "path": "./api" },
+    { "path": "./api/tsconfig.test.json" },
+    { "path": "./client" },
+    { "path": "./client/tsconfig.node.json" }
+  ]
+}

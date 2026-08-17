@@ -1,0 +1,35 @@
+{
+  "name": "receipt-ocr-poc",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "workspaces": [
+    "client",
+    "api",
+    "shared"
+  ],
+  "scripts": {
+    "prepare": "tsc --build shared",
+    "dev": "run-p dev:*",
+    "dev:api": "npm run dev --workspace @receipt/api",
+    "dev:client": "npm run dev --workspace @receipt/client",
+    "build": "tsc --build && npm run build --workspace @receipt/client",
+    "typecheck": "tsc --build",
+    "lint": "oxlint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "validate": "npm run typecheck && npm run lint && npm run format:check && npm run test"
+  },
+  "devDependencies": {
+    "agent-browser": "^0.34.0",
+    "npm-run-all2": "9.0.3",
+    "oxlint": "1.78.0",
+    "prettier": "3.9.6",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  }
+}
