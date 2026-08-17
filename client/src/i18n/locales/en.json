@@ -15,5 +15,14 @@
   "errors": {
     "network": "The service could not be reached. Check your connection and try again.",
     "notFound": "The page you are looking for does not exist."
+  },
+  "warnings": {
+    "missing_critical_field": "This field is empty. Check the receipt and fill it in.",
+    "unparseable_date": "This date could not be read. Check it against the receipt.",
+    "unparseable_amount": "This amount could not be read. Check it against the receipt.",
+    "vat_arithmetic_mismatch": "The VAT amounts do not add up to the total.",
+    "qr_total_mismatch": "The total differs from the amount in the receipt's QR code.",
+    "qr_datetime_mismatch": "The date or time differs from the receipt's QR code.",
+    "document_quality": "The image is hard to read. Check the values carefully."
   }
 }

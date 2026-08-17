@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import type { ApiErrorResponse } from "@receipt/shared";
 import { logger } from "../logger.js";
 
 /**
@@ -34,5 +35,6 @@ export function errorHandler(
     logger.warn({ status, code }, "request rejected");
   }
 
-  res.status(status).json({ error: { code } });
+  const body: ApiErrorResponse = { error: { code } };
+  res.status(status).json(body);
 }

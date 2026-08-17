@@ -145,8 +145,9 @@ keys, on a freshly started process; the `EADDRINUSE` path exits 1 with a clear m
 ## Known gaps / follow-ups
 
 - **Not verified:** nothing outstanding for Task 01. All plan validation steps were executed.
-- **`.claude/` is git-ignored**, so `.claude/commands/validate.md` is untracked. Decide whether
-  `/validate` should be version-controlled.
+- ~~**`.claude/` is git-ignored**, so `.claude/commands/validate.md` is untracked. Decide whether
+  `/validate` should be version-controlled.~~ **Resolved after Task 01 closed:** `.claude/` was
+  removed from `.gitignore` and committed in `4f00f38`, so `/validate` now travels with a clone.
 - **No Playwright yet** — PRD §8 lists it but there are no user journeys to test. Task 12 owns E2E.
 - **No state-management or data-fetching library** — one `useEffect` covers the health check. Add one
   only when a task needs it.
