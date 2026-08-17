@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-17
 **Plan:** `.agents/plans/canonical-domain-model-shared-contracts.md`
-**Commit:** _(filled in at commit time)_
+**Commit:** `387d7c0` — 28 files, 2660 insertions
 
 ## What was built
 
