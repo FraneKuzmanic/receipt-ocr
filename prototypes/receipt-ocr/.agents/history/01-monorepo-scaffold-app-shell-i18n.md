@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-16 → 2026-08-17
 **Plan:** `.agents/plans/monorepo-scaffold-app-shell-i18n.md`
-**Commit:** _pending — fill in after `/commit`_
+**Commit:** `b965482` — 56 files, 9639 insertions
 
 ## What was built
 
