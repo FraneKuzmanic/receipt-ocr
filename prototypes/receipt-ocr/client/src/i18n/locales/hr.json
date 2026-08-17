@@ -15,5 +15,14 @@
   "errors": {
     "network": "Usluga nije dostupna. Provjerite vezu i pokušajte ponovno.",
     "notFound": "Tražena stranica ne postoji."
+  },
+  "warnings": {
+    "missing_critical_field": "Ovo polje je prazno. Provjerite račun i popunite ga.",
+    "unparseable_date": "Ovaj datum nije bilo moguće očitati. Usporedite ga s računom.",
+    "unparseable_amount": "Ovaj iznos nije bilo moguće očitati. Usporedite ga s računom.",
+    "vat_arithmetic_mismatch": "Iznosi PDV-a ne odgovaraju ukupnom iznosu.",
+    "qr_total_mismatch": "Ukupan iznos razlikuje se od iznosa u QR kodu računa.",
+    "qr_datetime_mismatch": "Datum ili vrijeme razlikuju se od QR koda računa.",
+    "document_quality": "Sliku je teško očitati. Pažljivo provjerite vrijednosti."
   }
 }

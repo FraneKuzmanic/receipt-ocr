@@ -129,7 +129,9 @@ Then stop and state the next command, which is normally:
 
 ## Notes on what does and does not carry over
 
-- `.agents/ROADMAP.md` and `.agents/history/` are committed, so they are the **only** reliable
-  handoff between sessions and machines. Anything learned and not written there is lost.
-- `.claude/` is currently listed in `.gitignore`, so these commands and `validate.md` are **not**
-  committed. A clone on another machine will not have them.
+- `.agents/ROADMAP.md` and `.agents/history/` are committed, so they are the primary handoff between
+  sessions and machines. Anything learned and not written there is lost.
+- `.claude/` **is** committed as of `4f00f38`, so these commands and `validate.md` travel with a
+  clone. Earlier revisions of this file said the opposite, back when `.gitignore` excluded it — that
+  is no longer true, and `validate.md` in particular must be hand-extended and committed with each
+  task rather than treated as a local scratch file.

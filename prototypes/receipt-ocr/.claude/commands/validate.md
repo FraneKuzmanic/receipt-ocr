@@ -85,7 +85,7 @@ To fix violations: `npm run format`.
 npm test
 ```
 
-Runs Vitest across two projects: `api` (node environment) and `client` (jsdom).
+Runs Vitest across three projects: `shared` (node), `api` (node) and `client` (jsdom).
 
 Expected: all test files pass, zero failures.
 
@@ -93,9 +93,18 @@ Current coverage and what each test protects:
 
 | Test | Protects |
 |---|---|
+| `shared/src/money.test.ts` | Croatian and English amounts parse to one canonical decimal string; trailing zeros survive (`100.50` never becomes `100.5`); values beyond float precision are exact; unreadable input returns `null` and never throws; `Big.strict` rejects a JS number at runtime |
+| `shared/src/datetime.test.ts` | Croatian day-first dates normalize to `yyyy-mm-dd`; the calendar is validated by hand including leap years; a time with no seconds does not gain `:00`; output satisfies `z.iso.date()` / `z.iso.time()` |
+| `shared/src/receipt.test.ts` | The canonical schema accepts an all-null and an all-absent receipt, rejects an unknown status, rejects unnormalized money and dates, and rejects unknown keys. Also the **provider-independence guard**: no Azure vocabulary anywhere in `shared/src` (PRD §6.2) |
+| `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold |
 | `api/src/app.test.ts` | `GET /api/health` returns the shared `HealthResponse` shape at runtime; unknown routes return a JSON error body, never an HTML stack trace |
 | `client/src/i18n/i18n.test.ts` | `hr` and `en` have identical key sets and no empty values (PRD §7.13) |
+| `client/src/i18n/warnings.test.ts` | Every `WARNING_CODES` entry has a non-empty `hr` and `en` message, and no orphan message exists. Also proves the canonical model imports from `client` under Vite's `bundler` resolution |
 | `client/src/components/LanguageSwitcher.test.tsx` | Switching language changes rendered copy and persists to `localStorage` |
+
+**The warning-message test is load-bearing in a way 6.5 cannot replace.** Phase 6.5 only scans
+literal `t("…")` calls; the review form will render warnings with a template literal, which that scan
+cannot follow. A new warning code without translations would otherwise reach a user as a raw key.
 
 **The locale parity test is load-bearing.** Every task that adds user-facing copy must add the key to
 both `en.json` and `hr.json`. A failure here means a language was left behind — translate it, never
@@ -191,6 +200,7 @@ rename can leave a stale Vitest project name that `npm test` will not catch, bec
 project regardless of name:
 
 ```
+npx vitest run --project shared
 npx vitest run --project api
 npx vitest run --project client
 ```
@@ -201,6 +211,24 @@ npx vitest run --project client
 `req.headers.authorization`, `req.headers.cookie`, `*.file` and `*.signedUrl` are still redacted, and
 that no task has added a log line containing full receipt contents, a source file body, or a signed
 URL.
+
+### 6.8 Money never becomes a JS number
+
+PRD §6.4 and ROADMAP §5 rule 9: monetary values are decimal-safe strings end to end. `parseFloat`,
+`Number(...)` and `z.number()` on a money path are how that silently stops being true.
+
+```
+node -e "const fs=require('fs'),path=require('path'); const dir='shared/src'; const bad=[]; for(const name of fs.readdirSync(dir)){ if(!name.endsWith('.ts')||name.endsWith('.test.ts')) continue; const src=fs.readFileSync(path.join(dir,name),'utf8'); if(/parseFloat/.test(src)) bad.push(name+': parseFloat'); if(name!=='api.ts' && /z\.(coerce\.)?number\(/.test(src)) bad.push(name+': z.number()'); } if(bad.length) throw new Error('money may have become a number: '+bad.join(', ')); console.log('ok');"
+```
+
+`api.ts` is exempt because `page` and `limit` are counts, not money — that is the one place
+`z.coerce.number()` is correct.
+
+**Know this check's limits.** It is a grep, not a type analysis: `datetime.ts` legitimately uses
+`Number(...)` on date parts, so `Number(` is not banned outright, and a `number` typed onto a money
+field elsewhere in the repo would slip past. The authoritative guarantee is `Big.strict = true` in
+`shared/src/money.ts`, which throws at runtime, plus the test that asserts it. If either is ever
+removed, this check is not a substitute.
 
 ---
 

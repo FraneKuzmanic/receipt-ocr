@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 01 done (`b965482`) — Task 02 is next.
+**Status:** Task 02 done — Task 03 is next.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **plan → execute → validate → document** cycle, sized to fit comfortably in a single agent
@@ -108,7 +108,11 @@ one is allowed, but it must be an explicit decision recorded in a history file.
 
 Each is owned by a specific task and must be resolved there, not earlier:
 
-- **Decimal library vs. hand-rolled string helpers** → Task 02.
+- ~~**Decimal library vs. hand-rolled string helpers** → Task 02.~~ **Resolved:** `big.js` for
+  arithmetic, hand-written locale parsing, `Intl.NumberFormat` for display, with `Big.strict = true`
+  making "money is never a JS float" a runtime guarantee. `decimal.js` was rejected — it is not
+  constructable under TypeScript 7 with a default import. See
+  [history](history/02-canonical-domain-model-shared-contracts.md).
 - **Azure model choice (prebuilt-receipt / prebuilt-invoice / layout), confidence policy,
   Croatia-specific field parsing, any multi-model logic** → Task 07. The PRD explicitly
   defers all of this (§4.7, §7.6).
@@ -124,7 +128,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (recor
 | #   | Task                                             | PRD phase | Status | Plan                                              | History |
 | --- | ------------------------------------------------ | --------- | ------ | ------------------------------------------------- | ------- |
 | 01  | Monorepo scaffold, app shell & i18n              | 1         | ✅     | [plan](plans/monorepo-scaffold-app-shell-i18n.md) | [history](history/01-monorepo-scaffold-app-shell-i18n.md) |
-| 02  | Canonical domain model & shared contracts        | 1         | ⬜     | —                                                 | —       |
+| 02  | Canonical domain model & shared contracts        | 1         | ✅     | [plan](plans/canonical-domain-model-shared-contracts.md) | [history](history/02-canonical-domain-model-shared-contracts.md) |
 | 03  | Supabase database schema & private storage       | 1         | ⬜     | —                                                 | —       |
 | 04  | Authentication & ownership enforcement           | 1         | ⬜     | —                                                 | —       |
 | 05  | Receipt upload API & source-document persistence | 2         | ⬜     | —                                                 | —       |

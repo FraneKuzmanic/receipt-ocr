@@ -7,5 +7,6 @@
     "moduleResolution": "nodenext",
     "types": []
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.ts"]
 }
