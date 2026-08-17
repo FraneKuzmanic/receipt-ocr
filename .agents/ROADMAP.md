@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 02 done — Task 03 is next.
+**Status:** Task 02 done (`387d7c0`) — Task 03 is next.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **plan → execute → validate → document** cycle, sized to fit comfortably in a single agent
