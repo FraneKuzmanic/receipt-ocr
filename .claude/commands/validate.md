@@ -109,6 +109,9 @@ Current coverage and what each test protects:
 | `client/src/auth/AuthProvider.test.tsx` | `loading` stays true until the first session read, so a signed-in user never sees a login flash on reload; the session follows `onAuthStateChange`; failures surface a translation key, never Supabase's English prose; the subscription unsubscribes on unmount |
 | `client/src/auth/ProtectedRoute.test.tsx` | Spinner while loading — neither outcome rendered early — redirect to `/login` when signed out, children when signed in |
 | `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none |
+| `api/src/upload/source-file.test.ts` | Byte-sniffs the five accepted source types; rejects disguised executables, text and HEIC sequences; validates PDFs; preserves/caps filenames |
+| `api/src/upload/multipart.test.ts` | Multipart limits and malformed forms become stable, translatable upload error codes before a route can reach Storage |
+| `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
 keys are computed from a Supabase error code, so Phase 6.5's literal-`t("…")` scan cannot follow
@@ -297,7 +300,8 @@ When finished with database work, `npm run db:stop` stops the stack without dele
 npm run test:integration
 ```
 
-Runs `api/src/repositories/receipts.integration.ts` and `api/src/auth/auth.integration.ts` against
+Runs `api/src/repositories/receipts.integration.ts`, `api/src/auth/auth.integration.ts` and
+`api/src/routes/receipts.integration.ts` against
 the hosted project. **Required on every task.**
 
 Hosted is the default target for fidelity, not convenience: the hosted project signs JWTs with
@@ -310,7 +314,8 @@ resolved target, and there is deliberately no automatic fallback between the two
 
 Each run creates two disposable users and deletes them afterwards; `receipts.user_id` is
 `on delete cascade`, so their rows go with them. After any failed or interrupted run, check for
-orphans, which carry a greppable `task03-`/`task04-` prefix:
+orphans, which carry a greppable `task03-`/`task04-`/`task05-` prefix. Task 05 also removes its
+private Storage objects explicitly because deleting a user does not cascade to Storage:
 
 ```
 node --env-file-if-exists=.env -e "const {createClient}=require('@supabase/supabase-js'); const a=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SECRET_KEY); a.auth.admin.listUsers().then(r=>console.log(r.data.users.filter(u=>u.email?.startsWith('task')).map(u=>u.email)))"
@@ -322,9 +327,9 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 04 there are two journeys: the shared contract and authentication. There is still no
-receipt capture, review or history to exercise.** Everything below runs against real servers, not
-mocks.
+**As of Task 05 there are three journeys: the shared contract, authentication and the source-document
+lifecycle. There is still no receipt capture UI, review or history to exercise.** Everything below
+runs against real servers, not mocks.
 
 ### 8.1 Start the stack
 
@@ -431,13 +436,28 @@ it needs two real accounts and genuine ES256 tokens.
 
 ---
 
+### 8.6 Journey — upload, fetch the source, soft-delete
+
+Sign in through the browser to obtain a real access token, then submit a real JPEG with only the
+`file` multipart part. Expect `201` and a `processing` receipt. Submit an executable renamed to
+`.jpg` with a claimed `image/jpeg` type and expect `415 unsupported_media_type`; submit a file over
+10 MB and expect `413 file_too_large`.
+
+Fetch `GET /api/receipts/:id/source` as the owner: expect a `200` response with an image URL and an
+expiry about five minutes in the future. The URL must fetch the original bytes. The same endpoint as a
+second authenticated user must return `404`. Finally, `DELETE /api/receipts/:id` returns `204`, and
+both `GET /api/receipts/:id` and `GET /api/receipts/:id/source` return `404` afterwards. An already
+issued URL is expected to remain usable until its short expiry; verify a one-second directly signed
+URL stops serving the file after it expires in the hosted integration suite.
+
+---
+
 ## Phase 9: Journeys to add as the roadmap progresses
 
 Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
 
 | Task | Journey to add |
 |---|---|
-| 05 | Upload each supported type creates a row and stores the object. A `.exe` renamed to `.jpg` is rejected by content sniffing. An oversized file fails cleanly. A non-owner gets 404 for `/source`. An expired signed URL no longer serves the file. |
 | 06 | Capture → preview → retake → submit → processing state resolves to review or an actionable failure. Denying camera permission still leaves a working upload path. |
 | 07 | A real Croatian receipt photo reaches `review` with seller, document number, issue date, total and currency populated. A simulated Azure 429/500 produces `failed` with a working retry. No Azure field name appears in any API response. |
 | 08 | A readable fiscal QR decodes and stores. Missing and damaged QR codes still reach `review`. A deliberate QR/total mismatch raises exactly one warning that clears after correction. |

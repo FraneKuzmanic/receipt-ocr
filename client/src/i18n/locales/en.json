@@ -45,5 +45,13 @@
     "qr_total_mismatch": "The total differs from the amount in the receipt's QR code.",
     "qr_datetime_mismatch": "The date or time differs from the receipt's QR code.",
     "document_quality": "The image is hard to read. Check the values carefully."
+  },
+  "upload": {
+    "file_required": "Attach one receipt image or PDF.",
+    "file_too_large": "This file is too large. The maximum size is 10 MB.",
+    "unsupported_media_type": "This file type is not supported. Use a JPEG, PNG, HEIC photo or a PDF.",
+    "pdf_encrypted": "This PDF is password-protected and cannot be read. Save an unprotected copy and try again.",
+    "pdf_too_many_pages": "This PDF has too many pages. Upload a document of up to 10 pages.",
+    "pdf_unreadable": "This PDF could not be read. It may be damaged. Try exporting it again."
   }
 }

@@ -2,13 +2,17 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 04 done — Task 05 is next.
+**Status:** Task 05 done — Task 06 is next.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
 session. Validation, documentation, history and roadmap maintenance are mandatory automatic stages
 inside `/execute`. The roadmap is the durable memory between sessions; the per-task history files
 are the record of what actually happened.
+
+For substantial tasks, `/execute` should delegate the final full validation sweep to a read-only
+validation subagent when available. The implementation agent still owns focused checks while coding,
+all fixes, documentation, history, roadmap updates, and the final handoff.
 
 ---
 
@@ -23,7 +27,7 @@ previous one is marked ✅ Done in the progress table below.
 | 2 | **Plan** | Human runs `/plan-feature <task title from this roadmap>` | `.agents/plans/{kebab-name}.md` |
 | 3 | **Review the plan** | Human approves or corrects the plan | Approved plan |
 | 4 | **Execute** | Human runs `/execute .agents/plans/{kebab-name}.md` | Code + tests; starts steps 5–7 automatically |
-| 5 | **Validate** | Automatic inside `/execute`; hand-extend `/validate`, never regenerate | Full validation report |
+| 5 | **Validate** | Automatic inside `/execute`; prefer a read-only validation subagent for the full sweep; hand-extend `/validate`, never regenerate | Full validation report |
 | 6 | **Document** | Automatic after validation passes | Updated README/docs |
 | 7 | **Record completion** | Automatic after documentation | History file + roadmap status/links |
 | 8 | **Review completed task** | Human reviews the uncommitted diff and validation report | Approval or requested corrections |
@@ -148,7 +152,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (recor
 | 02  | Canonical domain model & shared contracts        | 1         | ✅     | [plan](plans/canonical-domain-model-shared-contracts.md) | [history](history/02-canonical-domain-model-shared-contracts.md) |
 | 03  | Supabase database schema & private storage       | 1         | ✅     | [plan](plans/supabase-database-schema-private-storage.md) | [history](history/03-supabase-database-schema-private-storage.md) |
 | 04  | Authentication & ownership enforcement           | 1         | ✅     | [plan](plans/authentication-ownership-enforcement.md) | [history](history/04-authentication-ownership-enforcement.md) |
-| 05  | Receipt upload API & source-document persistence | 2         | ⬜     | —                                                 | —       |
+| 05  | Receipt upload API & source-document persistence | 2         | ✅     | [plan](plans/receipt-upload-source-document-persistence.md) | [history](history/05-receipt-upload-source-document-persistence.md) |
 | 06  | Mobile capture & upload UI                       | 2         | ⬜     | —                                                 | —       |
 | 07  | Azure extraction provider & canonical mapper     | 2         | ⬜     | —                                                 | —       |
 | 08  | QR decoding & validation/warnings engine         | 2         | ⬜     | —                                                 | —       |

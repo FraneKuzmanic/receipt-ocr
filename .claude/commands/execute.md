@@ -51,6 +51,23 @@ Plan checks are fast feedback, not a substitute for the project-wide sweep. A sk
 pass. If a command fails, fix the issue and rerun the affected command, then rerun any downstream
 checks whose result may have changed.
 
+For substantial tasks, prefer delegating the full `.claude/commands/validate.md` sweep to a
+validation subagent when that tool is available. Keep the contract narrow:
+
+- the subagent is read-only: no file edits, staging, commits, pushes, dependency upgrades or
+  "quick fixes";
+- the subagent may run validation commands and create only normal runtime artifacts those commands
+  produce;
+- the subagent must not print secret values from `.env`; it may report missing or malformed variable
+  names only;
+- the subagent reports commands run, exit codes, pass/fail/skipped phases, failing output, and any
+  suspicious validation gap;
+- the main execution agent remains responsible for interpreting the report, fixing failures, rerunning
+  affected checks, updating documentation/history, and giving the final handoff.
+
+If a validation subagent is unavailable, run the same validation sweep directly in the main session.
+Do not treat delegation as a reason to skip focused checks while implementing.
+
 Do not wait for a separate `/validate` prompt. Validation is a mandatory continuation of
 `/execute`.
 

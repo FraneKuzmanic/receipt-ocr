@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
+const fileSizeLimit = 12582912;
 const required = ["SUPABASE_URL", "SUPABASE_SECRET_KEY", "STORAGE_BUCKET"];
 const missing = required.filter((name) => !process.env[name]);
 
@@ -25,15 +26,21 @@ if (missing.length > 0) {
     }
 
     if (!bucket) {
-      const { error } = await client.storage.createBucket(bucketName, { public: false });
+      const { error } = await client.storage.createBucket(bucketName, {
+        public: false,
+        fileSizeLimit,
+      });
       if (error) throw new Error("Could not create the storage bucket.");
       console.log(`Created private storage bucket ${bucketName}.`);
-    } else if (bucket.public) {
-      const { error } = await client.storage.updateBucket(bucketName, { public: false });
-      if (error) throw new Error("Could not make the storage bucket private.");
-      console.log(`Updated storage bucket ${bucketName} to private.`);
+    } else if (bucket.public || bucket.file_size_limit !== fileSizeLimit) {
+      const { error } = await client.storage.updateBucket(bucketName, {
+        public: false,
+        fileSizeLimit,
+      });
+      if (error) throw new Error("Could not update the storage bucket.");
+      console.log(`Updated storage bucket ${bucketName} to private with a 12 MB file limit.`);
     } else {
-      console.log(`Storage bucket ${bucketName} is already private.`);
+      console.log(`Storage bucket ${bucketName} is already private with a 12 MB file limit.`);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Storage provisioning failed.";

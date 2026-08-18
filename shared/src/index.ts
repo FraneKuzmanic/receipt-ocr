@@ -21,6 +21,15 @@ export {
 } from "./warnings.js";
 
 export {
+  SOURCE_CONTENT_TYPES,
+  UPLOAD_ERROR_CODES,
+  sourceContentTypeSchema,
+  uploadErrorCodeSchema,
+  type SourceContentType,
+  type UploadErrorCode,
+} from "./upload.js";
+
+export {
   RECEIPT_STATUSES,
   canonicalReceiptFieldsSchema,
   canonicalReceiptSchema,
@@ -42,6 +51,7 @@ export {
   exportFormatSchema,
   listReceiptsQuerySchema,
   listReceiptsResponseSchema,
+  sourceDocumentResponseSchema,
   updateReceiptRequestSchema,
   type ApiErrorResponse,
   type ConfirmReceiptResponse,
@@ -49,5 +59,6 @@ export {
   type ExportFormat,
   type ListReceiptsQuery,
   type ListReceiptsResponse,
+  type SourceDocumentResponse,
   type UpdateReceiptRequest,
 } from "./api.js";

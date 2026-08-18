@@ -17,6 +17,9 @@ export interface Config {
   readonly WEB_ORIGIN: string;
   readonly SUPABASE_URL: string;
   readonly SUPABASE_PUBLISHABLE_KEY: string;
+  readonly STORAGE_BUCKET: string;
+  readonly MAX_UPLOAD_BYTES: number;
+  readonly MAX_PDF_PAGES: number;
 }
 
 const problems: string[] = [];
@@ -26,6 +29,16 @@ function readPort(raw: string | undefined, fallback: number): number {
   const parsed = Number(raw);
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
     problems.push(`PORT must be an integer between 1 and 65535 (received "${raw}")`);
+    return fallback;
+  }
+  return parsed;
+}
+
+function readCount(name: string, raw: string | undefined, fallback: number): number {
+  if (raw === undefined || raw === "") return fallback;
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    problems.push(`${name} must be a positive integer (received "${raw}")`);
     return fallback;
   }
   return parsed;
@@ -68,6 +81,9 @@ const parsed: Config = {
     "SUPABASE_PUBLISHABLE_KEY",
     process.env["SUPABASE_PUBLISHABLE_KEY"],
   ),
+  STORAGE_BUCKET: readRequired("STORAGE_BUCKET", process.env["STORAGE_BUCKET"]),
+  MAX_UPLOAD_BYTES: readCount("MAX_UPLOAD_BYTES", process.env["MAX_UPLOAD_BYTES"], 10485760),
+  MAX_PDF_PAGES: readCount("MAX_PDF_PAGES", process.env["MAX_PDF_PAGES"], 10),
 };
 
 if (problems.length > 0) {

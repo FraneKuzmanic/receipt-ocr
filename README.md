@@ -8,10 +8,9 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 04 of 12 is complete. Users can register, sign in and stay signed in; the API
-> verifies the Supabase access token and derives identity from it alone. `GET /api/receipts/:id` is
-> the first protected endpoint, and the whole `/api/receipts` prefix rejects unauthenticated
-> requests. Upload arrives in Task 05 and Azure extraction in Task 07.
+> **Status:** Task 05 of 12 is complete. Users can register, upload one receipt image or PDF, and
+> retrieve its private source through a short-lived URL. The API derives identity only from a verified
+> Supabase access token; Azure extraction arrives in Task 07.
 
 ## Prerequisites
 
@@ -34,7 +33,7 @@ other immediately. `.env` is git-ignored; `.env.example` lists every variable na
 > already filled in.
 
 **Supabase credentials are now required to start.** `api/src/config.ts` refuses to boot without
-`SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, and the client throws at load without
+`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and `STORAGE_BUCKET`, and the client throws at load without
 `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Failing at startup is deliberate: the
 alternative is an app that starts fine and then rejects every authenticated request for reasons
 that look like a bug in the code. The two `VITE_` values are the same URL and publishable key as
@@ -78,10 +77,10 @@ different verification branch for each. A Docker-only auth test would pass while
 the path production uses.
 
 The trade-off is that these tests write to the real project. Each run creates two disposable users
-with a greppable `task03-`/`task04-` email prefix and deletes them afterwards; because
-`receipts.user_id` is declared `on delete cascade`, deleting the user removes its seeded rows too,
-so cleanup is structural rather than something each test has to remember. After a crashed run,
-list any orphans:
+with a greppable `task03-`/`task04-`/`task05-` email prefix and deletes them afterwards; because
+`receipts.user_id` is declared `on delete cascade`, deleting the user removes its seeded rows. Storage
+objects do not cascade, so Task 05's suite removes its own objects before removing its users. After a
+crashed run, list any orphan users:
 
 ```powershell
 node --env-file-if-exists=.env -e "const {createClient}=require('@supabase/supabase-js'); const a=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SECRET_KEY); a.auth.admin.listUsers().then(r=>console.log(r.data.users.filter(u=>u.email?.startsWith('task')).map(u=>u.email)))"
@@ -177,6 +176,9 @@ only a per-project run catches a stale project name.
 | ------ | ------------------- | ---- | --------------------------------------------- |
 | `GET`  | `/api/health`       | —    | `200 {"status":"ok","uptimeSeconds":number}`   |
 | `GET`  | `/api/receipts/:id` | Yes  | `200` canonical receipt, `404` if not yours    |
+| `POST` | `/api/receipts` | Yes | `201 {"id", "status", "createdAt"}` after one multipart `file` part |
+| `GET` | `/api/receipts/:id/source` | Yes | `200 {"url", "contentType", "originalFilename", "expiresAt"}`, `404` if not yours or deleted |
+| `DELETE` | `/api/receipts/:id` | Yes | `204`, then the receipt and source endpoint return `404` |
 
 The health path and response type are defined once in `shared/src/health.ts` (`HEALTH_PATH`,
 `HealthResponse`) and imported by both sides, so a change to either breaks the build rather than
@@ -203,8 +205,29 @@ without a stack trace, so a URL scanner cannot flood the error log.
 
 That body is not a convention held up by prose: `api/src/middleware/error-handler.ts` types it as
 `ApiErrorResponse` from `@receipt/shared`, so a route that invents a different error shape fails to
-compile. The endpoints for PRD §10 do not exist yet, but their request and response schemas already
-do — see **Domain model** below.
+compile.
+
+### Receipt uploads
+
+`POST /api/receipts` accepts exactly one `multipart/form-data` part named `file` and no text fields.
+The source's bytes, not its filename or declared content type, are sniffed before persistence. JPEG,
+PNG, HEIC, HEIF and PDF are accepted; multi-image HEIC/HEIF sequences and unclassified bytes are
+rejected. This is why a Windows executable called `receipt.jpg` still receives
+`415 unsupported_media_type`.
+
+The default limits are **10 MB** and **10 PDF pages**. A missing/malformed file is
+`400 file_required`; a file that exceeds the byte limit is `413 file_too_large`; unreadable,
+encrypted or overlong PDFs receive `422 pdf_unreadable`, `pdf_encrypted` or `pdf_too_many_pages`.
+Each code has Croatian and English UI copy.
+
+The API generates a receipt UUID, uploads to `<user_id>/<receipt_id>/source`, then inserts the
+`processing` row. If insertion fails it attempts to delete the just-uploaded object, so a user never
+sees a receipt row without a source document. Task 06 must send only the `file` part: `fields: 0`
+rejects any incidental `userId` or other text field at the multipart parser.
+
+`GET /api/receipts/:id/source` produces a signed URL valid for 300 seconds. It is a bearer capability:
+soft deletion immediately prevents new URLs, but cannot revoke a URL already issued; it remains valid
+until its expiry. The original object is deliberately retained for auditability.
 
 ## Authentication
 
@@ -352,13 +375,13 @@ type under the obvious name (`canonicalReceiptSchema` → `CanonicalReceipt`).
 | `shared/src/money.ts` | `AMOUNT_PATTERN`, `isAmount`, `parseAmount`, `addAmounts`, `compareAmounts`, `amountsEqual`, `formatAmount` |
 | `shared/src/datetime.ts` | `ISO_DATE_PATTERN`, `ISO_TIME_PATTERN`, `parseIssueDate`, `parseIssueTime` |
 | `shared/src/warnings.ts` | `WARNING_CODES`, `warningCodeSchema`, `receiptWarningSchema` |
+| `shared/src/upload.ts` | `SOURCE_CONTENT_TYPES`, `sourceContentTypeSchema`, `UPLOAD_ERROR_CODES`, `uploadErrorCodeSchema` |
 | `shared/src/receipt.ts` | `RECEIPT_STATUSES`, `receiptStatusSchema`, `vatBreakdownSchema`, `receiptItemSchema`, `canonicalReceiptFieldsSchema`, `canonicalReceiptSchema` |
-| `shared/src/api.ts` | `apiErrorResponseSchema`, `createReceiptResponseSchema`, `listReceiptsQuerySchema`, `listReceiptsResponseSchema`, `updateReceiptRequestSchema`, `confirmReceiptResponseSchema`, `EXPORT_FORMATS`, `exportFormatSchema` |
+| `shared/src/api.ts` | `apiErrorResponseSchema`, `createReceiptResponseSchema`, `sourceDocumentResponseSchema`, `listReceiptsQuerySchema`, `listReceiptsResponseSchema`, `updateReceiptRequestSchema`, `confirmReceiptResponseSchema`, `EXPORT_FORMATS`, `exportFormatSchema` |
 | `shared/src/health.ts` | `HEALTH_PATH`, `HealthResponse` |
 
-Two DTOs are deliberately **absent** and should not be invented ahead of their task: the
-source-document access shape for `GET /api/receipts/:id/source` (Task 05) and the export body's
-`schemaVersion` (Task 11). `GET /api/receipts/:id` returns `canonicalReceiptSchema` as it stands.
+The export body's `schemaVersion` is deliberately **absent** until Task 11. `GET /api/receipts/:id`
+returns `canonicalReceiptSchema` as it stands.
 
 ### Adding tests to `shared`
 
@@ -398,6 +421,13 @@ as `export default`; TypeScript 7 resolves that default to the non-constructable
 ```ts
 import Decimal from "decimal.js"; // error TS2351: This expression is not constructable.
 ```
+
+**PDF inspection uses `pdf-lib` server-side only.** Its installed package is about 22 MB, though the
+runtime CJS entry is roughly 3 MB; that does not affect the browser bundle. It reads encryption and
+page counts from the document structure, which a byte scan cannot do reliably. Its transpiled error
+subclasses do not survive `instanceof`, so the code reads `isEncrypted` after loading with
+`ignoreEncryption: true`. If maintenance becomes a concern, `@cantoo/pdf-lib` is the compatible fork
+to evaluate rather than changing the upload contract speculatively.
 
 `big.js` typechecks either way and is **58 KB installed** (measured), where the `decimal.js` probe
 during planning measured ~5.9 MB — and this dependency is bundled into the browser build. `Big.strict`
@@ -458,7 +488,9 @@ first.
 | `SUPABASE_URL`                         | —                       | **Required at startup**  |
 | `SUPABASE_PUBLISHABLE_KEY`             | —                       | **Required at startup**; safe in a browser |
 | `SUPABASE_SECRET_KEY`                  | —                       | Task 03, **server-only** — bypasses RLS |
-| `STORAGE_BUCKET`                       | —                       | Task 03; `receipt-sources` |
+| `STORAGE_BUCKET`                       | —                       | **Required at startup**; `receipt-sources` |
+| `MAX_UPLOAD_BYTES`                     | `10485760`               | Maximum multipart source size (10 MB) |
+| `MAX_PDF_PAGES`                        | `10`                     | Maximum source PDF page count |
 | `DATABASE_URL`                         | —                       | Task 03; Supabase CLI only, not read at runtime |
 | `VITE_SUPABASE_URL`                    | —                       | Browser; same value as `SUPABASE_URL` |
 | `VITE_SUPABASE_PUBLISHABLE_KEY`        | —                       | Browser; same value as `SUPABASE_PUBLISHABLE_KEY` |
