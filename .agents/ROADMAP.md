@@ -2,12 +2,13 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 02 done (`387d7c0`) — Task 03 is next.
+**Status:** Task 03 done — Task 04 is next.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
-**plan → execute → validate → document** cycle, sized to fit comfortably in a single agent
-session. The roadmap is the durable memory between sessions; the per-task history files are
-the record of what actually happened.
+**prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
+session. Validation, documentation, history and roadmap maintenance are mandatory automatic stages
+inside `/execute`. The roadmap is the durable memory between sessions; the per-task history files
+are the record of what actually happened.
 
 ---
 
@@ -16,20 +17,19 @@ the record of what actually happened.
 Every task follows the same loop. Do not skip steps, and do not start a task before the
 previous one is marked ✅ Done in the progress table below.
 
-| #   | Step                                            | Command                                                               | Output                          |
-| --- | ----------------------------------------------- | --------------------------------------------------------------------- | ------------------------------- |
-| 1   | **Prime** — give the new session a mental model | `/prime`                                                              | Verbal summary only             |
-| 2   | **Read context**                                | Read this file + the latest `.agents/history/*.md`                    | Verbal summary only             |
-| 3   | **Plan**                                        | `/plan-feature <task title from this roadmap>`                        | `.agents/plans/{kebab-name}.md` |
-| 4   | **Review the plan**                             | Human reads the plan, approves or corrects it                         | Approved plan                   |
-| 5   | **Execute**                                     | `/execute .agents/plans/{kebab-name}.md`                              | Code + tests                    |
-| 6   | **Validate**                                    | `/validate` — **extend** it with this task's journeys; never regenerate | All checks green              |
-| 7   | **Document**                                    | `documentation-manager` subagent, given the changed file list         | Updated README/docs             |
-| 8   | **Record history**                              | Write `.agents/history/{NN}-{kebab-name}.md`                          | Task record                     |
-| 9   | **Commit**                                      | `/commit`                                                             | One commit per task             |
-| 10  | **Update this file**                            | Flip the task's status to ✅ Done, note any deviation                 | Updated roadmap                 |
+| # | Step | Trigger | Output |
+| --- | --- | --- | --- |
+| 1 | **Prime + read context** | Human runs `/prime` | Verbal summary only |
+| 2 | **Plan** | Human runs `/plan-feature <task title from this roadmap>` | `.agents/plans/{kebab-name}.md` |
+| 3 | **Review the plan** | Human approves or corrects the plan | Approved plan |
+| 4 | **Execute** | Human runs `/execute .agents/plans/{kebab-name}.md` | Code + tests; starts steps 5–7 automatically |
+| 5 | **Validate** | Automatic inside `/execute`; hand-extend `/validate`, never regenerate | Full validation report |
+| 6 | **Document** | Automatic after validation passes | Updated README/docs |
+| 7 | **Record completion** | Automatic after documentation | History file + roadmap status/links |
+| 8 | **Review completed task** | Human reviews the uncommitted diff and validation report | Approval or requested corrections |
+| 9 | **Commit** | Human runs `/commit` | One atomic commit per task |
 
-### Session bootstrap (steps 1–2 in detail)
+### Session bootstrap (step 1 in detail)
 
 A fresh agent session has zero context. Before touching any task, it must read, in order:
 
@@ -129,7 +129,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (recor
 | --- | ------------------------------------------------ | --------- | ------ | ------------------------------------------------- | ------- |
 | 01  | Monorepo scaffold, app shell & i18n              | 1         | ✅     | [plan](plans/monorepo-scaffold-app-shell-i18n.md) | [history](history/01-monorepo-scaffold-app-shell-i18n.md) |
 | 02  | Canonical domain model & shared contracts        | 1         | ✅     | [plan](plans/canonical-domain-model-shared-contracts.md) | [history](history/02-canonical-domain-model-shared-contracts.md) |
-| 03  | Supabase database schema & private storage       | 1         | ⬜     | —                                                 | —       |
+| 03  | Supabase database schema & private storage       | 1         | ✅     | [plan](plans/supabase-database-schema-private-storage.md) | [history](history/03-supabase-database-schema-private-storage.md) |
 | 04  | Authentication & ownership enforcement           | 1         | ⬜     | —                                                 | —       |
 | 05  | Receipt upload API & source-document persistence | 2         | ⬜     | —                                                 | —       |
 | 06  | Mobile capture & upload UI                       | 2         | ⬜     | —                                                 | —       |
@@ -271,12 +271,12 @@ a typed repository layer the API can use.
 
 **Definition of done**
 
-- [ ] Migration applies cleanly to an empty database and is idempotent to re-run.
-- [ ] Repository tests (against a real Supabase test project or a local Postgres) cover insert,
+- [x] Migration applies cleanly to an empty database and is idempotent to re-run.
+- [x] Repository tests (against a real Supabase test project or a local Postgres) cover insert,
       read, update, soft delete, and that a soft-deleted row is excluded from list queries.
-- [ ] A `numeric` total round-trips as an exact decimal string.
-- [ ] RLS verified: a query authenticated as user B cannot read user A's row.
-- [ ] The storage bucket is not publicly readable — an unsigned URL to an object returns 403/404.
+- [x] A `numeric` total round-trips as an exact decimal string.
+- [x] RLS verified: a query authenticated as user B cannot read user A's row.
+- [x] The storage bucket is not publicly readable — an unsigned URL to an object returns 403/404.
 
 **PRD references:** §6.4, §7.10, §9.1, §9.3, Appendix B.
 

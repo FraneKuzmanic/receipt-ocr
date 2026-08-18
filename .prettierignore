@@ -2,6 +2,9 @@ node_modules
 dist
 coverage
 *.tsbuildinfo
+api/src/database.types.ts
+supabase/.temp
+supabase/.branches
 
 # Authored prose (PRD, CLAUDE.md, roadmap, plans, history) is owned by humans.
 # Prettier reflows markdown tables, so keep it away from documentation entirely.

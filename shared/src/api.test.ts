@@ -68,7 +68,11 @@ describe("listReceiptsQuerySchema", () => {
 
 describe("response DTOs", () => {
   it("createReceiptResponseSchema accepts exactly the PRD §10.1 body", () => {
-    const body = { id: "rec_123", status: "processing", createdAt: "2026-08-17T12:00:00Z" };
+    const body = {
+      id: "123e4567-e89b-42d3-a456-426614174000",
+      status: "processing",
+      createdAt: "2026-08-17T12:00:00Z",
+    };
     expect(createReceiptResponseSchema.safeParse(body).success).toBe(true);
     expect(createReceiptResponseSchema.safeParse({ ...body, userId: "user_1" }).success).toBe(
       false,
@@ -76,7 +80,11 @@ describe("response DTOs", () => {
   });
 
   it("confirmReceiptResponseSchema accepts the PRD §10.5 body", () => {
-    const body = { id: "rec_123", status: "confirmed", confirmedAt: "2026-08-17T12:04:00Z" };
+    const body = {
+      id: "123e4567-e89b-42d3-a456-426614174000",
+      status: "confirmed",
+      confirmedAt: "2026-08-17T12:04:00Z",
+    };
     expect(confirmReceiptResponseSchema.safeParse(body).success).toBe(true);
   });
 });

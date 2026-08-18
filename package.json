@@ -22,6 +22,14 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "test:integration": "node scripts/run-supabase-integration-tests.mjs",
+    "db:start": "npx --no-install supabase start",
+    "db:stop": "npx --no-install supabase stop",
+    "db:reset": "npx --no-install supabase db reset --local",
+    "db:lint": "npx --no-install supabase db lint --local --schema public --level warning --fail-on error",
+    "db:test": "npx --no-install supabase test db --local supabase/tests/database",
+    "db:types": "npx --no-install supabase gen types typescript --local --schema public > api/src/database.types.ts",
+    "db:provision-storage": "node --env-file-if-exists=.env scripts/provision-storage.mjs",
     "validate": "npm run typecheck && npm run lint && npm run format:check && npm run test"
   },
   "devDependencies": {
@@ -29,6 +37,7 @@
     "npm-run-all2": "9.0.3",
     "oxlint": "1.78.0",
     "prettier": "3.9.6",
+    "supabase": "2.114.0",
     "typescript": "7.0.2",
     "vitest": "4.1.10"
   }

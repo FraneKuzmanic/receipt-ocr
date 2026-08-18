@@ -80,12 +80,12 @@ export type CanonicalReceiptFields = z.infer<typeof canonicalReceiptFieldsSchema
  * (PRD §9.1) is a property of the type system rather than a rule someone has to remember.
  * Do not flatten these into one schema.
  *
- * `id` and `userId` are plain strings, not UUIDs: PRD §10 shows `"rec_123"` and Task 03
- * has not yet chosen a key format. Tightening them is Task 03's call.
+ * Supabase persists both identifiers as UUIDs. The database and shared boundary enforce
+ * the same shape so an invalid identifier cannot reach a repository query.
  */
 export const canonicalReceiptSchema = canonicalReceiptFieldsSchema.extend({
-  id: z.string(),
-  userId: z.string(),
+  id: z.uuid(),
+  userId: z.uuid(),
   status: receiptStatusSchema,
   warnings: z.array(receiptWarningSchema),
   createdAt: z.iso.datetime(),
