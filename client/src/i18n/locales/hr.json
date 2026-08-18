@@ -12,6 +12,44 @@
     "apiOnline": "Dostupna",
     "apiOffline": "Nedostupna"
   },
+  "capture": {
+    "title": "Dodajte račun",
+    "guidance": "Neka cijeli račun bude u kadru, tekst čitljiv, a odsjaj što manji.",
+    "scanReceipt": "Skenirajte račun",
+    "chooseFile": "Odaberite datoteku",
+    "checking": "Provjeravamo datoteku",
+    "imagePreview": "Pregled odabranog računa",
+    "documentPreview": "Odabrani dokument",
+    "fileSize": "{{size}} MB",
+    "usePhoto": "Upotrijebite fotografiju",
+    "useFile": "Upotrijebite datoteku",
+    "retake": "Snimite ponovno",
+    "chooseAnother": "Odaberite drugu",
+    "uploading": "Prenosimo račun",
+    "lowResolution": "Ova je slika mala i možda ju je teško pročitati.",
+    "possibleBlur": "Ova je slika možda mutna. Provjerite je li račun čitljiv.",
+    "errors": {
+      "file_required": "Odaberite sliku računa ili PDF.",
+      "file_too_large": "Datoteka je prevelika. Najveća dopuštena veličina je 10 MB.",
+      "unsupported_media_type": "Odaberite JPEG, PNG, HEIC fotografiju ili PDF.",
+      "preview_unavailable": "Nije moguće prikazati ovu sliku. Odaberite JPEG, PNG ili PDF.",
+      "generic": "Nije moguće prenijeti račun. Pokušajte ponovno ili odaberite drugu datoteku."
+    }
+  },
+  "processing": {
+    "title": "Pripremamo vaš račun",
+    "description": "Ovo može potrajati trenutak.",
+    "failed": "Nije moguće pripremiti ovaj račun.",
+    "requestError": "Trenutačno ne možemo provjeriti ovaj račun.",
+    "timeout": "Ovo traje dulje nego što smo očekivali.",
+    "checkAgain": "Provjerite ponovno",
+    "uploadAnother": "Prenesite drugi račun"
+  },
+  "reviewReady": {
+    "title": "Račun je spreman za pregled",
+    "description": "Vaš je račun spreman za sljedeći korak.",
+    "uploadAnother": "Prenesite drugi račun"
+  },
   "auth": {
     "signIn": "Prijava",
     "signUp": "Registracija",

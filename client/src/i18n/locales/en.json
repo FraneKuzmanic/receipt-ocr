@@ -12,6 +12,44 @@
     "apiOnline": "Available",
     "apiOffline": "Unavailable"
   },
+  "capture": {
+    "title": "Add a receipt",
+    "guidance": "Keep the whole receipt in view, make the text readable and avoid glare.",
+    "scanReceipt": "Scan receipt",
+    "chooseFile": "Choose file",
+    "checking": "Checking your file",
+    "imagePreview": "Selected receipt preview",
+    "documentPreview": "Selected document",
+    "fileSize": "{{size}} MB",
+    "usePhoto": "Use photo",
+    "useFile": "Use file",
+    "retake": "Retake",
+    "chooseAnother": "Choose another",
+    "uploading": "Uploading receipt",
+    "lowResolution": "This image is small and may be hard to read.",
+    "possibleBlur": "This image may be blurry. Check that the receipt is readable.",
+    "errors": {
+      "file_required": "Choose a receipt image or PDF.",
+      "file_too_large": "This file is too large. The maximum size is 10 MB.",
+      "unsupported_media_type": "Choose a JPEG, PNG, HEIC photo or PDF.",
+      "preview_unavailable": "This image cannot be previewed. Choose a JPEG, PNG or PDF.",
+      "generic": "The receipt could not be uploaded. Try again or choose another file."
+    }
+  },
+  "processing": {
+    "title": "Preparing your receipt",
+    "description": "This can take a moment.",
+    "failed": "This receipt could not be prepared.",
+    "requestError": "We could not check this receipt right now.",
+    "timeout": "This is taking longer than expected.",
+    "checkAgain": "Check again",
+    "uploadAnother": "Upload another receipt"
+  },
+  "reviewReady": {
+    "title": "Receipt ready to review",
+    "description": "Your receipt is ready for the next step.",
+    "uploadAnother": "Upload another receipt"
+  },
   "auth": {
     "signIn": "Sign in",
     "signUp": "Create account",

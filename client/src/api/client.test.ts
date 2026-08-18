@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import { supabase } from "../lib/supabase";
-import { ApiError, getHealth } from "./client";
+import { ApiError, createReceipt, getHealth, getReceipt } from "./client";
 
 type SessionResult = Awaited<ReturnType<typeof supabase.auth.getSession>>;
 type SignOutResult = Awaited<ReturnType<typeof supabase.auth.signOut>>;
@@ -77,5 +77,60 @@ describe("the API client", () => {
 
     await expect(getHealth()).rejects.toThrow(ApiError);
     expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("uploads the original file as the only multipart part", async () => {
+    getSession.mockResolvedValue(sessionResult("token-abc"));
+    const source = new File(["receipt"], "receipt.jpg", { type: "image/jpeg" });
+    const response = {
+      id: "00000000-0000-4000-8000-000000000001",
+      status: "processing",
+      createdAt: "2026-08-18T10:00:00.000Z",
+    };
+    const fetchMock = respondWith(201, response);
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(createReceipt(source)).resolves.toEqual(response);
+
+    const init = fetchMock.mock.calls[0]?.[1];
+    const formData = init?.body as FormData;
+    expect(init?.method).toBe("POST");
+    expect([...formData.entries()]).toEqual([["file", source]]);
+    expect(sentHeaders(fetchMock).get("Content-Type")).toBeNull();
+    expect(sentHeaders(fetchMock).get("Authorization")).toBe("Bearer token-abc");
+  });
+
+  it("forwards the abort signal when fetching a receipt", async () => {
+    getSession.mockResolvedValue(sessionResult("token-abc"));
+    const controller = new AbortController();
+    const receipt = {
+      id: "00000000-0000-4000-8000-000000000001",
+      userId: "00000000-0000-4000-8000-000000000002",
+      status: "processing",
+      warnings: [],
+      createdAt: "2026-08-18T10:00:00.000Z",
+      updatedAt: "2026-08-18T10:00:00.000Z",
+    };
+    const fetchMock = respondWith(200, receipt);
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getReceipt(receipt.id, controller.signal)).resolves.toEqual(receipt);
+    expect(fetchMock.mock.calls[0]?.[1]?.signal).toBe(controller.signal);
+  });
+
+  it("keeps a stable server error code and tolerates malformed errors", async () => {
+    getSession.mockResolvedValue(sessionResult("token-abc"));
+    vi.stubGlobal("fetch", respondWith(415, { error: { code: "unsupported_media_type" } }));
+
+    await expect(getHealth()).rejects.toMatchObject({
+      status: 415,
+      code: "unsupported_media_type",
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(new Response("not json", { status: 500 }))),
+    );
+    await expect(getHealth()).rejects.toMatchObject({ status: 500, code: undefined });
   });
 });

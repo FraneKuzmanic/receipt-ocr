@@ -8,9 +8,10 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 05 of 12 is complete. Users can register, upload one receipt image or PDF, and
-> retrieve its private source through a short-lived URL. The API derives identity only from a verified
-> Supabase access token; Azure extraction arrives in Task 07.
+> **Status:** Task 06 implementation is complete. Automated and desktop-browser validation passed;
+> real-phone camera validation is deferred until the prototype is hosted. Authenticated users can
+> photograph or choose a receipt, inspect it before uploading, and follow its processing state. The
+> API derives identity only from a verified Supabase access token; Azure extraction arrives in Task 07.
 
 ## Prerequisites
 
@@ -222,12 +223,34 @@ Each code has Croatian and English UI copy.
 
 The API generates a receipt UUID, uploads to `<user_id>/<receipt_id>/source`, then inserts the
 `processing` row. If insertion fails it attempts to delete the just-uploaded object, so a user never
-sees a receipt row without a source document. Task 06 must send only the `file` part: `fields: 0`
+sees a receipt row without a source document. The client sends only the `file` part: `fields: 0`
 rejects any incidental `userId` or other text field at the multipart parser.
 
 `GET /api/receipts/:id/source` produces a signed URL valid for 300 seconds. It is a bearer capability:
 soft deletion immediately prevents new URLs, but cannot revoke a URL already issued; it remains valid
 until its expiry. The original object is deliberately retained for auditability.
+
+### Mobile capture and processing
+
+The protected home page is the receipt capture flow. **Scan receipt** asks supporting phones to prefer
+the rear camera through the native `capture="environment"` hint; it is a preference, not a camera
+guarantee. **Choose file** remains visible at all times for an existing JPEG, PNG, HEIC, HEIF or PDF,
+including after a camera cancellation or denial.
+
+The selected image or PDF is previewed before upload. The browser checks the advertised type or, only
+when it is absent, the filename extension, and it rejects files over 10 MB early. These checks are
+advisory UX only: the server still validates the source bytes. Images with a short edge below **800 px**
+or a 256-pixel sample blur score below **80** show a warning but can still be uploaded. The original
+`File` is sent unchanged; canvas use is limited to preview analysis.
+
+HEIC/HEIF previews depend on native browser support. If the selected image cannot be decoded, the app
+asks the user to choose a JPEG, PNG or PDF instead; it does not convert the original file in the
+browser.
+
+After a successful upload, the client polls the receipt every **2 seconds** for up to **60 seconds**.
+It moves a `review` receipt to the review-ready destination, gives a failed request an upload-another
+action, and exposes check-again plus upload-another actions for network errors or a timeout. Until
+Task 07 adds extraction, ordinary uploads remain `processing` and therefore time out by design.
 
 ## Authentication
 

@@ -1,13 +1,23 @@
-import { HEALTH_PATH, type HealthResponse } from "@receipt/shared";
+import {
+  HEALTH_PATH,
+  apiErrorResponseSchema,
+  canonicalReceiptSchema,
+  createReceiptResponseSchema,
+  type CanonicalReceipt,
+  type CreateReceiptResponse,
+  type HealthResponse,
+} from "@receipt/shared";
 import { supabase } from "../lib/supabase";
 
 export class ApiError extends Error {
   readonly status: number;
+  readonly code?: string;
 
-  constructor(status: number) {
+  constructor(status: number, code?: string) {
     super(`Request failed with status ${status}`);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -36,7 +46,13 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status);
+    const body = await response
+      .clone()
+      .json()
+      .then((value: unknown) => apiErrorResponseSchema.safeParse(value))
+      .catch(() => null);
+
+    throw new ApiError(response.status, body?.success ? body.data.error.code : undefined);
   }
 
   return response;
@@ -45,4 +61,17 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
 export async function getHealth(): Promise<HealthResponse> {
   const response = await request(HEALTH_PATH);
   return (await response.json()) as HealthResponse;
+}
+
+export async function createReceipt(file: File): Promise<CreateReceiptResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await request("/api/receipts", { method: "POST", body: formData });
+  return createReceiptResponseSchema.parse(await response.json());
+}
+
+export async function getReceipt(id: string, signal?: AbortSignal): Promise<CanonicalReceipt> {
+  const response = await request(`/api/receipts/${encodeURIComponent(id)}`, { signal });
+  return canonicalReceiptSchema.parse(await response.json());
 }
