@@ -1,0 +1,205 @@
+import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  canonicalReceiptFieldsSchema,
+  canonicalReceiptSchema,
+  receiptWarningSchema,
+  type CanonicalReceipt,
+  type CanonicalReceiptFields,
+  type ReceiptStatus,
+  type ReceiptWarning,
+} from "@receipt/shared";
+import type { Database, Json } from "../database.types.js";
+
+type ReceiptRow = Database["public"]["Tables"]["receipts"]["Row"];
+type ReceiptInsert = Database["public"]["Tables"]["receipts"]["Insert"];
+type ReceiptUpdate = Database["public"]["Tables"]["receipts"]["Update"];
+
+const uuidSchema = z.uuid();
+const warningsSchema = z.array(receiptWarningSchema);
+
+export interface CreateReceiptInput {
+  id?: string;
+  sourceObjectPath: string;
+  sourceOriginalFilename: string;
+  sourceContentType: string;
+  status?: ReceiptStatus;
+  canonicalData?: CanonicalReceiptFields;
+  originalExtraction?: CanonicalReceiptFields | null;
+  extractionMetadata?: Json | null;
+  qrExtraction?: Json | null;
+  rawProviderResult?: Json | null;
+  warnings?: ReceiptWarning[];
+}
+
+export interface UpdateReceiptInput {
+  status?: ReceiptStatus;
+  canonicalData?: CanonicalReceiptFields;
+  originalExtraction?: CanonicalReceiptFields | null;
+  extractionMetadata?: Json | null;
+  qrExtraction?: Json | null;
+  rawProviderResult?: Json | null;
+  warnings?: ReceiptWarning[];
+  confirmedAt?: string | null;
+  deletedAt?: string | null;
+}
+
+export type ReceiptRepositoryErrorCode = "invalid_data" | "query_failed";
+
+export class ReceiptRepositoryError extends Error {
+  readonly code: ReceiptRepositoryErrorCode;
+
+  constructor(code: ReceiptRepositoryErrorCode, cause?: unknown) {
+    super(code, cause === undefined ? undefined : { cause });
+    this.name = "ReceiptRepositoryError";
+    this.code = code;
+  }
+}
+
+export class ReceiptRepository {
+  readonly #client: SupabaseClient<Database>;
+  readonly #userId: string;
+
+  constructor(client: SupabaseClient<Database>, userId: string) {
+    this.#client = client;
+    this.#userId = uuidSchema.parse(userId);
+  }
+
+  async create(input: CreateReceiptInput): Promise<CanonicalReceipt> {
+    const canonicalData = canonicalReceiptFieldsSchema.parse(input.canonicalData ?? {});
+    const warnings = warningsSchema.parse(input.warnings ?? []);
+    const originalExtraction =
+      input.originalExtraction === undefined || input.originalExtraction === null
+        ? input.originalExtraction
+        : canonicalReceiptFieldsSchema.parse(input.originalExtraction);
+
+    const insert: ReceiptInsert = {
+      id: input.id === undefined ? undefined : uuidSchema.parse(input.id),
+      user_id: this.#userId,
+      source_object_path: input.sourceObjectPath,
+      source_original_filename: input.sourceOriginalFilename,
+      source_content_type: input.sourceContentType,
+      status: input.status ?? "processing",
+      canonical_data: toJson(canonicalData),
+      original_extraction:
+        originalExtraction === undefined ? undefined : toNullableJson(originalExtraction),
+      extraction_metadata: input.extractionMetadata,
+      qr_extraction: input.qrExtraction,
+      raw_provider_result: input.rawProviderResult,
+      warnings: toJson(warnings),
+    };
+
+    const { data, error } = await this.#client.from("receipts").insert(insert).select("*").single();
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    return mapReceiptRow(data);
+  }
+
+  async findById(id: string): Promise<CanonicalReceipt | null> {
+    const { data, error } = await this.#client
+      .from("receipts")
+      .select("*")
+      .eq("id", uuidSchema.parse(id))
+      .eq("user_id", this.#userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    return data === null ? null : mapReceiptRow(data);
+  }
+
+  async listCurrent(): Promise<CanonicalReceipt[]> {
+    const { data, error } = await this.#client
+      .from("receipts")
+      .select("*")
+      .eq("user_id", this.#userId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    return data.map(mapReceiptRow);
+  }
+
+  async update(id: string, input: UpdateReceiptInput): Promise<CanonicalReceipt | null> {
+    const update: ReceiptUpdate = { updated_at: new Date().toISOString() };
+
+    if (input.status !== undefined) update.status = input.status;
+    if (input.canonicalData !== undefined) {
+      update.canonical_data = toJson(canonicalReceiptFieldsSchema.parse(input.canonicalData));
+    }
+    if (input.originalExtraction !== undefined) {
+      update.original_extraction = toNullableJson(
+        input.originalExtraction === null
+          ? null
+          : canonicalReceiptFieldsSchema.parse(input.originalExtraction),
+      );
+    }
+    if (input.extractionMetadata !== undefined) {
+      update.extraction_metadata = input.extractionMetadata;
+    }
+    if (input.qrExtraction !== undefined) update.qr_extraction = input.qrExtraction;
+    if (input.rawProviderResult !== undefined) {
+      update.raw_provider_result = input.rawProviderResult;
+    }
+    if (input.warnings !== undefined) {
+      update.warnings = toJson(warningsSchema.parse(input.warnings));
+    }
+    if (input.confirmedAt !== undefined) update.confirmed_at = input.confirmedAt;
+    if (input.deletedAt !== undefined) update.deleted_at = input.deletedAt;
+
+    const { data, error } = await this.#client
+      .from("receipts")
+      .update(update)
+      .eq("id", uuidSchema.parse(id))
+      .eq("user_id", this.#userId)
+      .is("deleted_at", null)
+      .select("*")
+      .maybeSingle();
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    return data === null ? null : mapReceiptRow(data);
+  }
+
+  async softDelete(id: string): Promise<CanonicalReceipt | null> {
+    return this.update(id, { deletedAt: new Date().toISOString() });
+  }
+}
+
+export function mapReceiptRow(row: ReceiptRow): CanonicalReceipt {
+  try {
+    const fields = canonicalReceiptFieldsSchema.parse(row.canonical_data);
+    const warnings = warningsSchema.parse(row.warnings);
+
+    return canonicalReceiptSchema.parse({
+      ...fields,
+      id: row.id,
+      userId: row.user_id,
+      status: row.status,
+      warnings,
+      createdAt: normalizeTimestamp(row.created_at),
+      updatedAt: normalizeTimestamp(row.updated_at),
+      confirmedAt: normalizeNullableTimestamp(row.confirmed_at),
+      deletedAt: normalizeNullableTimestamp(row.deleted_at),
+    });
+  } catch (error) {
+    throw new ReceiptRepositoryError("invalid_data", error);
+  }
+}
+
+function normalizeTimestamp(value: string): string {
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) throw new Error("invalid timestamp");
+  return timestamp.toISOString();
+}
+
+function normalizeNullableTimestamp(value: string | null): string | null {
+  return value === null ? null : normalizeTimestamp(value);
+}
+
+function toJson(value: unknown): Json {
+  return JSON.parse(JSON.stringify(value)) as Json;
+}
+
+function toNullableJson(value: unknown | null): Json | null {
+  return value === null ? null : toJson(value);
+}

@@ -1,0 +1,1 @@
+-- Task 03 has no stable application seed data. Tests create isolated fixtures.

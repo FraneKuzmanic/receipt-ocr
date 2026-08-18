@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { canonicalReceiptSchema, receiptStatusSchema } from "./receipt.js";
 
 const envelope = {
-  id: "rec_123",
-  userId: "user_1",
+  id: "11111111-1111-4111-8111-111111111111",
+  userId: "22222222-2222-4222-8222-222222222222",
   status: "review",
   warnings: [],
   createdAt: "2026-08-17T12:00:00Z",
@@ -68,6 +68,11 @@ describe("canonicalReceiptSchema", () => {
   it("rejects an unknown status", () => {
     const result = canonicalReceiptSchema.safeParse({ ...envelope, status: "pending" });
     expect(result.success).toBe(false);
+  });
+
+  it("rejects persisted identifiers that are not UUIDs", () => {
+    expect(canonicalReceiptSchema.safeParse({ ...envelope, id: "rec_123" }).success).toBe(false);
+    expect(canonicalReceiptSchema.safeParse({ ...envelope, userId: "user_1" }).success).toBe(false);
   });
 
   it.each(["processing", "review", "confirmed", "failed"])("accepts the %j status", (status) => {

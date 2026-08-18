@@ -10,9 +10,9 @@ continuing — never work around a failure or comment out a check.
 > or run commands separately. `npm run <script>` chains internally via cmd.exe, so scripts that use
 > `&&` are fine.
 
-> **Scope note:** this project is built in 12 sequential tasks (`.agents/ROADMAP.md`). Phase 5 lists
+> **Scope note:** this project is built in 12 sequential tasks (`.agents/ROADMAP.md`). Phase 8 lists
 > only journeys that actually exist today. Each task that ships a user-facing flow must add its
-> journey to Phase 5 — an empty journey list for a shipped feature is a validation failure.
+> journey to Phase 8 — an empty journey list for a shipped feature is a validation failure.
 
 ---
 
@@ -95,9 +95,10 @@ Current coverage and what each test protects:
 |---|---|
 | `shared/src/money.test.ts` | Croatian and English amounts parse to one canonical decimal string; trailing zeros survive (`100.50` never becomes `100.5`); values beyond float precision are exact; unreadable input returns `null` and never throws; `Big.strict` rejects a JS number at runtime |
 | `shared/src/datetime.test.ts` | Croatian day-first dates normalize to `yyyy-mm-dd`; the calendar is validated by hand including leap years; a time with no seconds does not gain `:00`; output satisfies `z.iso.date()` / `z.iso.time()` |
-| `shared/src/receipt.test.ts` | The canonical schema accepts an all-null and an all-absent receipt, rejects an unknown status, rejects unnormalized money and dates, and rejects unknown keys. Also the **provider-independence guard**: no Azure vocabulary anywhere in `shared/src` (PRD §6.2) |
+| `shared/src/receipt.test.ts` | The canonical schema accepts an all-null and an all-absent receipt, requires UUID persisted identifiers, rejects an unknown status, rejects unnormalized money and dates, and rejects unknown keys. Also the **provider-independence guard**: no Azure vocabulary anywhere in `shared/src` (PRD §6.2) |
 | `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold |
 | `api/src/app.test.ts` | `GET /api/health` returns the shared `HealthResponse` shape at runtime; unknown routes return a JSON error body, never an HTML stack trace |
+| `api/src/repositories/receipts.test.ts` | Database rows map explicitly to canonical objects, timestamps normalize, canonical JSON/warnings are validated, generated projections are ignored, owner/deleted filters are present, and provider errors become stable internal categories |
 | `client/src/i18n/i18n.test.ts` | `hr` and `en` have identical key sets and no empty values (PRD §7.13) |
 | `client/src/i18n/warnings.test.ts` | Every `WARNING_CODES` entry has a non-empty `hr` and `en` message, and no orphan message exists. Also proves the canonical model imports from `client` under Vite's `bundler` resolution |
 | `client/src/components/LanguageSwitcher.test.tsx` | Switching language changes rendered copy and persists to `localStorage` |
@@ -137,7 +138,7 @@ node -e "const s=require('fs').readFileSync('.env.example','utf8'); if(/VITE_[A-
 ```
 
 Only `VITE_`-prefixed variables reach the client. `AZURE_DOCUMENT_INTELLIGENCE_KEY` and
-`SUPABASE_SERVICE_ROLE_KEY` are server-only.
+`SUPABASE_SECRET_KEY` are server-only.
 
 ### 6.1b `.env.example` contains names only, never real values
 
@@ -192,7 +193,7 @@ mentions exists, that every script is documented, that every file path and local
 resolves, and that the documented environment variables match `.env.example` exactly.
 
 ```
-node -e "const fs=require('fs'); const r=fs.readFileSync('README.md','utf8'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); const fail=[]; const mentioned=new Set([...r.matchAll(/npm run ([a-z:]+)/g)].map(m=>m[1])); const defined=new Set(Object.keys(pkg.scripts)); const a=[...mentioned].filter(s=>!defined.has(s)); if(a.length) fail.push('undefined scripts: '+a); const b=[...defined].filter(s=>!mentioned.has(s) && !r.includes('npm '+s) && s!=='prepare'); if(b.length) fail.push('undocumented scripts: '+b); const paths=[...r.matchAll(/\`([a-zA-Z0-9_.\/-]+\.(?:ts|tsx|json|md|css|html|example))\`/g)].map(m=>m[1]); const c=[...new Set(paths)].filter(p=>!fs.existsSync(p)); if(c.length) fail.push('broken paths: '+c); const links=[...r.matchAll(/\]\(([^)h][^)]*)\)/g)].map(m=>m[1]).filter(l=>!l.startsWith('#')); const d=links.filter(l=>!fs.existsSync(l)); if(d.length) fail.push('broken links: '+d); const cfg=r.split('## Configuration')[1].split('## Logging')[0]; const env=new Set([...fs.readFileSync('.env.example','utf8').matchAll(/^([A-Z0-9_]+)=/gm)].map(m=>m[1])); const doc=new Set([...cfg.matchAll(/\| \`([A-Z][A-Z0-9_]{2,})\`/g)].map(m=>m[1])); const e=[...env].filter(v=>!doc.has(v)); if(e.length) fail.push('env vars not documented: '+e); const f=[...doc].filter(v=>!env.has(v)); if(f.length) fail.push('documented but absent from .env.example: '+f); if(fail.length) throw new Error(fail.join(' | ')); console.log('ok');"
+node -e "const fs=require('fs'); const r=fs.readFileSync('README.md','utf8'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); const fail=[]; const mentioned=new Set([...r.matchAll(/npm run ([a-z:-]+)/g)].map(m=>m[1])); const defined=new Set(Object.keys(pkg.scripts)); const a=[...mentioned].filter(s=>!defined.has(s)); if(a.length) fail.push('undefined scripts: '+a); const b=[...defined].filter(s=>!mentioned.has(s) && !r.includes('npm '+s) && s!=='prepare'); if(b.length) fail.push('undocumented scripts: '+b); const paths=[...r.matchAll(/\`([a-zA-Z0-9_.\/-]+\.(?:ts|tsx|json|md|css|html|example))\`/g)].map(m=>m[1]); const c=[...new Set(paths)].filter(p=>!fs.existsSync(p)); if(c.length) fail.push('broken paths: '+c); const links=[...r.matchAll(/\]\(([^)h][^)]*)\)/g)].map(m=>m[1]).filter(l=>!l.startsWith('#')); const d=links.filter(l=>!fs.existsSync(l)); if(d.length) fail.push('broken links: '+d); const cfg=r.split('## Configuration')[1].split('## Logging')[0]; const env=new Set([...fs.readFileSync('.env.example','utf8').matchAll(/^([A-Z0-9_]+)=/gm)].map(m=>m[1])); const doc=new Set([...cfg.matchAll(/\| \`([A-Z][A-Z0-9_]{2,})\`/g)].map(m=>m[1])); const e=[...env].filter(v=>!doc.has(v)); if(e.length) fail.push('env vars not documented: '+e); const f=[...doc].filter(v=>!env.has(v)); if(f.length) fail.push('documented but absent from .env.example: '+f); if(fail.length) throw new Error(fail.join(' | ')); console.log('ok');"
 ```
 
 Also confirm by hand that the per-workspace commands the README documents still work — a workspace
@@ -232,12 +233,39 @@ removed, this check is not a substitute.
 
 ---
 
-## Phase 7: End-to-end journeys
+## Phase 7: Supabase database and integration tests
+
+This phase requires Docker Desktop. It validates migration repeatability, the database contract,
+owner-only RLS, exact decimals, the typed repository and private Storage. Normal `npm test` does not
+start Docker and is not a substitute for this phase.
+
+Run separately so PowerShell preserves every exit code:
+
+```powershell
+npm run db:start
+npm run db:reset
+npm run db:reset
+npm run db:lint
+npm run db:test
+npm run db:types
+npm run test:integration
+npx --no-install supabase migration list --local
+```
+
+Expected: both resets apply the same migration cleanly; database lint reports no errors; all pgTAP
+and Vitest integration tests pass; generated types remain unchanged when regenerated; the local
+bucket is private; and the local migration list contains every committed migration exactly once.
+
+When finished with database work, `npm run db:stop` stops the stack without deleting its volumes.
+
+---
+
+## Phase 8: End-to-end journeys
 
 **As of Task 01 there is one journey, because the application is a scaffold with no receipt
 functionality yet.** Everything below runs against real servers, not mocks.
 
-### 7.1 Start the stack
+### 8.1 Start the stack
 
 **First, confirm no stale servers are holding the ports.** Killing `npm run dev` kills the `run-p`
 parent but can leave the Vite and API children alive. A leftover Vite then answers on 5173 while the
@@ -254,11 +282,11 @@ npm run dev
 
 Expected: the API logs `api listening` on port 3001 and Vite serves on **port 5173** — if Vite reports
 any other port, stop and clean up again, because something is still holding 5173. Neither logs an
-error. Leave this running for the rest of Phase 7.
+error. Leave this running for the rest of Phase 8.
 
-When Phase 7 is done, run the cleanup command above again so the next run starts clean.
+When Phase 8 is done, run the cleanup command above again so the next run starts clean.
 
-### 7.2 Journey — the shared contract survives the whole stack
+### 8.2 Journey — the shared contract survives the whole stack
 
 This is the scaffold's reason to exist: one type defined in `shared`, served by Express,
 proxied by Vite, consumed by the React client.
@@ -276,7 +304,7 @@ Expected: `{"status":"ok","uptimeSeconds":N}`.
 Expected: identical body. This proves the Vite dev proxy works, which is why the browser never hits
 CORS locally.
 
-### 7.3 Journey — unknown route returns a translatable error code
+### 8.3 Journey — unknown route returns a translatable error code
 
 ```
 try { Invoke-WebRequest -Uri "http://localhost:3001/api/nope" -UseBasicParsing } catch { $_.Exception.Response.StatusCode.value__ }
@@ -285,7 +313,7 @@ try { Invoke-WebRequest -Uri "http://localhost:3001/api/nope" -UseBasicParsing }
 Expected: `404`, and the body is `{"error":{"code":"not_found"}}` — a stable machine code, never
 prose and never an HTML stack trace. The UI translates the code (PRD §7.13).
 
-### 7.4 Manual browser checks
+### 8.4 Manual browser checks
 
 Open <http://localhost:5173>.
 
@@ -303,9 +331,9 @@ Open <http://localhost:5173>.
 
 ---
 
-## Phase 8: Journeys to add as the roadmap progresses
+## Phase 9: Journeys to add as the roadmap progresses
 
-Phase 7 must grow with the product. When a task below ships, add its journey and delete its row here.
+Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
 
 | Task | Journey to add |
 |---|---|
@@ -325,15 +353,16 @@ Phase 7 must grow with the product. When a task below ships, add its journey and
 
 **Do not re-run `/ultimate_validate_command` to refresh this file.** That command is a one-shot
 generator, it writes to this exact path, and it overwrites rather than merges. Its template defines
-only five phases — lint, typecheck, style, unit tests, E2E. Phase 0, the whole of Phase 6, the port
-hygiene in Phase 7 and all of Phase 8 are **not** in that template: they came from real incidents
+only five phases — lint, typecheck, style, unit tests, E2E. Phase 0, the whole of Phase 6, Phase 7,
+the port hygiene in Phase 8 and all of Phase 9 are **not** in that template: they came from real incidents
 during Task 01, not from reading the code, so a regeneration cannot recover them and would silently
 delete roughly 140 lines.
 
-Instead, **extend this file by hand at step 6 of every task**:
+Instead, `/execute` must **extend this file by hand during its automatic validation stage for every
+task**. The user should never need to request this as a separate step:
 
 - new tests → add a row to the Phase 4 table saying what they protect
-- a new user-facing flow → add a journey to Phase 7 and delete its row from Phase 8
+- a new user-facing flow → add a journey to Phase 8 and delete its row from Phase 9
 - a new class of mistake → add a check that would have caught it
 - new env vars → they are covered automatically by 6.1, 6.1b and 6.6
 
@@ -359,8 +388,9 @@ nothing from the generator, because the commands it would find are already here.
 - [ ] `npm test` passes with zero failures
 - [ ] `npm run build` produces a web bundle and compiled API output
 - [ ] Every Phase 6 security check passes
-- [ ] Every Phase 7 journey completes, including the manual browser checks
-- [ ] Any feature shipped since the last run has a journey in Phase 7
+- [ ] Phase 7 database and integration validation passes
+- [ ] Every Phase 8 journey completes, including the manual browser checks
+- [ ] Any feature shipped since the last run has a journey in Phase 8
 
 ## Reporting
 

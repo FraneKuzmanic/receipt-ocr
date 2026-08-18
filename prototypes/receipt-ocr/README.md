@@ -8,14 +8,16 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 02 of 12. `shared/` now holds the canonical receipt model, decimal-safe money and
-> the warning taxonomy, but nothing stores or extracts a receipt yet — the only endpoint is still the
-> health check. Persistence arrives in Task 03, upload in Task 05, Azure extraction in Task 07.
+> **Status:** Task 03 of 12 is complete. The Supabase schema, owner-only RLS, private Storage bucket
+> and typed API repository are implemented locally and deployed to the hosted project. The only HTTP
+> endpoint remains the health check. Authentication arrives in Task 04, upload in Task 05 and Azure
+> extraction in Task 07.
 
 ## Prerequisites
 
 - **Node.js 24 LTS** (`.nvmrc` pins `24`; anything older fails the `engines` check)
 - **npm 10+** (ships with Node 24)
+- **Docker Desktop** (required only for local Supabase development and integration tests)
 
 ## Setup
 
@@ -30,8 +32,53 @@ other immediately. `.env` is git-ignored; `.env.example` lists every variable na
 > Do not run the copy step if `.env` already exists — it will overwrite credentials you have
 > already filled in.
 
-No credentials are needed yet: every variable has a working default, so `npm run dev` works on a
-fresh clone even with an empty `.env`. Azure values are needed from Task 07, Supabase from Task 03.
+No credentials are needed for the application shell: `npm run dev` still works with an empty `.env`.
+The local database workflow gets disposable credentials from the Supabase CLI. Hosted Supabase
+values belong in `.env`; Azure values are not needed until Task 07.
+
+## Database development
+
+Task 03 uses the pinned Supabase CLI and a Docker-backed local stack. Migrations are the source of
+truth; local Studio is only an inspection convenience.
+
+```powershell
+npm run db:start
+npm run db:reset
+npm run db:lint
+npm run db:test
+npm run db:types
+npm run test:integration
+npm run db:stop
+```
+
+`db:reset` drops and rebuilds only the local database, applies every migration in order, and runs
+`supabase/seed.sql`. Running it twice must produce the same schema. `db:types` regenerates
+`api/src/database.types.ts`; never hand-edit that file. Normal `npm test` remains fast and does not
+require Docker.
+
+Source documents live in the private `receipt-sources` bucket. Object names use
+`<user_id>/<receipt_id>/source`; untrusted original filenames remain database metadata and never
+become object paths. Normal repository and Storage operations require a signed-in, user-scoped
+client. `SUPABASE_SECRET_KEY` is reserved for administrative provisioning and test cleanup because
+it bypasses Row Level Security.
+
+The generated Supabase types are an infrastructure description, not the domain model. The current
+generator types PostgreSQL `numeric` as `number` and lists stored generated columns in `Insert` and
+`Update`. Repository inputs deliberately omit those properties, canonical money is always read from
+the validated JSON string, and pgTAP proves PostgreSQL rejects direct generated-column writes.
+
+To prepare a hosted project, link and inspect before applying anything:
+
+```powershell
+npx --no-install supabase link --project-ref <project-ref>
+npx --no-install supabase migration list --linked
+npx --no-install supabase db push --linked --dry-run
+```
+
+Only after reviewing the dry run, apply migrations with `supabase db push --linked`, then run
+`npm run db:provision-storage` with the hosted `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and
+`STORAGE_BUCKET=receipt-sources` in `.env`. On an IPv4-only network, use the project's Supavisor
+**session-mode** connection string for `DATABASE_URL`; the direct database hostname may be IPv6-only.
 
 ## Running
 
@@ -77,6 +124,14 @@ All scripts run from the repository root.
 | `npm run format`       | Prettier, writing changes                                          |
 | `npm run format:check` | Prettier, check only                                               |
 | `npm test`             | Vitest across `shared` (node), `api` (node) and `client` (jsdom)    |
+| `npm run test:integration` | Repository, RLS and private Storage tests against local Supabase |
+| `npm run db:start`     | Starts the Docker-backed local Supabase stack                      |
+| `npm run db:stop`      | Stops the local Supabase stack without deleting its volumes        |
+| `npm run db:reset`     | Rebuilds the local database from migrations and seed               |
+| `npm run db:lint`      | Runs Supabase database linting against `public`                    |
+| `npm run db:test`      | Runs the pgTAP database contract and RLS tests                     |
+| `npm run db:types`     | Regenerates the committed local database types                     |
+| `npm run db:provision-storage` | Creates or repairs the configured private bucket          |
 | `npm run validate`     | typecheck → lint → format:check → test                             |
 
 `npm run validate` is the gate to run before committing. To test one workspace only:
@@ -312,11 +367,16 @@ first.
 | `WEB_ORIGIN`                           | `http://localhost:5173` | CORS allow-list origin   |
 | `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | —                       | Task 07, server-only     |
 | `AZURE_DOCUMENT_INTELLIGENCE_KEY`      | —                       | Task 07, **server-only** |
-| `DATABASE_URL`                         | —                       | Task 03                  |
 | `SUPABASE_URL`                         | —                       | Task 03                  |
-| `SUPABASE_SERVICE_ROLE_KEY`            | —                       | Task 03, **server-only** |
-| `SUPABASE_ANON_KEY`                    | —                       | Task 03                  |
-| `STORAGE_BUCKET`                       | —                       | Task 03                  |
+| `SUPABASE_PUBLISHABLE_KEY`             | —                       | Task 03; safe in a browser |
+| `SUPABASE_SECRET_KEY`                  | —                       | Task 03, **server-only** — bypasses RLS |
+| `SUPABASE_JWKS_URL`                    | —                       | Task 04, verifies auth tokens |
+| `STORAGE_BUCKET`                       | —                       | Task 03; `receipt-sources` |
+| `DATABASE_URL`                         | —                       | Task 03; Supabase CLI only, not read at runtime |
+
+Supabase issues the two keys as **publishable** and **secret**; they replace the older **anon** and
+**service_role** pair, and map onto them one for one. The names here follow what the dashboard now
+shows, so there is nothing to translate when copying values across.
 
 Two rules that are enforced, not merely documented:
 
