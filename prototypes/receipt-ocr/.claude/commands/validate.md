@@ -109,6 +109,9 @@ Current coverage and what each test protects:
 | `client/src/auth/AuthProvider.test.tsx` | `loading` stays true until the first session read, so a signed-in user never sees a login flash on reload; the session follows `onAuthStateChange`; failures surface a translation key, never Supabase's English prose; the subscription unsubscribes on unmount |
 | `client/src/auth/ProtectedRoute.test.tsx` | Spinner while loading — neither outcome rendered early — redirect to `/login` when signed out, children when signed in |
 | `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none |
+| `client/src/capture/receiptFile.test.ts` | Client-only source classification accepts supported types and empty-MIME extension fallback, applies the 10 MB boundary, and keeps resolution/blur guidance advisory through deterministic pixel samples |
+| `client/src/routes/HomePage.test.tsx` | Native camera hint and always-visible picker fallback, preview/retake, advisory warnings, exact-file upload, translated upload errors and one in-flight submission |
+| `client/src/routes/ProcessingPage.test.tsx` | Immediate sequential polling, no overlap, review/confirmed routing, failed/error/timeout actions, retry window and unmount abort cleanup |
 | `api/src/upload/source-file.test.ts` | Byte-sniffs the five accepted source types; rejects disguised executables, text and HEIC sequences; validates PDFs; preserves/caps filenames |
 | `api/src/upload/multipart.test.ts` | Multipart limits and malformed forms become stable, translatable upload error codes before a route can reach Storage |
 | `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
@@ -257,6 +260,15 @@ field elsewhere in the repo would slip past. The authoritative guarantee is `Big
 `shared/src/money.ts`, which throws at runtime, plus the test that asserts it. If either is ever
 removed, this check is not a substitute.
 
+### 6.9 Authenticated API access stays centralized
+
+Route components must not introduce a second raw `fetch` path that omits the bearer token, 401 sign-out
+or stable error parsing in `client/src/api/client.ts`.
+
+```
+node -e "const fs=require('fs'),path=require('path'); const bad=[],allowed=path.normalize('client/src/api/client.ts'); (function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,e.name); if(e.isDirectory()) walk(f); else if(/\.tsx?$/.test(e.name)&&path.normalize(f)!==allowed&&/\bfetch\s*\(/.test(fs.readFileSync(f,'utf8'))) bad.push(f);}})('client/src'); if(bad.length) throw new Error('raw fetch outside client API module: '+bad.join(', ')); console.log('ok');"
+```
+
 ---
 
 ## Phase 7: Supabase integration
@@ -327,9 +339,9 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 05 there are three journeys: the shared contract, authentication and the source-document
-lifecycle. There is still no receipt capture UI, review or history to exercise.** Everything below
-runs against real servers, not mocks.
+**As of Task 06 there are four journeys: the shared contract, authentication, source-document
+lifecycle and mobile capture/processing. Review is only a ready destination; the editable review form
+and history remain future work.** Everything below runs against real servers, not mocks.
 
 ### 8.1 Start the stack
 
@@ -342,13 +354,19 @@ falsely**.
 foreach ($p in 3001,5173,5174,5175,5176) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue; if ($c) { Stop-Process -Id $c[0].OwningProcess -Force -ErrorAction SilentlyContinue; "cleaned port $p" } else { "port $p free" } }
 ```
 
+Start the API and network-visible client in separate terminals:
+
 ```
-npm run dev
+npm run dev:api
 ```
 
-Expected: the API logs `api listening` on port 3001 and Vite serves on **port 5173** — if Vite reports
-any other port, stop and clean up again, because something is still holding 5173. Neither logs an
-error. Leave this running for the rest of Phase 8.
+```
+npm run dev --workspace @receipt/client -- --host 0.0.0.0 --strictPort
+```
+
+Expected: the API logs `api listening` on port 3001 and Vite serves on **port 5173**. If Vite reports
+any other port, stop and clean up again, because something is still holding 5173. Record Vite's Network
+URL for the phone journey. Neither process logs an error. Leave both running for the rest of Phase 8.
 
 When Phase 8 is done, run the cleanup command above again so the next run starts clean.
 
@@ -384,16 +402,17 @@ prose and never an HTML stack trace. The UI translates the code (PRD §7.13).
 Open <http://localhost:5173>.
 
 1. The shell renders real translated copy — **no raw keys** such as `home.title` are visible.
-2. The API status card shows the available state (proves the client reached the API).
+2. The protected home page shows the dominant Scan receipt action and independently available Choose
+   file fallback; no API status card remains.
 3. Toggle the language control: all visible copy switches between Croatian and English.
 4. Reload the page: the chosen language persists.
 5. DevTools → device toolbar → iPhone SE (375px): the layout is usable, nothing overflows
    horizontally, and the language buttons are comfortably tappable (44px minimum, PRD §11.5).
 6. Visit <http://localhost:5173/nonexistent>: the translated not-found page renders inside the
    layout.
-7. Stop the API (`Ctrl+C` on the API process) and reload: the offline state and a retry button
-   appear — never a blank screen or an unhandled rejection. Restart the API and click retry; it
-   recovers.
+7. Select an image and PDF separately; verify the image preview, document panel, retake/choose-another,
+   translated guidance and no horizontal overflow at 320/375 px. A low-quality warning must not
+   disable upload.
 
 ---
 
@@ -452,13 +471,33 @@ URL stops serving the file after it expires in the hosted integration suite.
 
 ---
 
+### 8.7 Journey — mobile capture, processing and fallback
+
+On desktop, sign in and verify that cancelling the Scan receipt picker leaves Choose file visible and
+usable. Select a real image, inspect its preview, retake it, then select the same file again and submit.
+Verify the request sends the exact selected file as its only multipart part, then reaches the processing
+route. Repeat with a PDF and verify the document preview.
+
+With Task 07 absent, leave one disposable upload in `processing` for 60 seconds and verify timeout,
+Check again and Upload another receipt. Stop the API during another poll and verify the actionable
+request-error state recovers through Check again after restart. Using the hosted admin client, set one
+disposable receipt row to `review` and another to `failed`; the browser must observe the real polling
+response, route to review-ready for the former and stop with Upload another receipt for the latter. Do
+not add product-only test controls.
+
+On a current iOS Safari or Android Chrome phone connected to the same trusted LAN, open Vite's Network
+URL. Capture a real receipt, cancel or deny capture once, use the fallback, retake, upload, rotate the
+phone and check one-handed 44 px controls. Record the device, OS, browser and actual camera-picker
+behavior in the Task 06 history. A desktop emulator does not satisfy this journey.
+
+---
+
 ## Phase 9: Journeys to add as the roadmap progresses
 
 Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
 
 | Task | Journey to add |
 |---|---|
-| 06 | Capture → preview → retake → submit → processing state resolves to review or an actionable failure. Denying camera permission still leaves a working upload path. |
 | 07 | A real Croatian receipt photo reaches `review` with seller, document number, issue date, total and currency populated. A simulated Azure 429/500 produces `failed` with a working retry. No Azure field name appears in any API response. |
 | 08 | A readable fiscal QR decodes and stores. Missing and damaged QR codes still reach `review`. A deliberate QR/total mismatch raises exactly one warning that clears after correction. |
 | 09 | Pre-populated review form → edit a wrong document number → save → confirm **with a warning outstanding** succeeds. `original_extraction` still holds the pre-edit machine values. |

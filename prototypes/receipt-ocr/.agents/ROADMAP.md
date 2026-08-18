@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 05 done — Task 06 is next.
+**Status:** Task 06 implementation complete — Task 07 is next. Real-phone camera validation for Task 06 is deferred until a hosted deployment is available.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -144,7 +144,7 @@ Each is owned by a specific task and must be resolved there, not earlier:
 
 ## 3. Progress
 
-Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (record why)
+Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ✅* Done with a documented deferred validation item · ⏭️ Skipped (record why)
 
 | #   | Task                                             | PRD phase | Status | Plan                                              | History |
 | --- | ------------------------------------------------ | --------- | ------ | ------------------------------------------------- | ------- |
@@ -153,7 +153,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (recor
 | 03  | Supabase database schema & private storage       | 1         | ✅     | [plan](plans/supabase-database-schema-private-storage.md) | [history](history/03-supabase-database-schema-private-storage.md) |
 | 04  | Authentication & ownership enforcement           | 1         | ✅     | [plan](plans/authentication-ownership-enforcement.md) | [history](history/04-authentication-ownership-enforcement.md) |
 | 05  | Receipt upload API & source-document persistence | 2         | ✅     | [plan](plans/receipt-upload-source-document-persistence.md) | [history](history/05-receipt-upload-source-document-persistence.md) |
-| 06  | Mobile capture & upload UI                       | 2         | ⬜     | —                                                 | —       |
+| 06  | Mobile capture & upload UI                       | 2         | ✅*    | [plan](plans/mobile-capture-upload-ui.md)         | [history](history/06-mobile-capture-upload-ui.md) |
 | 07  | Azure extraction provider & canonical mapper     | 2         | ⬜     | —                                                 | —       |
 | 08  | QR decoding & validation/warnings engine         | 2         | ⬜     | —                                                 | —       |
 | 09  | Review form, editing & confirmation              | 3         | ⬜     | —                                                 | —       |
@@ -170,6 +170,9 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (recor
 
 Tasks 06 (capture UI) and 07 (extraction) both depend only on 05 and can be done in either
 order. Everything else is sequential.
+
+\* Task 06 passed automated and desktop-browser validation. Its mandatory real-phone camera journey
+is deliberately deferred until the prototype is hosted; see its history for the exact scope.
 
 ---
 
@@ -407,7 +410,8 @@ submit — landing on a processing state that polls to review.
 
 **Definition of done**
 
-- [ ] Verified on a real phone browser, not only a desktop responsive emulator.
+- [ ] Verified on a real phone browser, not only a desktop responsive emulator. **Deferred until the
+      prototype is hosted; this is the documented Task 06 validation caveat.**
 - [ ] Denying camera permission still leaves a working upload path.
 - [ ] Retake discards the previous image and does not upload it.
 - [ ] The processing screen never freezes: it reaches review, failure, or a timeout state with
