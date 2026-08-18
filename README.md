@@ -8,16 +8,17 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 03 of 12 is complete. The Supabase schema, owner-only RLS, private Storage bucket
-> and typed API repository are implemented locally and deployed to the hosted project. The only HTTP
-> endpoint remains the health check. Authentication arrives in Task 04, upload in Task 05 and Azure
-> extraction in Task 07.
+> **Status:** Task 04 of 12 is complete. Users can register, sign in and stay signed in; the API
+> verifies the Supabase access token and derives identity from it alone. `GET /api/receipts/:id` is
+> the first protected endpoint, and the whole `/api/receipts` prefix rejects unauthenticated
+> requests. Upload arrives in Task 05 and Azure extraction in Task 07.
 
 ## Prerequisites
 
 - **Node.js 24 LTS** (`.nvmrc` pins `24`; anything older fails the `engines` check)
 - **npm 10+** (ships with Node 24)
-- **Docker Desktop** (required only for local Supabase development and integration tests)
+- **Docker Desktop** (required only for local Supabase schema work — migrations, pgTAP and
+  `npm run test:integration:local`. The default integration run does not need it.)
 
 ## Setup
 
@@ -32,9 +33,13 @@ other immediately. `.env` is git-ignored; `.env.example` lists every variable na
 > Do not run the copy step if `.env` already exists — it will overwrite credentials you have
 > already filled in.
 
-No credentials are needed for the application shell: `npm run dev` still works with an empty `.env`.
-The local database workflow gets disposable credentials from the Supabase CLI. Hosted Supabase
-values belong in `.env`; Azure values are not needed until Task 07.
+**Supabase credentials are now required to start.** `api/src/config.ts` refuses to boot without
+`SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, and the client throws at load without
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Failing at startup is deliberate: the
+alternative is an app that starts fine and then rejects every authenticated request for reasons
+that look like a bug in the code. The two `VITE_` values are the same URL and publishable key as
+their server counterparts. The local database workflow still gets disposable credentials from the
+Supabase CLI, and Azure values are not needed until Task 07.
 
 ## Database development
 
@@ -47,7 +52,7 @@ npm run db:reset
 npm run db:lint
 npm run db:test
 npm run db:types
-npm run test:integration
+npm run test:integration:local
 npm run db:stop
 ```
 
@@ -55,6 +60,32 @@ npm run db:stop
 `supabase/seed.sql`. Running it twice must produce the same schema. `db:types` regenerates
 `api/src/database.types.ts`; never hand-edit that file. Normal `npm test` remains fast and does not
 require Docker.
+
+### Which integration target to run
+
+There are two, and the runner prints which one it resolved before a single test executes — an
+automatic fallback between them is exactly the mistake this split prevents.
+
+| Command | Target | When |
+| --- | --- | --- |
+| `npm run test:integration` | Hosted project, read from `.env` | The default. Required on every task. |
+| `npm run test:integration:local` | Docker stack, credentials from the CLI | Whenever `supabase/migrations/` changes. |
+
+The default is hosted because token verification only behaves realistically there: the hosted
+project signs JWTs with **ES256**, while the local stack falls back to the legacy symmetric secret
+(`signing_keys_path` is commented out in `supabase/config.toml`), and `supabase-js` takes a
+different verification branch for each. A Docker-only auth test would pass while never exercising
+the path production uses.
+
+The trade-off is that these tests write to the real project. Each run creates two disposable users
+with a greppable `task03-`/`task04-` email prefix and deletes them afterwards; because
+`receipts.user_id` is declared `on delete cascade`, deleting the user removes its seeded rows too,
+so cleanup is structural rather than something each test has to remember. After a crashed run,
+list any orphans:
+
+```powershell
+node --env-file-if-exists=.env -e "const {createClient}=require('@supabase/supabase-js'); const a=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SECRET_KEY); a.auth.admin.listUsers().then(r=>console.log(r.data.users.filter(u=>u.email?.startsWith('task')).map(u=>u.email)))"
+```
 
 Source documents live in the private `receipt-sources` bucket. Object names use
 `<user_id>/<receipt_id>/source`; untrusted original filenames remain database metadata and never
@@ -124,7 +155,8 @@ All scripts run from the repository root.
 | `npm run format`       | Prettier, writing changes                                          |
 | `npm run format:check` | Prettier, check only                                               |
 | `npm test`             | Vitest across `shared` (node), `api` (node) and `client` (jsdom)    |
-| `npm run test:integration` | Repository, RLS and private Storage tests against local Supabase |
+| `npm run test:integration` | Repository, RLS, auth and private Storage tests against the hosted project |
+| `npm run test:integration:local` | The same suite against the Docker stack, for schema work |
 | `npm run db:start`     | Starts the Docker-backed local Supabase stack                      |
 | `npm run db:stop`      | Stops the local Supabase stack without deleting its volumes        |
 | `npm run db:reset`     | Rebuilds the local database from migrations and seed               |
@@ -141,13 +173,23 @@ only a per-project run catches a stale project name.
 
 ## API
 
-| Method | Path          | Response                                     |
-| ------ | ------------- | -------------------------------------------- |
-| `GET`  | `/api/health` | `200 {"status":"ok","uptimeSeconds":number}`  |
+| Method | Path                | Auth | Response                                      |
+| ------ | ------------------- | ---- | --------------------------------------------- |
+| `GET`  | `/api/health`       | —    | `200 {"status":"ok","uptimeSeconds":number}`   |
+| `GET`  | `/api/receipts/:id` | Yes  | `200` canonical receipt, `404` if not yours    |
 
-The path and response type are defined once in `shared/src/health.ts` (`HEALTH_PATH`,
+The health path and response type are defined once in `shared/src/health.ts` (`HEALTH_PATH`,
 `HealthResponse`) and imported by both sides, so a change to either breaks the build rather than
-production.
+production. `GET /api/receipts/:id` returns `canonicalReceiptSchema` as it stands.
+
+Protected requests carry the Supabase access token:
+
+```text
+Authorization: Bearer <access token>
+```
+
+Anything else under `/api/receipts` — a missing header, a non-`Bearer` scheme, an empty, expired or
+forged token — is `401 {"error":{"code":"unauthorized"}}`.
 
 **Error convention — every task follows this.** Failures return a stable machine `code`, never prose:
 
@@ -163,6 +205,52 @@ That body is not a convention held up by prose: `api/src/middleware/error-handle
 `ApiErrorResponse` from `@receipt/shared`, so a route that invents a different error shape fails to
 compile. The endpoints for PRD §10 do not exist yet, but their request and response schemas already
 do — see **Domain model** below.
+
+## Authentication
+
+Supabase owns email/password registration, login and session persistence, so this repository
+contains no password hashing, no session table and no signed-cookie handling.
+
+**The API never trusts a client-supplied identity** (PRD §9.1). `api/src/auth/authenticator.ts`
+verifies the access token with `supabase.auth.getClaims(token)` and takes `userId` from the token's
+`sub` claim. Because the hosted project signs with **ES256**, that verification happens in-process
+against a cached JWKS — no network round trip per request, which is why `getClaims` is used rather
+than `getUser` (a call to the auth server every time) or `getSession` (which does not verify at
+all). A token is accepted only when its `role` is `authenticated` and its `sub` is a UUID.
+
+Three structural choices keep this honest rather than merely intended:
+
+- **`AuthContext` is a handler argument, not `req.auth`.** `authenticated()` in
+  `api/src/middleware/require-auth.ts` passes the proven identity into the route as a parameter.
+  An optional property on `Request` would invite `req.auth!` in some future route and quietly lose
+  the guarantee.
+- **`requireAuth` guards the `/api/receipts` prefix, not each route.** Every route a later task adds
+  is protected by default, and a path with no route defined yet answers `401` rather than `404`.
+- **The secret key is never read on a request path.** Each authenticated request gets its own
+  Supabase client carrying the caller's own token, so PostgREST and Storage evaluate every query
+  under that user's RLS context. `SUPABASE_SECRET_KEY` stays reserved for provisioning and test
+  cleanup.
+
+**A receipt belonging to someone else returns `404`, never `403`.** Telling a caller that an id
+exists but is not theirs leaks exactly what ownership is meant to hide. This falls out of
+`findById` already filtering on `user_id` and `deleted_at` — there is no separate ownership check to
+keep in sync, and a soft-deleted receipt correctly returns `404` to its own owner too.
+
+On the client, `AuthProvider` holds the session and `ProtectedRoute` gates the routes. A `401` from
+any API call triggers a sign-out, which lets `ProtectedRoute` perform the redirect, so no navigation
+logic is duplicated in the fetch layer.
+
+### Known limitations
+
+- **Email confirmation is disabled** on the hosted project (`enable_confirmations = false` in
+  `supabase/config.toml`, pushed with `supabase config push`). It has to be: Supabase's built-in SMTP
+  for new projects is heavily rate-limited, so a confirmation email would never arrive and no test
+  account could ever sign in. Email addresses are therefore unverified — acceptable for a PoC with no
+  email flow at all, and one for Task 12 to record.
+- **Password reset is deferred.** PRD §7.1 qualifies it with "if readily available from the
+  provider", and it is not: it needs custom SMTP, an email template, a redirect allow-list entry,
+  `detectSessionInUrl: true` and a set-new-password screen.
+- No roles, companies, tenants, MFA or SSO — all explicitly out of scope (PRD §4.6, §9.5).
 
 ## Workspace layout
 
@@ -367,21 +455,29 @@ first.
 | `WEB_ORIGIN`                           | `http://localhost:5173` | CORS allow-list origin   |
 | `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | —                       | Task 07, server-only     |
 | `AZURE_DOCUMENT_INTELLIGENCE_KEY`      | —                       | Task 07, **server-only** |
-| `SUPABASE_URL`                         | —                       | Task 03                  |
-| `SUPABASE_PUBLISHABLE_KEY`             | —                       | Task 03; safe in a browser |
+| `SUPABASE_URL`                         | —                       | **Required at startup**  |
+| `SUPABASE_PUBLISHABLE_KEY`             | —                       | **Required at startup**; safe in a browser |
 | `SUPABASE_SECRET_KEY`                  | —                       | Task 03, **server-only** — bypasses RLS |
-| `SUPABASE_JWKS_URL`                    | —                       | Task 04, verifies auth tokens |
 | `STORAGE_BUCKET`                       | —                       | Task 03; `receipt-sources` |
 | `DATABASE_URL`                         | —                       | Task 03; Supabase CLI only, not read at runtime |
+| `VITE_SUPABASE_URL`                    | —                       | Browser; same value as `SUPABASE_URL` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY`        | —                       | Browser; same value as `SUPABASE_PUBLISHABLE_KEY` |
 
 Supabase issues the two keys as **publishable** and **secret**; they replace the older **anon** and
 **service_role** pair, and map onto them one for one. The names here follow what the dashboard now
 shows, so there is nothing to translate when copying values across.
 
+Because every variable lives in one root `.env` while Vite's project root is `client/`,
+`client/vite.config.ts` sets `envDir` to the repository root. Without it every `VITE_` variable
+would silently read as `undefined`.
+
 Two rules that are enforced, not merely documented:
 
-1. **Only `VITE_`-prefixed variables reach the browser bundle.** Azure keys and the Supabase service
-   role key must never gain that prefix. There are currently no `VITE_` variables at all.
+1. **Only `VITE_`-prefixed variables reach the browser bundle.** Azure keys and the Supabase secret
+   key must never gain that prefix. The only `VITE_` variables are the Supabase URL and publishable
+   key — the latter is public by design (it is the successor to the anon key and is what RLS assumes
+   the browser holds), which is why `/validate` Phase 6.1 allow-lists it by name while still
+   rejecting every other secret-shaped `VITE_` name.
 2. **`.env.example` holds names only, never real values.** It is deliberately *not* git-ignored —
    it is the committed template — so a value pasted into it goes straight into git history, where
    deleting it later does not remove it. Only the harmless local defaults (`PORT`, `NODE_ENV`,

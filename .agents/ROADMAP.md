@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 03 done — Task 04 is next.
+**Status:** Task 04 done — Task 05 is next.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -118,6 +118,23 @@ Each is owned by a specific task and must be resolved there, not earlier:
   defers all of this (§4.7, §7.6).
 - **QR decode library and Croatian fiscal QR payload format** → Task 08.
 - **Hosting provider for the deployed PoC** → Task 12.
+- **Password reset** → **deferred with no owning task.** PRD §7.1 and Task 04 both qualify it with
+  "if readily available from the provider", and it is not: it needs custom SMTP, an email template,
+  a redirect allow-list entry, `detectSessionInUrl: true` and a set-new-password screen. Add a task
+  if the PoC decides it wants one. See [history](history/04-authentication-ownership-enforcement.md).
+
+### Amendments from completed tasks
+
+- **Integration tests default to the hosted project, not Docker** (Task 04). The local stack falls
+  back to symmetric JWT signing, where `getClaims` takes a different verification branch, so a
+  Docker-based auth test would pass without ever exercising the production path. `npm run
+  test:integration` targets hosted and is required on every task; `npm run test:integration:local`
+  targets Docker and is required whenever `supabase/migrations/` changes. `/validate` Phase 7 is
+  split along the same line.
+- **`supabase config push` publishes every setting in `config.toml`, not just the ones you edited**
+  (Task 04). It prints a diff and applies it with no prompt and no dry-run flag, so an untouched CLI
+  default silently becomes the hosted project's real configuration. Read the diff after the fact and
+  be ready to correct it.
 
 ---
 
@@ -130,7 +147,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏭️ Skipped (recor
 | 01  | Monorepo scaffold, app shell & i18n              | 1         | ✅     | [plan](plans/monorepo-scaffold-app-shell-i18n.md) | [history](history/01-monorepo-scaffold-app-shell-i18n.md) |
 | 02  | Canonical domain model & shared contracts        | 1         | ✅     | [plan](plans/canonical-domain-model-shared-contracts.md) | [history](history/02-canonical-domain-model-shared-contracts.md) |
 | 03  | Supabase database schema & private storage       | 1         | ✅     | [plan](plans/supabase-database-schema-private-storage.md) | [history](history/03-supabase-database-schema-private-storage.md) |
-| 04  | Authentication & ownership enforcement           | 1         | ⬜     | —                                                 | —       |
+| 04  | Authentication & ownership enforcement           | 1         | ✅     | [plan](plans/authentication-ownership-enforcement.md) | [history](history/04-authentication-ownership-enforcement.md) |
 | 05  | Receipt upload API & source-document persistence | 2         | ⬜     | —                                                 | —       |
 | 06  | Mobile capture & upload UI                       | 2         | ⬜     | —                                                 | —       |
 | 07  | Azure extraction provider & canonical mapper     | 2         | ⬜     | —                                                 | —       |
@@ -306,11 +323,11 @@ from the token and never from the request body.
 
 **Definition of done**
 
-- [ ] Register → log in → reload the page → still authenticated → log out → protected route
+- [x] Register → log in → reload the page → still authenticated → log out → protected route
       redirects to login.
-- [ ] `GET /api/receipts` without a token returns 401.
-- [ ] Automated test proves user B gets 404 for user A's receipt id.
-- [ ] Automated test proves a forged `userId` in a request body has no effect.
+- [x] `GET /api/receipts` without a token returns 401.
+- [x] Automated test proves user B gets 404 for user A's receipt id.
+- [x] Automated test proves a forged `userId` in a request body has no effect.
 
 **PRD references:** §7.1, §9.1, §11.2, §12 Phase 1 validation.
 
@@ -335,9 +352,10 @@ retrievable only by its owner.
 - Create the receipt row in `processing` and return `{ id, status, createdAt }`.
 - `GET /api/receipts/:id/source` — ownership and soft-delete checked, then a short-lived signed
   URL or an authorized stream. Never a public URL.
-- `GET /api/receipts/:id` and `DELETE /api/receipts/:id` (soft delete) implemented against the
-  repository. `GET /api/receipts` list endpoint with paging can land here or in Task 10 — pick
-  one and record it.
+- `DELETE /api/receipts/:id` (soft delete) implemented against the repository.
+  **`GET /api/receipts/:id` already shipped in Task 04**, where it was needed to prove the
+  cross-user 404. **Decided:** the paged `GET /api/receipts` list endpoint stays in **Task 10**;
+  Task 04 deliberately did not take it.
 - Error taxonomy for upload failures with translatable, user-facing messages that mention no
   provider or infrastructure terminology.
 

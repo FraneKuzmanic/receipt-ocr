@@ -15,6 +15,8 @@ export interface Config {
   readonly NODE_ENV: NodeEnv;
   readonly LOG_LEVEL: LogLevel;
   readonly WEB_ORIGIN: string;
+  readonly SUPABASE_URL: string;
+  readonly SUPABASE_PUBLISHABLE_KEY: string;
 }
 
 const problems: string[] = [];
@@ -43,11 +45,29 @@ function readEnum<T extends string>(
   return raw as T;
 }
 
+/**
+ * Required values fail at startup rather than at the first request. A missing Supabase URL
+ * cannot be defaulted to anything meaningful, and the alternative — booting fine and then
+ * rejecting every authenticated request — is far harder to diagnose.
+ */
+function readRequired(name: string, raw: string | undefined): string {
+  if (raw === undefined || raw.trim() === "") {
+    problems.push(`${name} is required`);
+    return "";
+  }
+  return raw;
+}
+
 const parsed: Config = {
   PORT: readPort(process.env["PORT"], 3001),
   NODE_ENV: readEnum("NODE_ENV", process.env["NODE_ENV"], NODE_ENVS, "development"),
   LOG_LEVEL: readEnum("LOG_LEVEL", process.env["LOG_LEVEL"], LOG_LEVELS, "info"),
   WEB_ORIGIN: process.env["WEB_ORIGIN"] ?? "http://localhost:5173",
+  SUPABASE_URL: readRequired("SUPABASE_URL", process.env["SUPABASE_URL"]),
+  SUPABASE_PUBLISHABLE_KEY: readRequired(
+    "SUPABASE_PUBLISHABLE_KEY",
+    process.env["SUPABASE_PUBLISHABLE_KEY"],
+  ),
 };
 
 if (problems.length > 0) {

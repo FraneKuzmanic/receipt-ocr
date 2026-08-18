@@ -12,6 +12,27 @@
     "apiOnline": "Dostupna",
     "apiOffline": "Nedostupna"
   },
+  "auth": {
+    "signIn": "Prijava",
+    "signUp": "Registracija",
+    "signOut": "Odjava",
+    "email": "E-adresa",
+    "password": "Lozinka",
+    "submitting": "Pričekajte…",
+    "noAccount": "Nemate korisnički račun? Registrirajte se",
+    "haveAccount": "Već imate korisnički račun? Prijavite se",
+    "errors": {
+      "invalidCredentials": "Neispravna e-adresa ili lozinka.",
+      "emailExists": "Korisnički račun s ovom e-adresom već postoji.",
+      "weakPassword": "Lozinka je preslaba. Upotrijebite najmanje 6 znakova.",
+      "emailInvalid": "Ova e-adresa nije ispravna.",
+      "validationFailed": "Provjerite unesene podatke i pokušajte ponovno.",
+      "rateLimited": "Previše pokušaja. Pričekajte trenutak i pokušajte ponovno.",
+      "signupDisabled": "Registracija novih korisnika trenutačno nije moguća.",
+      "emailNotConfirmed": "Ova e-adresa još nije potvrđena.",
+      "generic": "Došlo je do pogreške. Pokušajte ponovno."
+    }
+  },
   "errors": {
     "network": "Usluga nije dostupna. Provjerite vezu i pokušajte ponovno.",
     "notFound": "Tražena stranica ne postoji."

@@ -102,6 +102,17 @@ Current coverage and what each test protects:
 | `client/src/i18n/i18n.test.ts` | `hr` and `en` have identical key sets and no empty values (PRD §7.13) |
 | `client/src/i18n/warnings.test.ts` | Every `WARNING_CODES` entry has a non-empty `hr` and `en` message, and no orphan message exists. Also proves the canonical model imports from `client` under Vite's `bundler` resolution |
 | `client/src/components/LanguageSwitcher.test.tsx` | Switching language changes rendered copy and persists to `localStorage` |
+| `api/src/auth/authenticator.test.ts` | Claims are accepted only when `role` is `authenticated` and `sub` is a UUID; an `anon` or `service_role` token is refused; every rejection returns `null` rather than throwing |
+| `api/src/middleware/require-auth.test.ts` | Missing, non-`Bearer` and empty-token headers all fail `401 unauthorized`; a verification outage becomes a 500, never a silent 401; a success passes the proven `userId`; `authenticated()` used without `requireAuth` fails loudly instead of answering 401 |
+| `api/src/app.test.ts` (extended) | The whole `/api/receipts` prefix answers 401 without a token — **including a path with no route defined**, which is what proves the guard sits on the prefix rather than on individual routes |
+| `client/src/auth/authErrors.test.ts` | Every mapped Supabase error code has a non-empty `hr` and `en` message; unknown and missing codes fall back to `auth.errors.generic` |
+| `client/src/auth/AuthProvider.test.tsx` | `loading` stays true until the first session read, so a signed-in user never sees a login flash on reload; the session follows `onAuthStateChange`; failures surface a translation key, never Supabase's English prose; the subscription unsubscribes on unmount |
+| `client/src/auth/ProtectedRoute.test.tsx` | Spinner while loading — neither outcome rendered early — redirect to `/login` when signed out, children when signed in |
+| `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none |
+
+**The auth-error translation test is load-bearing for the same reason as the warning one.** Those
+keys are computed from a Supabase error code, so Phase 6.5's literal-`t("…")` scan cannot follow
+them. Without this test a mapped code with no translation would reach a user as a raw key.
 
 **The warning-message test is load-bearing in a way 6.5 cannot replace.** Phase 6.5 only scans
 literal `t("…")` calls; the review form will render warnings with a template literal, which that scan
@@ -134,11 +145,23 @@ These enforce PRD §9.2–§9.4 and must pass on every task.
 ### 6.1 No secret reaches the browser bundle
 
 ```
-node -e "const s=require('fs').readFileSync('.env.example','utf8'); if(/VITE_[A-Z_]*(KEY|SECRET|TOKEN|PASSWORD)/.test(s)) { throw new Error('secret-bearing variable carries a VITE_ prefix'); } console.log('ok');"
+node -e "const fs=require('fs'); const ALLOWED=new Set(['VITE_SUPABASE_PUBLISHABLE_KEY']); const bad=[]; for(const line of fs.readFileSync('.env.example','utf8').split(/\r?\n/)){ const m=/^([A-Z0-9_]+)=/.exec(line.trim()); if(!m) continue; const name=m[1]; if(!name.startsWith('VITE_')) continue; if(ALLOWED.has(name)) continue; if(/(KEY|SECRET|TOKEN|PASSWORD)$/.test(name)) bad.push(name); } if(bad.length) throw new Error('secret-bearing variable carries a VITE_ prefix: '+bad.join(', ')); console.log('ok');"
 ```
 
 Only `VITE_`-prefixed variables reach the client. `AZURE_DOCUMENT_INTELLIGENCE_KEY` and
 `SUPABASE_SECRET_KEY` are server-only.
+
+**Why `VITE_SUPABASE_PUBLISHABLE_KEY` is allow-listed rather than renamed.** Its name ends in `KEY`,
+but it is public by design: it is the successor to the anon key, it is exactly what Row Level
+Security assumes the browser holds, and it authorizes nothing on its own — every row a request can
+reach is decided by the user's own access token and the RLS policies, not by this key. Renaming a
+correctly-named variable to dodge a grep would be working around a check, which the header of this
+file forbids. Adding anything else to `ALLOWED` demands the same standard of justification: the
+value must be safe in the hands of any visitor who opens DevTools.
+
+Verify the check still bites, rather than trusting the allow-list: temporarily add
+`VITE_AZURE_DOCUMENT_INTELLIGENCE_KEY=` to `.env.example`, re-run, confirm it **throws**, then
+remove the line.
 
 ### 6.1b `.env.example` contains names only, never real values
 
@@ -233,11 +256,21 @@ removed, this check is not a substitute.
 
 ---
 
-## Phase 7: Supabase database and integration tests
+## Phase 7: Supabase integration
 
-This phase requires Docker Desktop. It validates migration repeatability, the database contract,
-owner-only RLS, exact decimals, the typed repository and private Storage. Normal `npm test` does not
-start Docker and is not a substitute for this phase.
+Split in two, because the halves have different costs and different triggers. **7b runs on every
+task. 7a runs whenever the schema changes.**
+
+### 7a — Schema and migrations (requires Docker)
+
+Validates migration repeatability, the database contract, owner-only RLS, exact decimals, the typed
+repository and private Storage against a disposable local stack. Normal `npm test` does not start
+Docker and is not a substitute.
+
+**Required whenever `supabase/migrations/` changes; skippable when it does not** — starting a
+container to re-prove an unchanged schema is ceremony, not verification. A skip must be **reported**
+with that reason, per the Reporting rule at the end of this file. A phase that was not run is not a
+passing phase.
 
 Run separately so PowerShell preserves every exit code:
 
@@ -248,7 +281,7 @@ npm run db:reset
 npm run db:lint
 npm run db:test
 npm run db:types
-npm run test:integration
+npm run test:integration:local
 npx --no-install supabase migration list --local
 ```
 
@@ -258,12 +291,40 @@ bucket is private; and the local migration list contains every committed migrati
 
 When finished with database work, `npm run db:stop` stops the stack without deleting its volumes.
 
+### 7b — Live integration against the hosted project (no Docker)
+
+```
+npm run test:integration
+```
+
+Runs `api/src/repositories/receipts.integration.ts` and `api/src/auth/auth.integration.ts` against
+the hosted project. **Required on every task.**
+
+Hosted is the default target for fidelity, not convenience: the hosted project signs JWTs with
+**ES256**, so `getClaims` verifies in-process against a cached JWKS, while the local stack falls back
+to the legacy symmetric secret and `supabase-js` takes a different verification branch entirely. A
+Docker-only auth test would pass while never exercising the path production uses.
+
+Confirm the runner prints the **hosted** host before any test executes — it always names its
+resolved target, and there is deliberately no automatic fallback between the two.
+
+Each run creates two disposable users and deletes them afterwards; `receipts.user_id` is
+`on delete cascade`, so their rows go with them. After any failed or interrupted run, check for
+orphans, which carry a greppable `task03-`/`task04-` prefix:
+
+```
+node --env-file-if-exists=.env -e "const {createClient}=require('@supabase/supabase-js'); const a=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SECRET_KEY); a.auth.admin.listUsers().then(r=>console.log(r.data.users.filter(u=>u.email?.startsWith('task')).map(u=>u.email)))"
+```
+
+Expected: an empty array. Anything listed is an orphan — delete it.
+
 ---
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 01 there is one journey, because the application is a scaffold with no receipt
-functionality yet.** Everything below runs against real servers, not mocks.
+**As of Task 04 there are two journeys: the shared contract and authentication. There is still no
+receipt capture, review or history to exercise.** Everything below runs against real servers, not
+mocks.
 
 ### 8.1 Start the stack
 
@@ -331,13 +392,51 @@ Open <http://localhost:5173>.
 
 ---
 
+### 8.5 Journey — register, stay signed in, sign out
+
+Ownership is the one thing a user cannot verify for themselves, so it is checked here directly
+rather than trusted to the unit tests.
+
+```
+try { Invoke-WebRequest -Uri "http://localhost:3001/api/receipts" -UseBasicParsing } catch { $_.Exception.Response.StatusCode.value__ }
+```
+
+Expected: `401`, body `{"error":{"code":"unauthorized"}}` — note this path has **no route defined**,
+so a `404` here would mean the guard has slipped off the prefix and onto individual routes.
+
+```
+try { Invoke-WebRequest -Uri "http://localhost:3001/api/receipts/00000000-0000-0000-0000-000000000000" -UseBasicParsing } catch { $_.Exception.Response.StatusCode.value__ }
+```
+
+Expected: `401`, not `404`. Identity is checked before existence.
+
+In the browser at <http://localhost:5173>:
+
+1. Visiting `/` while signed out redirects to `/login`, with no flash of the home page first.
+2. Register a new account → land on the home page, signed in.
+3. Reload → still signed in, and **no login screen flash** on the way. A flash means `loading`
+   is being cleared before the first `getSession()` resolves.
+4. Toggle HR/EN on the login screen: every label, button and link switches — including a failed
+   sign-in error, which must never appear as Supabase's English prose.
+5. Sign in with a wrong password → a translated error.
+6. Sign out → redirected to `/login`; navigating back to `/` redirects again.
+7. Visit an unknown URL while signed out: it redirects to `/login` rather than rendering. The
+   catch-all route lives inside the protected branch precisely so it cannot become a bypass.
+8. At 375 px width both forms are usable one-handed, with 44 px targets and no horizontal overflow.
+9. `document.documentElement.lang` matches the active language on a fresh load, and the tab title
+   is translated.
+
+The cross-user 404 is proven by `api/src/auth/auth.integration.ts` in Phase 7b rather than by hand:
+it needs two real accounts and genuine ES256 tokens.
+
+---
+
 ## Phase 9: Journeys to add as the roadmap progresses
 
 Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
 
 | Task | Journey to add |
 |---|---|
-| 04 | Register → log in → reload (still authenticated) → log out → protected route redirects. Cross-user access to a receipt returns 404, and a forged `userId` in a request body has no effect. |
 | 05 | Upload each supported type creates a row and stores the object. A `.exe` renamed to `.jpg` is rejected by content sniffing. An oversized file fails cleanly. A non-owner gets 404 for `/source`. An expired signed URL no longer serves the file. |
 | 06 | Capture → preview → retake → submit → processing state resolves to review or an actionable failure. Denying camera permission still leaves a working upload path. |
 | 07 | A real Croatian receipt photo reaches `review` with seller, document number, issue date, total and currency populated. A simulated Azure 429/500 produces `failed` with a working retry. No Azure field name appears in any API response. |
@@ -388,7 +487,8 @@ nothing from the generator, because the commands it would find are already here.
 - [ ] `npm test` passes with zero failures
 - [ ] `npm run build` produces a web bundle and compiled API output
 - [ ] Every Phase 6 security check passes
-- [ ] Phase 7 database and integration validation passes
+- [ ] Phase 7b (hosted integration) passes, and Phase 7a passes whenever the schema changed —
+      a skipped 7a is named and justified, never counted as green
 - [ ] Every Phase 8 journey completes, including the manual browser checks
 - [ ] Any feature shipped since the last run has a journey in Phase 8
 
