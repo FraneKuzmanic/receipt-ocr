@@ -4,10 +4,12 @@ import {
   canonicalReceiptFieldsSchema,
   canonicalReceiptSchema,
   receiptWarningSchema,
+  sourceContentTypeSchema,
   type CanonicalReceipt,
   type CanonicalReceiptFields,
   type ReceiptStatus,
   type ReceiptWarning,
+  type SourceContentType,
 } from "@receipt/shared";
 import type { Database, Json } from "../database.types.js";
 
@@ -42,6 +44,11 @@ export interface UpdateReceiptInput {
   warnings?: ReceiptWarning[];
   confirmedAt?: string | null;
   deletedAt?: string | null;
+}
+
+export interface ReceiptSourceMetadata {
+  readonly contentType: SourceContentType;
+  readonly originalFilename: string;
 }
 
 export type ReceiptRepositoryErrorCode = "invalid_data" | "query_failed";
@@ -106,6 +113,25 @@ export class ReceiptRepository {
 
     if (error) throw new ReceiptRepositoryError("query_failed", error);
     return data === null ? null : mapReceiptRow(data);
+  }
+
+  /** Source metadata stays internal to this focused read; canonical receipt DTOs expose no storage fields. */
+  async findSourceById(id: string): Promise<ReceiptSourceMetadata | null> {
+    const { data, error } = await this.#client
+      .from("receipts")
+      .select("source_content_type, source_original_filename")
+      .eq("id", uuidSchema.parse(id))
+      .eq("user_id", this.#userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    if (data === null) return null;
+
+    const contentType = sourceContentTypeSchema.safeParse(data.source_content_type);
+    if (!contentType.success) throw new ReceiptRepositoryError("invalid_data");
+
+    return { contentType: contentType.data, originalFilename: data.source_original_filename };
   }
 
   async listCurrent(): Promise<CanonicalReceipt[]> {

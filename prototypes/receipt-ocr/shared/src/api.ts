@@ -4,6 +4,7 @@ import {
   canonicalReceiptSchema,
   receiptStatusSchema,
 } from "./receipt.js";
+import { sourceContentTypeSchema } from "./upload.js";
 
 /**
  * The API's universal failure body, mirroring `api/src/middleware/error-handler.ts`.
@@ -26,6 +27,18 @@ export const createReceiptResponseSchema = canonicalReceiptSchema.pick({
 });
 
 export type CreateReceiptResponse = z.infer<typeof createReceiptResponseSchema>;
+
+/** PRD §10.8 — `GET /api/receipts/:id/source` */
+export const sourceDocumentResponseSchema = z
+  .object({
+    url: z.url(),
+    contentType: sourceContentTypeSchema,
+    originalFilename: z.string(),
+    expiresAt: z.iso.datetime(),
+  })
+  .strict();
+
+export type SourceDocumentResponse = z.infer<typeof sourceDocumentResponseSchema>;
 
 /**
  * PRD §10.2 — `GET /api/receipts`

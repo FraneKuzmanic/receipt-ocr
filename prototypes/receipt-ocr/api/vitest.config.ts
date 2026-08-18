@@ -11,6 +11,7 @@ export default defineConfig({
       LOG_LEVEL: "silent",
       SUPABASE_URL: "http://127.0.0.1:54321",
       SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+      STORAGE_BUCKET: "receipt-sources",
     },
   },
 });
