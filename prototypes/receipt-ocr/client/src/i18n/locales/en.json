@@ -12,6 +12,27 @@
     "apiOnline": "Available",
     "apiOffline": "Unavailable"
   },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "signOut": "Sign out",
+    "email": "Email address",
+    "password": "Password",
+    "submitting": "Please wait…",
+    "noAccount": "No account yet? Create one",
+    "haveAccount": "Already have an account? Sign in",
+    "errors": {
+      "invalidCredentials": "Incorrect email address or password.",
+      "emailExists": "An account with this email address already exists.",
+      "weakPassword": "This password is too weak. Use at least 6 characters.",
+      "emailInvalid": "This email address is not valid.",
+      "validationFailed": "Check the details you entered and try again.",
+      "rateLimited": "Too many attempts. Wait a moment and try again.",
+      "signupDisabled": "New registrations are currently disabled.",
+      "emailNotConfirmed": "This email address has not been confirmed yet.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
   "errors": {
     "network": "The service could not be reached. Check your connection and try again.",
     "notFound": "The page you are looking for does not exist."
