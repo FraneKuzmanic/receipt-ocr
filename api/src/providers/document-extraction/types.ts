@@ -1,4 +1,5 @@
 import type { CanonicalReceiptFields, SourceContentType } from "@receipt/shared";
+import type { FiscalQrData } from "./fiscal-qr.js";
 
 /** Metadata for Task 09's low-confidence highlighting; it never suppresses a value. */
 export const LOW_CONFIDENCE_THRESHOLD = 0.7;
@@ -21,11 +22,14 @@ export interface ExtractionMetadata {
   readonly latencyMs: number;
   readonly documentConfidence: number | null;
   readonly fields: Record<string, ExtractionFieldMetadata>;
+  readonly unreadableFields: string[];
 }
 
 export interface ProviderExtractionResult {
   readonly fields: CanonicalReceiptFields;
   readonly metadata: ExtractionMetadata;
+  /** Decoded QR payload when Azure found a QR code; null when it found none. */
+  readonly qr: FiscalQrData | null;
   /** Provider response retained verbatim for debugging. */
   readonly raw: unknown;
 }

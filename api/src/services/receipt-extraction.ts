@@ -7,6 +7,7 @@ import {
   ExtractionError,
   type DocumentExtractionProvider,
 } from "../providers/document-extraction/types.js";
+import { computeWarnings } from "../validation/warnings.js";
 import type { SourceContentType } from "@receipt/shared";
 
 export interface ExtractReceiptInput {
@@ -27,18 +28,26 @@ export async function extractReceipt(input: ExtractReceiptInput): Promise<void> 
       bytes: input.bytes,
       contentType: input.contentType,
     });
+    const warnings = computeWarnings({
+      fields: result.fields,
+      qr: result.qr,
+      unreadable: result.metadata.unreadableFields,
+    });
     await repository.update(input.receiptId, {
       status: "review",
       canonicalData: result.fields,
       originalExtraction: result.fields,
       extractionMetadata: json(result.metadata),
+      qrExtraction: result.qr === null ? null : json(result.qr),
       rawProviderResult: json(result.raw),
+      warnings,
     });
     logger.info(
       {
         receiptId: input.receiptId,
         modelId: result.metadata.modelId,
         latencyMs: result.metadata.latencyMs,
+        warningCount: warnings.length,
         status: "review",
       },
       "receipt extraction finished",

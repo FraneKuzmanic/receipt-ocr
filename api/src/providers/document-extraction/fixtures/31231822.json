@@ -1,7 +1,7 @@
 {
   "status": "succeeded",
-  "createdDateTime": "2026-08-19T09:35:50Z",
-  "lastUpdatedDateTime": "2026-08-19T09:35:54Z",
+  "createdDateTime": "2026-08-19T12:38:33Z",
+  "lastUpdatedDateTime": "2026-08-19T12:38:36Z",
   "analyzeResult": {
     "apiVersion": "2024-11-30",
     "modelId": "prebuilt-invoice",

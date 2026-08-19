@@ -48,7 +48,9 @@ const provider: DocumentExtractionProvider = {
         latencyMs: 1,
         documentConfidence: 1,
         fields: {},
+        unreadableFields: [],
       },
+      qr: null,
       raw: { status: "succeeded" },
     };
   },

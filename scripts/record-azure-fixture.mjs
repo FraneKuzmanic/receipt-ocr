@@ -24,7 +24,7 @@ for (const name of await readdir(directory)) {
   const initial = await client.path("/documentModels/{modelId}:analyze", modelId).post({
     contentType: "application/json",
     body: { base64Source: bytes.toString("base64") },
-    queryParameters: { locale },
+    queryParameters: { locale, features: ["barcodes"] },
   });
   if (isUnexpected(initial))
     throw new Error(`Azure rejected ${name} with status ${initial.status}`);
