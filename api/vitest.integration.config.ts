@@ -12,6 +12,10 @@ export default defineConfig({
     minWorkers: 1,
     testTimeout: 30_000,
     hookTimeout: 30_000,
-    env: { LOG_LEVEL: "silent" },
+    env: {
+      LOG_LEVEL: "silent",
+      AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: "https://document-intelligence.test",
+      AZURE_DOCUMENT_INTELLIGENCE_KEY: "test-key",
+    },
   },
 });

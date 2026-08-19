@@ -5,7 +5,15 @@ import { config } from "./config.js";
 export const logger = pino({
   level: config.LOG_LEVEL,
   redact: {
-    paths: ["req.headers.authorization", "req.headers.cookie", "*.file", "*.signedUrl"],
+    paths: [
+      "req.headers.authorization",
+      "req.headers.cookie",
+      "*.file",
+      "*.bytes",
+      "*.content",
+      "*.raw",
+      "*.signedUrl",
+    ],
     remove: true,
   },
 });

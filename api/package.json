@@ -10,6 +10,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@azure-rest/ai-document-intelligence": "1.1.0",
     "@receipt/shared": "*",
     "@supabase/supabase-js": "2.112.3",
     "cors": "2.8.6",

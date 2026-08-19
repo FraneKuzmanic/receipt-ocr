@@ -39,6 +39,10 @@ describe("parseAmount", () => {
     ["1234.56 EUR", "1234.56"],
     ["1.234,56 EUR", "1234.56"],
 
+    // Croatian kuna: pre-2023 receipts use the abbreviation "kn", not only the ISO code HRK.
+    ["13.00 kn", "13.00"],
+    ["13,00 KN", "13.00"],
+
     // More than one thousands group.
     ["1.234.567,89", "1234567.89"],
     ["1,234,567.89", "1234567.89"],

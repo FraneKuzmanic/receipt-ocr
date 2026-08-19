@@ -178,6 +178,7 @@ only a per-project run catches a stale project name.
 | `GET`  | `/api/health`       | —    | `200 {"status":"ok","uptimeSeconds":number}`   |
 | `GET`  | `/api/receipts/:id` | Yes  | `200` canonical receipt, `404` if not yours    |
 | `POST` | `/api/receipts` | Yes | `201 {"id", "status", "createdAt"}` after one multipart `file` part |
+| `POST` | `/api/receipts/:id/retry` | Yes | `202 {"id", "status"}` for retryable `failed` or stranded `processing` receipts; otherwise `409 retry_not_allowed` |
 | `GET` | `/api/receipts/:id/source` | Yes | `200 {"url", "contentType", "originalFilename", "expiresAt"}`, `404` if not yours or deleted |
 | `DELETE` | `/api/receipts/:id` | Yes | `204`, then the receipt and source endpoint return `404` |
 
@@ -248,9 +249,27 @@ asks the user to choose a JPEG, PNG or PDF instead; it does not convert the orig
 browser.
 
 After a successful upload, the client polls the receipt every **2 seconds** for up to **60 seconds**.
-It moves a `review` receipt to the review-ready destination, gives a failed request an upload-another
-action, and exposes check-again plus upload-another actions for network errors or a timeout. Until
-Task 07 adds extraction, ordinary uploads remain `processing` and therefore time out by design.
+It moves a `review` receipt to the review-ready destination, exposes a retry action for a failed
+extraction, and exposes check-again plus upload-another actions for network errors or a timeout.
+
+### Extraction
+
+The API sends the stored source to Azure Document Intelligence asynchronously after returning `201`.
+It uses API version `2024-11-30` and the `prebuilt-invoice` model. Recorded runs over seven supplied
+examples (six photos and one PDF) found seller, document number and total in all seven; the issue date
+in six, with labelled Croatian text as the fallback; and symbol-backed currency in four. The receipt
+model was retained only in the comparison harness because it does not expose a document-number field.
+
+Azure field names stay inside the provider adapter. The result is mapped to the application's canonical
+receipt fields, stored once as both `original_extraction` and `canonical_data`, and the raw provider
+response is retained separately for debugging. Failed, retryable calls can re-run from the private
+source object; malformed content, bad credentials and missing provider resources are non-retryable,
+while throttling, service faults, timeouts and network failures are retryable.
+
+Confidence is recorded per canonical field but never suppresses a readable value. The review flow can
+therefore highlight a low-confidence value later without forcing a person to retype it. Amounts and
+quantities are parsed from the provider's text `content`, never from `valueCurrency.amount` or
+`valueNumber`: those are JavaScript numbers and would lose the required decimal precision.
 
 ## Authentication
 
@@ -506,8 +525,11 @@ first.
 | `NODE_ENV`                             | `development`           | `development` \| `test` \| `production` |
 | `LOG_LEVEL`                            | `info`                  | pino level, or `silent`  |
 | `WEB_ORIGIN`                           | `http://localhost:5173` | CORS allow-list origin   |
-| `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | —                       | Task 07, server-only     |
-| `AZURE_DOCUMENT_INTELLIGENCE_KEY`      | —                       | Task 07, **server-only** |
+| `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | —                       | **Required at startup**, server-only |
+| `AZURE_DOCUMENT_INTELLIGENCE_KEY`      | —                       | **Required at startup**, server-only |
+| `AZURE_DI_MODEL_ID`                    | `prebuilt-invoice`       | Azure model id           |
+| `AZURE_DI_LOCALE`                      | `hr-HR`                  | Azure locale hint        |
+| `EXTRACTION_TIMEOUT_MS`                | `60000`                  | Azure extraction timeout in milliseconds |
 | `SUPABASE_URL`                         | —                       | **Required at startup**  |
 | `SUPABASE_PUBLISHABLE_KEY`             | —                       | **Required at startup**; safe in a browser |
 | `SUPABASE_SECRET_KEY`                  | —                       | Task 03, **server-only** — bypasses RLS |
@@ -544,6 +566,7 @@ removing it in a later commit is not sufficient.
 ## Logging
 
 `api/src/logger.ts` configures pino with redaction for `authorization` and `cookie` headers and any
-`*.file` or `*.signedUrl` field (PRD §9.4). Receipt images, extracted receipt contents and signed
-URLs must never be logged. That redaction list is inherited by every later task — extend it rather
+`*.file`, `*.bytes`, `*.content`, `*.raw` or `*.signedUrl` field (PRD §9.4). Receipt images, extracted
+receipt contents, raw provider results and signed URLs must never be logged. That redaction list is
+inherited by every later task — extend it rather
 than working around it.

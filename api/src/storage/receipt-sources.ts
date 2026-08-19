@@ -20,6 +20,15 @@ export async function uploadSource(
   if (error) throw new Error("Could not store receipt source.");
 }
 
+export async function downloadSource(
+  client: SupabaseClient<Database>,
+  path: string,
+): Promise<Buffer> {
+  const { data, error } = await client.storage.from(config.STORAGE_BUCKET).download(path);
+  if (error || data === null) throw new Error("Could not download receipt source.");
+  return Buffer.from(await data.arrayBuffer());
+}
+
 export async function createSourceSignedUrl(
   client: SupabaseClient<Database>,
   path: string,
