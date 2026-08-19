@@ -93,7 +93,7 @@ Current coverage and what each test protects:
 
 | Test | Protects |
 |---|---|
-| `shared/src/money.test.ts` | Croatian and English amounts parse to one canonical decimal string; trailing zeros survive (`100.50` never becomes `100.5`); values beyond float precision are exact; unreadable input returns `null` and never throws; `Big.strict` rejects a JS number at runtime |
+| `shared/src/money.test.ts` | Croatian and English amounts parse to one canonical decimal string; trailing zeros survive (`100.50` never becomes `100.5`); values beyond float precision are exact; unreadable input returns `null` and never throws; `Big.strict` rejects a JS number at runtime; the Croatian kuna abbreviation `kn` (not only the ISO code `HRK`) is stripped like any other currency token — a real receipt's `total` was silently dropped before this was added |
 | `shared/src/datetime.test.ts` | Croatian day-first dates normalize to `yyyy-mm-dd`; the calendar is validated by hand including leap years; a time with no seconds does not gain `:00`; output satisfies `z.iso.date()` / `z.iso.time()` |
 | `shared/src/receipt.test.ts` | The canonical schema accepts an all-null and an all-absent receipt, requires UUID persisted identifiers, rejects an unknown status, rejects unnormalized money and dates, and rejects unknown keys. Also the **provider-independence guard**: no Azure vocabulary anywhere in `shared/src` (PRD §6.2) |
 | `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold |
@@ -115,6 +115,10 @@ Current coverage and what each test protects:
 | `api/src/upload/source-file.test.ts` | Byte-sniffs the five accepted source types; rejects disguised executables, text and HEIC sequences; validates PDFs; preserves/caps filenames |
 | `api/src/upload/multipart.test.ts` | Multipart limits and malformed forms become stable, translatable upload error codes before a route can reach Storage |
 | `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
+| `api/src/providers/document-extraction/croatian.test.ts` | Croatian OIB, JIR, ZKI, issue date, issue time and document-number text fallbacks handle valid, absent and malformed receipt text |
+| `api/src/providers/document-extraction/azure-fields.test.ts` | Recorded Azure fixtures map to canonical fields offline; exact decimal strings come from text rather than provider floats |
+| `api/src/providers/document-extraction/azure.test.ts` | Azure retryability classification, deterministic fallbacks isolated from the network, and — regression coverage for a real post-review bug — the request's abort signal is proven to reach the long-running poll, and a poll that outlives `EXTRACTION_TIMEOUT_MS` is proven to reject as a retryable failure rather than hang |
+| `api/src/services/receipt-extraction.test.ts` | Background extraction writes review/original data together and contains expected and unexpected failures |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
 keys are computed from a Supabase error code, so Phase 6.5's literal-`t("…")` scan cannot follow
@@ -269,6 +273,28 @@ or stable error parsing in `client/src/api/client.ts`.
 node -e "const fs=require('fs'),path=require('path'); const bad=[],allowed=path.normalize('client/src/api/client.ts'); (function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,e.name); if(e.isDirectory()) walk(f); else if(/\.tsx?$/.test(e.name)&&path.normalize(f)!==allowed&&/\bfetch\s*\(/.test(fs.readFileSync(f,'utf8'))) bad.push(f);}})('client/src'); if(bad.length) throw new Error('raw fetch outside client API module: '+bad.join(', ')); console.log('ok');"
 ```
 
+### 6.10 Extraction never reads provider float values
+
+```
+node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/providers/document-extraction/azure-fields.ts','utf8'); if(/valueCurrency\s*\.\s*amount|\.valueNumber\b/.test(s)) throw new Error('mapper reads a float money value'); console.log('ok');"
+```
+
+### 6.11 Locale files contain no mojibake
+
+A Task 07 review shipped `"PokuÅ¡ajte ponovno"` instead of `"Pokušajte ponovno"` — UTF-8 bytes for `š`
+re-interpreted as Latin-1 and re-saved. Every automated check passed: `i18n.test.ts` only verifies
+key presence and non-emptiness, and Prettier does not validate string *content*. Croatian text never
+legitimately contains `À`–`Å` (U+00C0–U+00C5), so one of those immediately followed by a Latin-1
+Supplement punctuation character (U+0080–U+00BF) is essentially always this exact corruption.
+
+```
+node -e "const fs=require('fs'); const hi=String.fromCharCode(0xC0)+'-'+String.fromCharCode(0xC5); const lo=String.fromCharCode(0x80)+'-'+String.fromCharCode(0xBF); const pattern=new RegExp('['+hi+']['+lo+']','g'); const bad=[]; for (const f of ['client/src/i18n/locales/hr.json','client/src/i18n/locales/en.json']) { const s=fs.readFileSync(f,'utf8'); const m=[...s.matchAll(pattern)]; if (m.length) bad.push(f+': '+m.map(x=>JSON.stringify(x[0])).join(', ')); } if(bad.length) throw new Error('possible mojibake (UTF-8 misread as Latin-1) in locale files: '+bad.join(' | ')); console.log('ok');"
+```
+
+If this fails, do not just retype the affected key — check how the edit was made (a shell heredoc or
+tool that assumed the wrong source encoding is the usual cause) so the same key does not get corrupted
+again on the next edit.
+
 ---
 
 ## Phase 7: Supabase integration
@@ -339,9 +365,9 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 06 there are four journeys: the shared contract, authentication, source-document
-lifecycle and mobile capture/processing. Review is only a ready destination; the editable review form
-and history remain future work.** Everything below runs against real servers, not mocks.
+**As of Task 07 there are five journeys: the shared contract, authentication, source-document
+lifecycle, mobile capture/processing and extraction/retry. Review is only a ready destination; the
+editable review form and history remain future work.** Everything below runs against real servers, not mocks.
 
 ### 8.1 Start the stack
 
@@ -478,17 +504,23 @@ usable. Select a real image, inspect its preview, retake it, then select the sam
 Verify the request sends the exact selected file as its only multipart part, then reaches the processing
 route. Repeat with a PDF and verify the document preview.
 
-With Task 07 absent, leave one disposable upload in `processing` for 60 seconds and verify timeout,
-Check again and Upload another receipt. Stop the API during another poll and verify the actionable
-request-error state recovers through Check again after restart. Using the hosted admin client, set one
-disposable receipt row to `review` and another to `failed`; the browser must observe the real polling
-response, route to review-ready for the former and stop with Upload another receipt for the latter. Do
-not add product-only test controls.
+Stop the API during a poll and verify the actionable request-error state recovers through Check again
+after restart. A failed extraction must expose Retry and resume polling after a `202` response. Do not
+add product-only test controls.
 
 On a current iOS Safari or Android Chrome phone connected to the same trusted LAN, open Vite's Network
 URL. Capture a real receipt, cancel or deny capture once, use the fallback, retake, upload, rotate the
 phone and check one-handed 44 px controls. Record the device, OS, browser and actual camera-picker
 behavior in the Task 06 history. A desktop emulator does not satisfy this journey.
+
+### 8.8 Journey — extraction and retry
+
+Upload a real Croatian receipt photo and the supplied PDF. Each must reach `review`; inspect the row to
+confirm `original_extraction` equals `canonical_data`, `raw_provider_result` is present and extraction
+metadata contains latency and field confidence. Temporarily use an unreachable Azure endpoint, upload a
+disposable receipt and confirm it reaches `failed`; restore the endpoint, use Retry, and confirm it
+reaches `review`. Check both languages and confirm no provider field name appears in the API response
+or UI.
 
 ---
 
@@ -498,7 +530,6 @@ Phase 8 must grow with the product. When a task below ships, add its journey and
 
 | Task | Journey to add |
 |---|---|
-| 07 | A real Croatian receipt photo reaches `review` with seller, document number, issue date, total and currency populated. A simulated Azure 429/500 produces `failed` with a working retry. No Azure field name appears in any API response. |
 | 08 | A readable fiscal QR decodes and stores. Missing and damaged QR codes still reach `review`. A deliberate QR/total mismatch raises exactly one warning that clears after correction. |
 | 09 | Pre-populated review form → edit a wrong document number → save → confirm **with a warning outstanding** succeeds. `original_extraction` still holds the pre-edit machine values. |
 | 10 | History lists only the current user's receipts, newest first, paged and status-filtered. Soft delete removes it from history while the row persists with `deleted_at` set. |

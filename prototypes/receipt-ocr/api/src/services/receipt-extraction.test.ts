@@ -1,0 +1,101 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../database.types.js";
+import {
+  ExtractionError,
+  type DocumentExtractionProvider,
+} from "../providers/document-extraction/types.js";
+
+const update = vi.fn();
+
+vi.mock("../repositories/receipts.js", () => ({
+  ReceiptRepository: class {
+    update = update;
+  },
+}));
+
+const { extractReceipt } = await import("./receipt-extraction.js");
+
+const providerResult = {
+  fields: { sellerName: "Seller", total: "100.50" },
+  metadata: {
+    provider: "azure-document-intelligence",
+    modelId: "prebuilt-invoice",
+    apiVersion: "2024-11-30",
+    analyzedAt: "2026-08-19T10:00:00.000Z",
+    latencyMs: 100,
+    documentConfidence: 0.9,
+    fields: {},
+  },
+  raw: { status: "succeeded" },
+};
+
+function input(provider: DocumentExtractionProvider) {
+  return {
+    provider,
+    client: {} as SupabaseClient<Database>,
+    userId: "11111111-1111-4111-8111-111111111111",
+    receiptId: "22222222-2222-4222-8222-222222222222",
+    bytes: Buffer.from("receipt"),
+    contentType: "image/jpeg" as const,
+  };
+}
+
+beforeEach(() => {
+  update.mockReset();
+  update.mockResolvedValue({ id: "receipt" });
+});
+
+describe("receipt extraction service", () => {
+  it("writes review with identical canonical and original machine values", async () => {
+    await extractReceipt(input({ extract: async () => providerResult }));
+
+    expect(update).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        status: "review",
+        canonicalData: providerResult.fields,
+        originalExtraction: providerResult.fields,
+      }),
+    );
+  });
+
+  it("records a non-retryable failure", async () => {
+    await extractReceipt(
+      input({
+        extract: async () => {
+          throw new ExtractionError("unreadable_document", false);
+        },
+      }),
+    );
+
+    expect(update).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        status: "failed",
+        extractionMetadata: { failure: { reason: "unreadable_document", retryable: false } },
+      }),
+    );
+  });
+
+  it("contains unexpected provider failures and treats a soft-deleted row as success", async () => {
+    update.mockResolvedValue(null);
+    await expect(
+      extractReceipt(
+        input({
+          extract: async () => {
+            throw new Error("network down");
+          },
+        }),
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(update).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        status: "failed",
+        extractionMetadata: { failure: { reason: "provider_unavailable", retryable: true } },
+      }),
+    );
+  });
+});

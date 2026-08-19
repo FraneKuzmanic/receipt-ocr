@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   canonicalReceiptFieldsSchema,
   canonicalReceiptSchema,
+  receiptStatusSchema,
   receiptWarningSchema,
   sourceContentTypeSchema,
   type CanonicalReceipt,
@@ -49,6 +50,11 @@ export interface UpdateReceiptInput {
 export interface ReceiptSourceMetadata {
   readonly contentType: SourceContentType;
   readonly originalFilename: string;
+}
+
+export interface ReceiptExtractionState {
+  readonly status: ReceiptStatus;
+  readonly extractionMetadata: Json | null;
 }
 
 export type ReceiptRepositoryErrorCode = "invalid_data" | "query_failed";
@@ -132,6 +138,24 @@ export class ReceiptRepository {
     if (!contentType.success) throw new ReceiptRepositoryError("invalid_data");
 
     return { contentType: contentType.data, originalFilename: data.source_original_filename };
+  }
+
+  async findExtractionState(id: string): Promise<ReceiptExtractionState | null> {
+    const { data, error } = await this.#client
+      .from("receipts")
+      .select("status, extraction_metadata")
+      .eq("id", uuidSchema.parse(id))
+      .eq("user_id", this.#userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    return data === null
+      ? null
+      : {
+          status: receiptStatusSchema.parse(data.status),
+          extractionMetadata: data.extraction_metadata,
+        };
   }
 
   async listCurrent(): Promise<CanonicalReceipt[]> {

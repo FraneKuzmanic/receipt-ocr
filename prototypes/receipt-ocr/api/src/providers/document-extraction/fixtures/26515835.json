@@ -1,0 +1,1849 @@
+{
+  "status": "succeeded",
+  "createdDateTime": "2026-08-19T09:35:40Z",
+  "lastUpdatedDateTime": "2026-08-19T09:35:49Z",
+  "analyzeResult": {
+    "apiVersion": "2024-11-30",
+    "modelId": "prebuilt-invoice",
+    "stringIndexType": "textElements",
+    "content": "Eurospin Hrvatska d.o.o.\nEURO\nJelačićev trg 7, 51000 Rijeka\nOIB: 62357811032\nSpin\nEUROSPIN SISAK\nSupernova Sisak West\nZagrebačka ul. 49g\n44000 Sisak\nBLAGAJNA 2\nEUR\nNet 2,092kg × 0,95 EUR/kg\nLIMUN rfz\n1,99\nMEĐUZBROJ\n1,99\nMEĐUZBROJ\n1,99\nUKUPNO EUR\n1,99\nGOTOVINA\n2,00\nZA VRATITI\n0,01\n23.1.2024. 15:12\nPB. 0396\nStopa%\nOsnovica\nIznos poreza\n05.00%\n01.90\n00.09\nRačun broj:\n10752/310012/2\nZKI: 602b3d9defd5587af4de4b7f848a52c5\nJIR: 1193a137-a1f5-4085-9e1b-3a0919701a4f\nBLAGAJNIK: 012-009\nHVALA I DOVIĐENJA",
+    "pages": [
+      {
+        "pageNumber": 1,
+        "angle": -0.3224000036716461,
+        "width": 1280,
+        "height": 3066,
+        "unit": "pixel",
+        "words": [
+          {
+            "content": "Eurospin",
+            "polygon": [534, 271, 736, 272, 735, 323, 534, 322],
+            "confidence": 0.999,
+            "span": {
+              "offset": 0,
+              "length": 8
+            }
+          },
+          {
+            "content": "Hrvatska",
+            "polygon": [755, 271, 945, 273, 945, 323, 755, 323],
+            "confidence": 0.994,
+            "span": {
+              "offset": 9,
+              "length": 8
+            }
+          },
+          {
+            "content": "d.o.o.",
+            "polygon": [961, 274, 1078, 275, 1078, 323, 961, 323],
+            "confidence": 0.993,
+            "span": {
+              "offset": 18,
+              "length": 6
+            }
+          },
+          {
+            "content": "EURO",
+            "polygon": [158, 364, 339, 364, 339, 432, 158, 432],
+            "confidence": 0.991,
+            "span": {
+              "offset": 25,
+              "length": 4
+            }
+          },
+          {
+            "content": "Jelačićev",
+            "polygon": [498, 324, 709, 325, 709, 377, 498, 375],
+            "confidence": 0.989,
+            "span": {
+              "offset": 30,
+              "length": 9
+            }
+          },
+          {
+            "content": "trg",
+            "polygon": [722, 325, 781, 325, 781, 378, 722, 377],
+            "confidence": 0.98,
+            "span": {
+              "offset": 40,
+              "length": 3
+            }
+          },
+          {
+            "content": "7,",
+            "polygon": [798, 325, 831, 325, 831, 378, 798, 378],
+            "confidence": 0.995,
+            "span": {
+              "offset": 44,
+              "length": 2
+            }
+          },
+          {
+            "content": "51000",
+            "polygon": [848, 326, 972, 326, 972, 378, 848, 378],
+            "confidence": 0.996,
+            "span": {
+              "offset": 47,
+              "length": 5
+            }
+          },
+          {
+            "content": "Rijeka",
+            "polygon": [990, 326, 1127, 327, 1127, 378, 989, 378],
+            "confidence": 0.989,
+            "span": {
+              "offset": 53,
+              "length": 6
+            }
+          },
+          {
+            "content": "OIB:",
+            "polygon": [608, 379, 699, 380, 699, 427, 608, 426],
+            "confidence": 0.956,
+            "span": {
+              "offset": 60,
+              "length": 4
+            }
+          },
+          {
+            "content": "62357811032",
+            "polygon": [717, 380, 1000, 383, 1000, 430, 717, 427],
+            "confidence": 0.993,
+            "span": {
+              "offset": 65,
+              "length": 11
+            }
+          },
+          {
+            "content": "Spin",
+            "polygon": [132, 436, 359, 434, 359, 576, 133, 578],
+            "confidence": 0.992,
+            "span": {
+              "offset": 77,
+              "length": 4
+            }
+          },
+          {
+            "content": "EUROSPIN",
+            "polygon": [610, 433, 845, 435, 844, 483, 610, 481],
+            "confidence": 0.995,
+            "span": {
+              "offset": 82,
+              "length": 8
+            }
+          },
+          {
+            "content": "SISAK",
+            "polygon": [862, 435, 997, 437, 997, 484, 861, 483],
+            "confidence": 0.989,
+            "span": {
+              "offset": 91,
+              "length": 5
+            }
+          },
+          {
+            "content": "Supernova",
+            "polygon": [551, 488, 791, 490, 791, 540, 551, 540],
+            "confidence": 0.994,
+            "span": {
+              "offset": 97,
+              "length": 9
+            }
+          },
+          {
+            "content": "Sisak",
+            "polygon": [807, 490, 922, 490, 922, 540, 807, 540],
+            "confidence": 0.996,
+            "span": {
+              "offset": 107,
+              "length": 5
+            }
+          },
+          {
+            "content": "West",
+            "polygon": [936, 490, 1047, 491, 1047, 540, 936, 540],
+            "confidence": 0.992,
+            "span": {
+              "offset": 113,
+              "length": 4
+            }
+          },
+          {
+            "content": "Zagrebačka",
+            "polygon": [597, 542, 853, 545, 853, 597, 597, 595],
+            "confidence": 0.992,
+            "span": {
+              "offset": 118,
+              "length": 10
+            }
+          },
+          {
+            "content": "ul.",
+            "polygon": [870, 545, 918, 546, 917, 598, 870, 598],
+            "confidence": 0.994,
+            "span": {
+              "offset": 129,
+              "length": 3
+            }
+          },
+          {
+            "content": "49g",
+            "polygon": [933, 546, 1012, 547, 1012, 600, 933, 599],
+            "confidence": 0.992,
+            "span": {
+              "offset": 133,
+              "length": 3
+            }
+          },
+          {
+            "content": "44000",
+            "polygon": [670, 597, 801, 599, 801, 646, 670, 645],
+            "confidence": 0.997,
+            "span": {
+              "offset": 137,
+              "length": 5
+            }
+          },
+          {
+            "content": "Sisak",
+            "polygon": [818, 599, 935, 600, 935, 648, 817, 647],
+            "confidence": 0.995,
+            "span": {
+              "offset": 143,
+              "length": 5
+            }
+          },
+          {
+            "content": "BLAGAJNA",
+            "polygon": [418, 748, 701, 747, 701, 803, 418, 804],
+            "confidence": 0.993,
+            "span": {
+              "offset": 149,
+              "length": 8
+            }
+          },
+          {
+            "content": "2",
+            "polygon": [748, 746, 777, 746, 777, 803, 748, 803],
+            "confidence": 0.995,
+            "span": {
+              "offset": 158,
+              "length": 1
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [1062, 876, 1165, 875, 1165, 927, 1062, 927],
+            "confidence": 0.997,
+            "span": {
+              "offset": 160,
+              "length": 3
+            }
+          },
+          {
+            "content": "Net",
+            "polygon": [27, 952, 129, 950, 129, 1004, 27, 1004],
+            "confidence": 0.996,
+            "span": {
+              "offset": 164,
+              "length": 3
+            }
+          },
+          {
+            "content": "2,092kg",
+            "polygon": [177, 949, 416, 947, 416, 1003, 177, 1004],
+            "confidence": 0.994,
+            "span": {
+              "offset": 168,
+              "length": 7
+            }
+          },
+          {
+            "content": "×",
+            "polygon": [462, 946, 489, 946, 489, 1002, 462, 1003],
+            "confidence": 0.629,
+            "span": {
+              "offset": 176,
+              "length": 1
+            }
+          },
+          {
+            "content": "0,95",
+            "polygon": [535, 946, 667, 945, 667, 1000, 535, 1002],
+            "confidence": 0.992,
+            "span": {
+              "offset": 178,
+              "length": 4
+            }
+          },
+          {
+            "content": "EUR/kg",
+            "polygon": [712, 944, 918, 945, 918, 999, 712, 999],
+            "confidence": 0.995,
+            "span": {
+              "offset": 183,
+              "length": 6
+            }
+          },
+          {
+            "content": "LIMUN",
+            "polygon": [27, 1014, 203, 1014, 203, 1066, 27, 1067],
+            "confidence": 0.993,
+            "span": {
+              "offset": 190,
+              "length": 5
+            }
+          },
+          {
+            "content": "rfz",
+            "polygon": [250, 1014, 351, 1015, 351, 1066, 250, 1066],
+            "confidence": 0.993,
+            "span": {
+              "offset": 196,
+              "length": 3
+            }
+          },
+          {
+            "content": "1,99",
+            "polygon": [1035, 1006, 1166, 1005, 1166, 1058, 1035, 1059],
+            "confidence": 0.99,
+            "span": {
+              "offset": 200,
+              "length": 4
+            }
+          },
+          {
+            "content": "MEĐUZBROJ",
+            "polygon": [138, 1077, 455, 1074, 455, 1127, 138, 1129],
+            "confidence": 0.986,
+            "span": {
+              "offset": 205,
+              "length": 9
+            }
+          },
+          {
+            "content": "1,99",
+            "polygon": [1035, 1069, 1165, 1068, 1165, 1122, 1035, 1124],
+            "confidence": 0.995,
+            "span": {
+              "offset": 215,
+              "length": 4
+            }
+          },
+          {
+            "content": "MEĐUZBROJ",
+            "polygon": [138, 1140, 457, 1139, 457, 1192, 138, 1193],
+            "confidence": 0.965,
+            "span": {
+              "offset": 220,
+              "length": 9
+            }
+          },
+          {
+            "content": "1,99",
+            "polygon": [1035, 1134, 1166, 1132, 1166, 1185, 1035, 1187],
+            "confidence": 0.992,
+            "span": {
+              "offset": 230,
+              "length": 4
+            }
+          },
+          {
+            "content": "UKUPNO",
+            "polygon": [30, 1270, 247, 1268, 247, 1363, 30, 1363],
+            "confidence": 0.992,
+            "span": {
+              "offset": 235,
+              "length": 6
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [288, 1268, 390, 1268, 390, 1361, 288, 1363],
+            "confidence": 0.992,
+            "span": {
+              "offset": 242,
+              "length": 3
+            }
+          },
+          {
+            "content": "1,99",
+            "polygon": [1031, 1260, 1168, 1257, 1168, 1356, 1032, 1359],
+            "confidence": 0.989,
+            "span": {
+              "offset": 246,
+              "length": 4
+            }
+          },
+          {
+            "content": "GOTOVINA",
+            "polygon": [36, 1383, 321, 1380, 321, 1431, 36, 1433],
+            "confidence": 0.993,
+            "span": {
+              "offset": 251,
+              "length": 8
+            }
+          },
+          {
+            "content": "2,00",
+            "polygon": [1032, 1370, 1167, 1370, 1167, 1421, 1032, 1423],
+            "confidence": 0.989,
+            "span": {
+              "offset": 260,
+              "length": 4
+            }
+          },
+          {
+            "content": "ZA",
+            "polygon": [39, 1446, 105, 1445, 105, 1497, 39, 1497],
+            "confidence": 0.996,
+            "span": {
+              "offset": 265,
+              "length": 2
+            }
+          },
+          {
+            "content": "VRATITI",
+            "polygon": [150, 1445, 391, 1442, 391, 1494, 150, 1496],
+            "confidence": 0.995,
+            "span": {
+              "offset": 268,
+              "length": 7
+            }
+          },
+          {
+            "content": "0,01",
+            "polygon": [1033, 1434, 1161, 1432, 1161, 1483, 1033, 1486],
+            "confidence": 0.991,
+            "span": {
+              "offset": 276,
+              "length": 4
+            }
+          },
+          {
+            "content": "23.1.2024.",
+            "polygon": [40, 1509, 384, 1504, 384, 1561, 40, 1565],
+            "confidence": 0.984,
+            "span": {
+              "offset": 281,
+              "length": 10
+            }
+          },
+          {
+            "content": "15:12",
+            "polygon": [441, 1503, 607, 1502, 607, 1557, 441, 1560],
+            "confidence": 0.996,
+            "span": {
+              "offset": 292,
+              "length": 5
+            }
+          },
+          {
+            "content": "PB.",
+            "polygon": [892, 1497, 983, 1496, 983, 1551, 892, 1551],
+            "confidence": 0.992,
+            "span": {
+              "offset": 298,
+              "length": 3
+            }
+          },
+          {
+            "content": "0396",
+            "polygon": [1037, 1495, 1168, 1493, 1168, 1547, 1037, 1550],
+            "confidence": 0.989,
+            "span": {
+              "offset": 302,
+              "length": 4
+            }
+          },
+          {
+            "content": "Stopa%",
+            "polygon": [150, 1635, 318, 1634, 318, 1686, 150, 1687],
+            "confidence": 0.995,
+            "span": {
+              "offset": 307,
+              "length": 6
+            }
+          },
+          {
+            "content": "Osnovica",
+            "polygon": [510, 1630, 731, 1630, 731, 1680, 510, 1680],
+            "confidence": 0.994,
+            "span": {
+              "offset": 314,
+              "length": 8
+            }
+          },
+          {
+            "content": "Iznos",
+            "polygon": [843, 1626, 972, 1626, 972, 1675, 843, 1675],
+            "confidence": 0.993,
+            "span": {
+              "offset": 323,
+              "length": 5
+            }
+          },
+          {
+            "content": "poreza",
+            "polygon": [1005, 1626, 1165, 1626, 1165, 1673, 1005, 1675],
+            "confidence": 0.997,
+            "span": {
+              "offset": 329,
+              "length": 6
+            }
+          },
+          {
+            "content": "05.00%",
+            "polygon": [154, 1758, 321, 1757, 321, 1809, 155, 1810],
+            "confidence": 0.993,
+            "span": {
+              "offset": 336,
+              "length": 6
+            }
+          },
+          {
+            "content": "01.90",
+            "polygon": [540, 1756, 677, 1755, 677, 1805, 540, 1805],
+            "confidence": 0.992,
+            "span": {
+              "offset": 343,
+              "length": 5
+            }
+          },
+          {
+            "content": "00.09",
+            "polygon": [925, 1749, 1060, 1747, 1060, 1797, 926, 1799],
+            "confidence": 0.994,
+            "span": {
+              "offset": 349,
+              "length": 5
+            }
+          },
+          {
+            "content": "Račun",
+            "polygon": [47, 1953, 223, 1949, 223, 2004, 47, 2008],
+            "confidence": 0.994,
+            "span": {
+              "offset": 355,
+              "length": 5
+            }
+          },
+          {
+            "content": "broj:",
+            "polygon": [266, 1949, 429, 1946, 429, 2001, 267, 2004],
+            "confidence": 0.991,
+            "span": {
+              "offset": 361,
+              "length": 5
+            }
+          },
+          {
+            "content": "10752/310012/2",
+            "polygon": [518, 1941, 1005, 1939, 1005, 1994, 518, 1996],
+            "confidence": 0.992,
+            "span": {
+              "offset": 367,
+              "length": 14
+            }
+          },
+          {
+            "content": "ZKI:",
+            "polygon": [56, 2519, 157, 2516, 157, 2568, 56, 2571],
+            "confidence": 0.992,
+            "span": {
+              "offset": 382,
+              "length": 4
+            }
+          },
+          {
+            "content": "602b3d9defd5587af4de4b7f848a52c5",
+            "polygon": [199, 2515, 1074, 2505, 1074, 2556, 199, 2568],
+            "confidence": 0.956,
+            "span": {
+              "offset": 387,
+              "length": 32
+            }
+          },
+          {
+            "content": "JIR:",
+            "polygon": [58, 2580, 159, 2577, 160, 2631, 58, 2634],
+            "confidence": 0.992,
+            "span": {
+              "offset": 420,
+              "length": 4
+            }
+          },
+          {
+            "content": "1193a137-a1f5-4085-9e1b-3a0919701a4f",
+            "polygon": [202, 2576, 1180, 2562, 1180, 2617, 203, 2630],
+            "confidence": 0.25,
+            "span": {
+              "offset": 425,
+              "length": 36
+            }
+          },
+          {
+            "content": "BLAGAJNIK:",
+            "polygon": [64, 2703, 406, 2693, 406, 2747, 65, 2756],
+            "confidence": 0.989,
+            "span": {
+              "offset": 462,
+              "length": 10
+            }
+          },
+          {
+            "content": "012-009",
+            "polygon": [459, 2691, 696, 2687, 696, 2740, 460, 2746],
+            "confidence": 0.993,
+            "span": {
+              "offset": 473,
+              "length": 7
+            }
+          },
+          {
+            "content": "HVALA",
+            "polygon": [421, 2929, 559, 2927, 560, 2979, 421, 2980],
+            "confidence": 0.994,
+            "span": {
+              "offset": 481,
+              "length": 5
+            }
+          },
+          {
+            "content": "I",
+            "polygon": [593, 2927, 610, 2927, 610, 2978, 593, 2979],
+            "confidence": 0.992,
+            "span": {
+              "offset": 487,
+              "length": 1
+            }
+          },
+          {
+            "content": "DOVIĐENJA",
+            "polygon": [642, 2927, 887, 2928, 887, 2980, 642, 2979],
+            "confidence": 0.176,
+            "span": {
+              "offset": 489,
+              "length": 9
+            }
+          }
+        ],
+        "lines": [
+          {
+            "content": "Eurospin Hrvatska d.o.o.",
+            "polygon": [534, 271, 1078, 272, 1078, 323, 534, 322],
+            "spans": [
+              {
+                "offset": 0,
+                "length": 24
+              }
+            ]
+          },
+          {
+            "content": "EURO",
+            "polygon": [158, 362, 339, 362, 339, 432, 158, 431],
+            "spans": [
+              {
+                "offset": 25,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "Jelačićev trg 7, 51000 Rijeka",
+            "polygon": [498, 324, 1127, 326, 1127, 378, 498, 377],
+            "spans": [
+              {
+                "offset": 30,
+                "length": 29
+              }
+            ]
+          },
+          {
+            "content": "OIB: 62357811032",
+            "polygon": [608, 379, 1000, 382, 1000, 429, 608, 425],
+            "spans": [
+              {
+                "offset": 60,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "Spin",
+            "polygon": [132, 434, 358, 433, 359, 577, 133, 578],
+            "spans": [
+              {
+                "offset": 77,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "EUROSPIN SISAK",
+            "polygon": [610, 433, 997, 436, 996, 484, 609, 480],
+            "spans": [
+              {
+                "offset": 82,
+                "length": 14
+              }
+            ]
+          },
+          {
+            "content": "Supernova Sisak West",
+            "polygon": [551, 488, 1047, 491, 1046, 540, 550, 539],
+            "spans": [
+              {
+                "offset": 97,
+                "length": 20
+              }
+            ]
+          },
+          {
+            "content": "Zagrebačka ul. 49g",
+            "polygon": [597, 542, 1011, 547, 1011, 600, 597, 594],
+            "spans": [
+              {
+                "offset": 118,
+                "length": 18
+              }
+            ]
+          },
+          {
+            "content": "44000 Sisak",
+            "polygon": [670, 597, 934, 600, 934, 647, 670, 644],
+            "spans": [
+              {
+                "offset": 137,
+                "length": 11
+              }
+            ]
+          },
+          {
+            "content": "BLAGAJNA 2",
+            "polygon": [418, 747, 776, 746, 776, 802, 418, 803],
+            "spans": [
+              {
+                "offset": 149,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "EUR",
+            "polygon": [1061, 876, 1164, 875, 1165, 926, 1062, 927],
+            "spans": [
+              {
+                "offset": 160,
+                "length": 3
+              }
+            ]
+          },
+          {
+            "content": "Net 2,092kg × 0,95 EUR/kg",
+            "polygon": [26, 950, 918, 944, 918, 998, 27, 1004],
+            "spans": [
+              {
+                "offset": 164,
+                "length": 25
+              }
+            ]
+          },
+          {
+            "content": "LIMUN rfz",
+            "polygon": [27, 1013, 351, 1014, 351, 1066, 27, 1066],
+            "spans": [
+              {
+                "offset": 190,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "1,99",
+            "polygon": [1035, 1006, 1165, 1005, 1165, 1058, 1035, 1059],
+            "spans": [
+              {
+                "offset": 200,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "MEĐUZBROJ",
+            "polygon": [137, 1077, 455, 1074, 455, 1126, 138, 1129],
+            "spans": [
+              {
+                "offset": 205,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "1,99",
+            "polygon": [1035, 1069, 1165, 1068, 1165, 1122, 1035, 1123],
+            "spans": [
+              {
+                "offset": 215,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "MEĐUZBROJ",
+            "polygon": [138, 1140, 457, 1139, 457, 1191, 138, 1192],
+            "spans": [
+              {
+                "offset": 220,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "1,99",
+            "polygon": [1034, 1133, 1165, 1132, 1166, 1185, 1035, 1187],
+            "spans": [
+              {
+                "offset": 230,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "UKUPNO EUR",
+            "polygon": [29, 1270, 389, 1267, 390, 1361, 30, 1363],
+            "spans": [
+              {
+                "offset": 235,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "1,99",
+            "polygon": [1031, 1260, 1166, 1257, 1168, 1356, 1032, 1359],
+            "spans": [
+              {
+                "offset": 246,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "GOTOVINA",
+            "polygon": [36, 1382, 321, 1380, 321, 1430, 36, 1432],
+            "spans": [
+              {
+                "offset": 251,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "2,00",
+            "polygon": [1032, 1370, 1166, 1369, 1167, 1422, 1032, 1422],
+            "spans": [
+              {
+                "offset": 260,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "ZA VRATITI",
+            "polygon": [38, 1445, 391, 1442, 391, 1493, 39, 1497],
+            "spans": [
+              {
+                "offset": 265,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "0,01",
+            "polygon": [1033, 1433, 1161, 1432, 1161, 1483, 1033, 1485],
+            "spans": [
+              {
+                "offset": 276,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "23.1.2024. 15:12",
+            "polygon": [40, 1508, 606, 1502, 607, 1558, 40, 1565],
+            "spans": [
+              {
+                "offset": 281,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "PB. 0396",
+            "polygon": [892, 1497, 1167, 1493, 1168, 1548, 892, 1551],
+            "spans": [
+              {
+                "offset": 298,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "Stopa%",
+            "polygon": [150, 1635, 318, 1634, 318, 1686, 150, 1687],
+            "spans": [
+              {
+                "offset": 307,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "Osnovica",
+            "polygon": [510, 1630, 730, 1630, 730, 1679, 510, 1680],
+            "spans": [
+              {
+                "offset": 314,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "Iznos poreza",
+            "polygon": [843, 1626, 1164, 1626, 1164, 1675, 843, 1675],
+            "spans": [
+              {
+                "offset": 323,
+                "length": 12
+              }
+            ]
+          },
+          {
+            "content": "05.00%",
+            "polygon": [154, 1758, 320, 1757, 320, 1809, 155, 1810],
+            "spans": [
+              {
+                "offset": 336,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "01.90",
+            "polygon": [540, 1755, 677, 1755, 677, 1805, 540, 1805],
+            "spans": [
+              {
+                "offset": 343,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "content": "00.09",
+            "polygon": [925, 1749, 1059, 1747, 1060, 1797, 926, 1799],
+            "spans": [
+              {
+                "offset": 349,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "content": "Račun broj:",
+            "polygon": [47, 1951, 429, 1945, 429, 2001, 47, 2007],
+            "spans": [
+              {
+                "offset": 355,
+                "length": 11
+              }
+            ]
+          },
+          {
+            "content": "10752/310012/2",
+            "polygon": [518, 1941, 1004, 1938, 1005, 1994, 518, 1996],
+            "spans": [
+              {
+                "offset": 367,
+                "length": 14
+              }
+            ]
+          },
+          {
+            "content": "ZKI: 602b3d9defd5587af4de4b7f848a52c5",
+            "polygon": [56, 2515, 1073, 2504, 1074, 2555, 56, 2570],
+            "spans": [
+              {
+                "offset": 382,
+                "length": 37
+              }
+            ]
+          },
+          {
+            "content": "JIR: 1193a137-a1f5-4085-9e1b-3a0919701a4f",
+            "polygon": [57, 2576, 1179, 2562, 1180, 2616, 58, 2633],
+            "spans": [
+              {
+                "offset": 420,
+                "length": 41
+              }
+            ]
+          },
+          {
+            "content": "BLAGAJNIK: 012-009",
+            "polygon": [64, 2701, 695, 2687, 696, 2739, 65, 2755],
+            "spans": [
+              {
+                "offset": 462,
+                "length": 18
+              }
+            ]
+          },
+          {
+            "content": "HVALA I DOVIĐENJA",
+            "polygon": [421, 2927, 886, 2926, 887, 2979, 421, 2980],
+            "spans": [
+              {
+                "offset": 481,
+                "length": 17
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 0,
+            "length": 498
+          }
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "rowCount": 3,
+        "columnCount": 3,
+        "cells": [
+          {
+            "rowIndex": 0,
+            "columnIndex": 0,
+            "content": "LIMUN rfz",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [0, 1002, 741, 995, 742, 1060, 0, 1067]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 190,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "rowIndex": 0,
+            "columnIndex": 1,
+            "columnSpan": 2,
+            "content": "1,99",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [741, 995, 1191, 992, 1193, 1057, 742, 1060]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 200,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "rowIndex": 1,
+            "columnIndex": 0,
+            "content": "MEĐUZBROJ",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [0, 1067, 742, 1060, 742, 1127, 1, 1136]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 205,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "rowIndex": 1,
+            "columnIndex": 1,
+            "columnSpan": 2,
+            "content": "1,99",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [742, 1060, 1193, 1057, 1193, 1123, 742, 1127]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 215,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "rowIndex": 2,
+            "columnIndex": 0,
+            "content": "MEĐUZBROJ",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [1, 1136, 742, 1127, 743, 1205, 2, 1211]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 220,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "rowIndex": 2,
+            "columnIndex": 1,
+            "content": "1,99",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [742, 1127, 1135, 1124, 1135, 1202, 743, 1205]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 230,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "rowIndex": 2,
+            "columnIndex": 2,
+            "content": "",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [1135, 1124, 1193, 1123, 1193, 1201, 1135, 1202]
+              }
+            ],
+            "spans": []
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [23, 1008, 1172, 1003, 1172, 1193, 22, 1198]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 190,
+            "length": 44
+          }
+        ]
+      },
+      {
+        "rowCount": 4,
+        "columnCount": 2,
+        "cells": [
+          {
+            "rowIndex": 0,
+            "columnIndex": 0,
+            "content": "UKUPNO EUR",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [0, 1232, 746, 1228, 748, 1365, 0, 1373]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 235,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "rowIndex": 0,
+            "columnIndex": 1,
+            "content": "1,99",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [746, 1228, 1195, 1228, 1196, 1360, 748, 1365]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 246,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "rowIndex": 1,
+            "columnIndex": 0,
+            "content": "GOTOVINA",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [0, 1373, 748, 1365, 750, 1428, 0, 1439]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 251,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "rowIndex": 1,
+            "columnIndex": 1,
+            "content": "2,00",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [748, 1365, 1196, 1360, 1198, 1424, 750, 1428]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 260,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "rowIndex": 2,
+            "columnIndex": 0,
+            "content": "ZA VRATITI",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [0, 1439, 750, 1428, 751, 1492, 0, 1501]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 265,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "rowIndex": 2,
+            "columnIndex": 1,
+            "content": "0,01",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [750, 1428, 1198, 1424, 1199, 1487, 751, 1492]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 276,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "rowIndex": 3,
+            "columnIndex": 0,
+            "content": "23.1.2024. 15:12",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [0, 1501, 751, 1492, 752, 1572, 2, 1583]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 281,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "rowIndex": 3,
+            "columnIndex": 1,
+            "content": "PB. 0396",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [751, 1492, 1199, 1487, 1199, 1568, 752, 1572]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 298,
+                "length": 8
+              }
+            ]
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [24, 1261, 1176, 1257, 1177, 1568, 25, 1573]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 235,
+            "length": 71
+          }
+        ]
+      },
+      {
+        "rowCount": 3,
+        "columnCount": 3,
+        "cells": [
+          {
+            "kind": "columnHeader",
+            "rowIndex": 0,
+            "columnIndex": 0,
+            "content": "Stopa%",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [36, 1610, 456, 1606, 456, 1719, 35, 1723]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 307,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "kind": "columnHeader",
+            "rowIndex": 0,
+            "columnIndex": 1,
+            "content": "Osnovica",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [456, 1606, 791, 1603, 791, 1714, 456, 1719]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 314,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "kind": "columnHeader",
+            "rowIndex": 0,
+            "columnIndex": 2,
+            "content": "Iznos poreza",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [791, 1603, 1188, 1599, 1188, 1710, 791, 1714]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 323,
+                "length": 12
+              }
+            ]
+          },
+          {
+            "rowIndex": 1,
+            "columnIndex": 0,
+            "content": "05.00%",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [35, 1723, 456, 1719, 458, 1845, 34, 1847]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 336,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "rowIndex": 1,
+            "columnIndex": 1,
+            "content": "01.90",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [456, 1719, 791, 1714, 791, 1842, 458, 1845]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 343,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "rowIndex": 1,
+            "columnIndex": 2,
+            "content": "00.09",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [791, 1714, 1188, 1710, 1188, 1837, 791, 1842]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 349,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "rowIndex": 2,
+            "columnIndex": 0,
+            "content": "Račun broj:",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [34, 1847, 458, 1845, 458, 2020, 31, 2024]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 355,
+                "length": 11
+              }
+            ]
+          },
+          {
+            "rowIndex": 2,
+            "columnIndex": 1,
+            "columnSpan": 2,
+            "content": "10752/310012/2",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [458, 1845, 1188, 1837, 1188, 2014, 458, 2020]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 367,
+                "length": 14
+              }
+            ]
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [44, 1620, 1178, 1620, 1177, 2006, 43, 2005]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 307,
+            "length": 74
+          }
+        ]
+      }
+    ],
+    "styles": [],
+    "documents": [
+      {
+        "docType": "invoice",
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0, 0, 1280, 0, 1280, 3066, 0, 3066]
+          }
+        ],
+        "fields": {
+          "CustomerAddress": {
+            "type": "address",
+            "content": "Zagrebačka",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [597, 542, 853, 545, 853, 597, 597, 595]
+              }
+            ],
+            "confidence": 0.377,
+            "spans": [
+              {
+                "offset": 118,
+                "length": 10
+              }
+            ],
+            "valueAddress": {
+              "state": "Zagrebačka",
+              "streetAddress": ""
+            }
+          },
+          "CustomerAddressRecipient": {
+            "type": "string",
+            "valueString": "EUROSPIN SISAK",
+            "content": "EUROSPIN SISAK",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [610, 432, 998, 437, 997, 485, 609, 481]
+              }
+            ],
+            "confidence": 0.358,
+            "spans": [
+              {
+                "offset": 82,
+                "length": 14
+              }
+            ]
+          },
+          "CustomerName": {
+            "type": "string",
+            "valueString": "EUROSPIN SISAK",
+            "content": "EUROSPIN SISAK",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [610, 432, 998, 437, 997, 485, 609, 481]
+              }
+            ],
+            "confidence": 0.358,
+            "spans": [
+              {
+                "offset": 82,
+                "length": 14
+              }
+            ]
+          },
+          "InvoiceId": {
+            "type": "string",
+            "valueString": "10752/310012/2",
+            "content": "10752/310012/2",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [518, 1941, 1005, 1939, 1005, 1994, 518, 1996]
+              }
+            ],
+            "confidence": 0.972,
+            "spans": [
+              {
+                "offset": 367,
+                "length": 14
+              }
+            ]
+          },
+          "InvoiceTotal": {
+            "type": "currency",
+            "valueCurrency": {
+              "amount": 1.99,
+              "currencyCode": "EUR"
+            },
+            "content": "1,99",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [1031, 1260, 1168, 1257, 1168, 1356, 1032, 1359]
+              }
+            ],
+            "confidence": 0.479,
+            "spans": [
+              {
+                "offset": 246,
+                "length": 4
+              }
+            ]
+          },
+          "Items": {
+            "type": "array",
+            "valueArray": [
+              {
+                "type": "object",
+                "valueObject": {
+                  "Amount": {
+                    "type": "currency",
+                    "valueCurrency": {
+                      "amount": 1.99,
+                      "currencyCode": "EUR"
+                    },
+                    "content": "1,99",
+                    "boundingRegions": [
+                      {
+                        "pageNumber": 1,
+                        "polygon": [1035, 1006, 1166, 1005, 1166, 1058, 1035, 1059]
+                      }
+                    ],
+                    "confidence": 0.901,
+                    "spans": [
+                      {
+                        "offset": 200,
+                        "length": 4
+                      }
+                    ]
+                  },
+                  "Description": {
+                    "type": "string",
+                    "valueString": "LIMUN rfz",
+                    "content": "LIMUN rfz",
+                    "boundingRegions": [
+                      {
+                        "pageNumber": 1,
+                        "polygon": [27, 1013, 351, 1015, 351, 1069, 27, 1067]
+                      }
+                    ],
+                    "confidence": 0.918,
+                    "spans": [
+                      {
+                        "offset": 190,
+                        "length": 9
+                      }
+                    ]
+                  }
+                },
+                "content": "LIMUN rfz\n1,99",
+                "boundingRegions": [
+                  {
+                    "pageNumber": 1,
+                    "polygon": [27, 1008, 1166, 1005, 1166, 1064, 27, 1067]
+                  }
+                ],
+                "confidence": 0.909,
+                "spans": [
+                  {
+                    "offset": 190,
+                    "length": 14
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "valueObject": {
+                  "Amount": {
+                    "type": "currency",
+                    "valueCurrency": {
+                      "amount": 1.99,
+                      "currencyCode": "EUR"
+                    },
+                    "content": "1,99",
+                    "boundingRegions": [
+                      {
+                        "pageNumber": 1,
+                        "polygon": [1035, 1069, 1165, 1068, 1165, 1122, 1035, 1124]
+                      }
+                    ],
+                    "confidence": 0.898,
+                    "spans": [
+                      {
+                        "offset": 215,
+                        "length": 4
+                      }
+                    ]
+                  },
+                  "Description": {
+                    "type": "string",
+                    "valueString": "MEĐUZBROJ",
+                    "content": "MEĐUZBROJ",
+                    "boundingRegions": [
+                      {
+                        "pageNumber": 1,
+                        "polygon": [138, 1077, 455, 1074, 455, 1127, 138, 1129]
+                      }
+                    ],
+                    "confidence": 0.901,
+                    "spans": [
+                      {
+                        "offset": 205,
+                        "length": 9
+                      }
+                    ]
+                  }
+                },
+                "content": "MEĐUZBROJ\n1,99",
+                "boundingRegions": [
+                  {
+                    "pageNumber": 1,
+                    "polygon": [138, 1076, 1165, 1068, 1165, 1123, 138, 1131]
+                  }
+                ],
+                "confidence": 0.877,
+                "spans": [
+                  {
+                    "offset": 205,
+                    "length": 14
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "valueObject": {
+                  "Amount": {
+                    "type": "currency",
+                    "valueCurrency": {
+                      "amount": 1.99,
+                      "currencyCode": "EUR"
+                    },
+                    "content": "1,99",
+                    "boundingRegions": [
+                      {
+                        "pageNumber": 1,
+                        "polygon": [1035, 1134, 1166, 1132, 1166, 1185, 1035, 1187]
+                      }
+                    ],
+                    "confidence": 0.9,
+                    "spans": [
+                      {
+                        "offset": 230,
+                        "length": 4
+                      }
+                    ]
+                  },
+                  "Description": {
+                    "type": "string",
+                    "valueString": "MEĐUZBROJ",
+                    "content": "MEĐUZBROJ",
+                    "boundingRegions": [
+                      {
+                        "pageNumber": 1,
+                        "polygon": [138, 1140, 457, 1139, 457, 1192, 138, 1193]
+                      }
+                    ],
+                    "confidence": 0.914,
+                    "spans": [
+                      {
+                        "offset": 220,
+                        "length": 9
+                      }
+                    ]
+                  }
+                },
+                "content": "MEĐUZBROJ\n1,99",
+                "boundingRegions": [
+                  {
+                    "pageNumber": 1,
+                    "polygon": [138, 1135, 1166, 1132, 1166, 1190, 138, 1193]
+                  }
+                ],
+                "confidence": 0.877,
+                "spans": [
+                  {
+                    "offset": 220,
+                    "length": 14
+                  }
+                ]
+              }
+            ]
+          },
+          "VendorAddress": {
+            "type": "address",
+            "content": "Jelačićev trg 7, 51000 Rijeka",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [498, 324, 1127, 326, 1127, 379, 498, 377]
+              }
+            ],
+            "confidence": 0.923,
+            "spans": [
+              {
+                "offset": 30,
+                "length": 29
+              }
+            ],
+            "valueAddress": {
+              "houseNumber": "7",
+              "road": "Jelačićev trg",
+              "postalCode": "51000",
+              "city": "Rijeka",
+              "streetAddress": "7 Jelačićev trg"
+            }
+          },
+          "VendorAddressRecipient": {
+            "type": "string",
+            "valueString": "Eurospin Hrvatska d.o.o.",
+            "content": "Eurospin Hrvatska d.o.o.",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [534, 270, 1078, 273, 1078, 325, 534, 322]
+              }
+            ],
+            "confidence": 0.939,
+            "spans": [
+              {
+                "offset": 0,
+                "length": 24
+              }
+            ]
+          },
+          "VendorName": {
+            "type": "string",
+            "valueString": "EURO\nSpin",
+            "content": "EURO\nSpin",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [132, 364, 359, 364, 359, 578, 132, 578]
+              }
+            ],
+            "confidence": 0.945,
+            "spans": [
+              {
+                "offset": 25,
+                "length": 4
+              },
+              {
+                "offset": 77,
+                "length": 4
+              }
+            ]
+          },
+          "VendorTaxId": {
+            "type": "string",
+            "valueString": "62357811032",
+            "content": "62357811032",
+            "boundingRegions": [
+              {
+                "pageNumber": 1,
+                "polygon": [717, 380, 1000, 383, 1000, 430, 717, 427]
+              }
+            ],
+            "confidence": 0.789,
+            "spans": [
+              {
+                "offset": 65,
+                "length": 11
+              }
+            ]
+          }
+        },
+        "confidence": 1,
+        "spans": [
+          {
+            "offset": 0,
+            "length": 498
+          }
+        ]
+      }
+    ],
+    "contentFormat": "text"
+  }
+}

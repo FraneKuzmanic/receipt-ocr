@@ -43,6 +43,7 @@
     "requestError": "We could not check this receipt right now.",
     "timeout": "This is taking longer than expected.",
     "checkAgain": "Check again",
+    "retry": "Try again",
     "uploadAnother": "Upload another receipt"
   },
   "reviewReady": {

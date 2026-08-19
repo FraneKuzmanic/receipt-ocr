@@ -75,3 +75,7 @@ export async function getReceipt(id: string, signal?: AbortSignal): Promise<Cano
   const response = await request(`/api/receipts/${encodeURIComponent(id)}`, { signal });
   return canonicalReceiptSchema.parse(await response.json());
 }
+
+export async function retryReceipt(id: string): Promise<void> {
+  await request(`/api/receipts/${encodeURIComponent(id)}/retry`, { method: "POST" });
+}

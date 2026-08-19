@@ -18,6 +18,11 @@ export interface Config {
   readonly SUPABASE_URL: string;
   readonly SUPABASE_PUBLISHABLE_KEY: string;
   readonly STORAGE_BUCKET: string;
+  readonly AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: string;
+  readonly AZURE_DOCUMENT_INTELLIGENCE_KEY: string;
+  readonly AZURE_DI_MODEL_ID: string;
+  readonly AZURE_DI_LOCALE: string;
+  readonly EXTRACTION_TIMEOUT_MS: number;
   readonly MAX_UPLOAD_BYTES: number;
   readonly MAX_PDF_PAGES: number;
 }
@@ -82,6 +87,21 @@ const parsed: Config = {
     process.env["SUPABASE_PUBLISHABLE_KEY"],
   ),
   STORAGE_BUCKET: readRequired("STORAGE_BUCKET", process.env["STORAGE_BUCKET"]),
+  AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: readRequired(
+    "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
+    process.env["AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"],
+  ),
+  AZURE_DOCUMENT_INTELLIGENCE_KEY: readRequired(
+    "AZURE_DOCUMENT_INTELLIGENCE_KEY",
+    process.env["AZURE_DOCUMENT_INTELLIGENCE_KEY"],
+  ),
+  AZURE_DI_MODEL_ID: process.env["AZURE_DI_MODEL_ID"] || "prebuilt-invoice",
+  AZURE_DI_LOCALE: process.env["AZURE_DI_LOCALE"] || "hr-HR",
+  EXTRACTION_TIMEOUT_MS: readCount(
+    "EXTRACTION_TIMEOUT_MS",
+    process.env["EXTRACTION_TIMEOUT_MS"],
+    60000,
+  ),
   MAX_UPLOAD_BYTES: readCount("MAX_UPLOAD_BYTES", process.env["MAX_UPLOAD_BYTES"], 10485760),
   MAX_PDF_PAGES: readCount("MAX_PDF_PAGES", process.env["MAX_PDF_PAGES"], 10),
 };

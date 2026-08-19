@@ -43,6 +43,7 @@
     "requestError": "Trenutačno ne možemo provjeriti ovaj račun.",
     "timeout": "Ovo traje dulje nego što smo očekivali.",
     "checkAgain": "Provjerite ponovno",
+    "retry": "Pokušajte ponovno",
     "uploadAnother": "Prenesite drugi račun"
   },
   "reviewReady": {

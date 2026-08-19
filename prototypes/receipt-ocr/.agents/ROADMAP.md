@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 06 implementation complete — Task 07 is next. Real-phone camera validation for Task 06 is deferred until a hosted deployment is available.
+**Status:** Task 07 implementation complete — Task 08 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -117,9 +117,10 @@ Each is owned by a specific task and must be resolved there, not earlier:
   making "money is never a JS float" a runtime guarantee. `decimal.js` was rejected — it is not
   constructable under TypeScript 7 with a default import. See
   [history](history/02-canonical-domain-model-shared-contracts.md).
-- **Azure model choice (prebuilt-receipt / prebuilt-invoice / layout), confidence policy,
-  Croatia-specific field parsing, any multi-model logic** → Task 07. The PRD explicitly
-  defers all of this (§4.7, §7.6).
+- ~~**Azure model choice, confidence policy and Croatia-specific field parsing** → Task 07.~~
+  **Resolved:** Azure Document Intelligence `2024-11-30` with `prebuilt-invoice`; record all
+  confidence rather than discarding low-confidence values; use deterministic Croatian text fallbacks
+  for fiscal identifiers and model gaps. See [history](history/07-azure-extraction-provider-canonical-mapper.md).
 - **QR decode library and Croatian fiscal QR payload format** → Task 08.
 - **Hosting provider for the deployed PoC** → Task 12.
 - **Password reset** → **deferred with no owning task.** PRD §7.1 and Task 04 both qualify it with
@@ -154,7 +155,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ✅* Done with a docu
 | 04  | Authentication & ownership enforcement           | 1         | ✅     | [plan](plans/authentication-ownership-enforcement.md) | [history](history/04-authentication-ownership-enforcement.md) |
 | 05  | Receipt upload API & source-document persistence | 2         | ✅     | [plan](plans/receipt-upload-source-document-persistence.md) | [history](history/05-receipt-upload-source-document-persistence.md) |
 | 06  | Mobile capture & upload UI                       | 2         | ✅*    | [plan](plans/mobile-capture-upload-ui.md)         | [history](history/06-mobile-capture-upload-ui.md) |
-| 07  | Azure extraction provider & canonical mapper     | 2         | ⬜     | —                                                 | —       |
+| 07  | Azure extraction provider & canonical mapper     | 2         | ✅*    | [plan](plans/azure-extraction-provider-canonical-mapper.md) | [history](history/07-azure-extraction-provider-canonical-mapper.md) |
 | 08  | QR decoding & validation/warnings engine         | 2         | ⬜     | —                                                 | —       |
 | 09  | Review form, editing & confirmation              | 3         | ⬜     | —                                                 | —       |
 | 10  | History, detail view & soft delete               | 3         | ⬜     | —                                                 | —       |

@@ -14,7 +14,8 @@ Big.strict = true;
  */
 export const AMOUNT_PATTERN = /^-?\d+(\.\d+)?$/;
 
-const CURRENCY_TOKENS = /[€$£]|\b(?:EUR|HRK|USD|GBP)\b/gi;
+// "kn" is the Croatian kuna abbreviation used on pre-2023 receipts alongside the ISO code HRK.
+const CURRENCY_TOKENS = /[€$£]|\b(?:EUR|HRK|USD|GBP|kn)\b/gi;
 // \s already covers U+00A0 and U+202F, but both turn up in OCR text and in Intl output
 // often enough to be worth naming explicitly rather than leaving to a reader's memory.
 const WHITESPACE = /[\s\u00A0\u202F]/g;

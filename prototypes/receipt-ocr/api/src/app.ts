@@ -9,11 +9,14 @@ import { logger } from "./logger.js";
 import { HttpError, errorHandler } from "./middleware/error-handler.js";
 import { requireAuth } from "./middleware/require-auth.js";
 import { healthRouter } from "./routes/health.js";
-import { receiptsRouter } from "./routes/receipts.js";
+import { createReceiptsRouter } from "./routes/receipts.js";
+import { createAzureProvider } from "./providers/document-extraction/azure.js";
+import type { DocumentExtractionProvider } from "./providers/document-extraction/types.js";
 
 export interface AppOptions {
   /** Injected by tests. Built lazily otherwise, so importing this module creates no client. */
   authenticator?: Authenticator;
+  extractionProvider?: DocumentExtractionProvider;
 }
 
 /**
@@ -22,6 +25,7 @@ export interface AppOptions {
 export function createApp(options: AppOptions = {}): Express {
   const app = express();
   const authenticator = options.authenticator ?? createSupabaseAuthenticator();
+  const extractionProvider = options.extractionProvider ?? createAzureProvider();
 
   app.use(helmet());
   app.use(cors({ origin: config.WEB_ORIGIN }));
@@ -32,7 +36,7 @@ export function createApp(options: AppOptions = {}): Express {
 
   // Guarding the prefix, not each route, is what makes every receipt route Task 05 adds
   // protected by default — and what makes a path with no route yet answer 401 rather than 404.
-  app.use("/api/receipts", requireAuth(authenticator), receiptsRouter);
+  app.use("/api/receipts", requireAuth(authenticator), createReceiptsRouter(extractionProvider));
 
   app.use((_req, _res, next) => {
     next(new HttpError(404, "not_found"));

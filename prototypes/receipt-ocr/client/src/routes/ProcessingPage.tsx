@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
-import { getReceipt } from "../api/client";
+import { ApiError, getReceipt, retryReceipt } from "../api/client";
 import { Spinner } from "../components/Spinner";
 
 export const POLL_INTERVAL_MS = 2_000;
@@ -15,6 +15,17 @@ export function ProcessingPage() {
   const { id } = useParams();
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<ProcessingState>("polling");
+
+  async function retry() {
+    if (!id) return;
+    try {
+      await retryReceipt(id);
+      setAttempt((value) => value + 1);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) return;
+      setState("failed");
+    }
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -97,7 +108,15 @@ export function ProcessingPage() {
   return (
     <section aria-live="polite" className="mx-auto flex max-w-lg flex-col gap-4 py-12 text-center">
       <h1 className="text-2xl font-semibold">{message}</h1>
-      {state !== "failed" ? (
+      {state === "failed" ? (
+        <button
+          type="button"
+          onClick={() => void retry()}
+          className="min-h-11 rounded-lg bg-slate-900 px-4 font-semibold text-white hover:bg-slate-700"
+        >
+          {t("processing.retry")}
+        </button>
+      ) : (
         <button
           type="button"
           onClick={() => setAttempt((value) => value + 1)}
@@ -105,7 +124,7 @@ export function ProcessingPage() {
         >
           {t("processing.checkAgain")}
         </button>
-      ) : null}
+      )}
       <Link
         to="/"
         className="flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100"

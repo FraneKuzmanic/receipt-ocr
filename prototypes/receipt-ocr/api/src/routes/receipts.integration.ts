@@ -8,6 +8,10 @@ import { createApp } from "../app.js";
 import { config } from "../config.js";
 import type { Database } from "../database.types.js";
 import { ReceiptRepository } from "../repositories/receipts.js";
+import {
+  ExtractionError,
+  type DocumentExtractionProvider,
+} from "../providers/document-extraction/types.js";
 import { sourceObjectPath } from "../storage/receipt-sources.js";
 
 const userAId = randomUUID();
@@ -23,8 +27,33 @@ const jpeg = Buffer.from([
 const admin = createServerClient(requiredEnv("SUPABASE_SECRET_KEY"));
 const userA = createServerClient(requiredEnv("SUPABASE_PUBLISHABLE_KEY"));
 const userB = createServerClient(requiredEnv("SUPABASE_PUBLISHABLE_KEY"));
-const app = createApp();
 const sourcePaths: string[] = [];
+let extractionFailure: ExtractionError | null = null;
+const provider: DocumentExtractionProvider = {
+  async extract() {
+    if (extractionFailure !== null) throw extractionFailure;
+    return {
+      fields: {
+        sellerName: "Integration seller",
+        documentNumber: "381/1/3",
+        issueDate: "2026-08-19",
+        total: "8.08",
+        currency: "EUR",
+      },
+      metadata: {
+        provider: "azure-document-intelligence",
+        modelId: "prebuilt-invoice",
+        apiVersion: "2024-11-30",
+        analyzedAt: new Date().toISOString(),
+        latencyMs: 1,
+        documentConfidence: 1,
+        fields: {},
+      },
+      raw: { status: "succeeded" },
+    };
+  },
+};
+const app = createApp({ extractionProvider: provider });
 
 let tokenA = "";
 let tokenB = "";
@@ -150,7 +179,68 @@ describe("receipt source lifecycle against the hosted project", () => {
     const response = await fetch(data!.signedUrl);
     expect([400, 403, 404]).toContain(response.status);
   });
+
+  it("moves an uploaded receipt to review and retains the original extraction", async () => {
+    const response = await request(app)
+      .post("/api/receipts")
+      .set("Authorization", `Bearer ${tokenA}`)
+      .attach("file", jpeg, { filename: "task07-review.jpg", contentType: "image/jpeg" });
+    const created = createReceiptResponseSchema.parse(response.body);
+    sourcePaths.push(sourceObjectPath(userAId, created.id));
+
+    const receipt = await waitForStatus(created.id, tokenA, "review");
+    expect(receipt).toMatchObject({ sellerName: "Integration seller", total: "8.08" });
+
+    const { data, error } = await admin
+      .from("receipts")
+      .select("canonical_data, original_extraction, raw_provider_result, extraction_metadata")
+      .eq("id", created.id)
+      .single();
+    expect(error).toBeNull();
+    expect(data?.original_extraction).toEqual(data?.canonical_data);
+    expect(data?.raw_provider_result).not.toBeNull();
+    expect(data?.extraction_metadata).toMatchObject({ latencyMs: 1 });
+  });
+
+  it("retries a retryable failure but never allows another user or review receipt to retry", async () => {
+    extractionFailure = new ExtractionError("provider_unavailable", true);
+    const upload = await request(app)
+      .post("/api/receipts")
+      .set("Authorization", `Bearer ${tokenA}`)
+      .attach("file", jpeg, { filename: "task07-retry.jpg", contentType: "image/jpeg" });
+    const created = createReceiptResponseSchema.parse(upload.body);
+    sourcePaths.push(sourceObjectPath(userAId, created.id));
+    await waitForStatus(created.id, tokenA, "failed");
+
+    extractionFailure = null;
+    const retry = await request(app)
+      .post(`/api/receipts/${created.id}/retry`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(retry.status).toBe(202);
+    await waitForStatus(created.id, tokenA, "review");
+
+    const reviewRetry = await request(app)
+      .post(`/api/receipts/${created.id}/retry`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(reviewRetry.status).toBe(409);
+
+    const crossUser = await request(app)
+      .post(`/api/receipts/${created.id}/retry`)
+      .set("Authorization", `Bearer ${tokenB}`);
+    expect(crossUser.status).toBe(404);
+  });
 });
+
+async function waitForStatus(id: string, token: string, status: "review" | "failed") {
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    const response = await request(app)
+      .get(`/api/receipts/${id}`)
+      .set("Authorization", `Bearer ${token}`);
+    if (response.body.status === status) return response.body;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error(`Receipt ${id} did not reach ${status}.`);
+}
 
 async function pdf(): Promise<Buffer> {
   const document = await PDFDocument.create();
