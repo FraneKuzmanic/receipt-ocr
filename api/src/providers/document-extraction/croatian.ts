@@ -6,8 +6,10 @@ const ZKI = /\bZKI\s*[:#-]?\s*([0-9a-f]{32})\b/i;
 const ISSUE_DATE =
   /\b(?:datum|dat\.)\s*[:#-]?\s*([0-9]{1,2}[./-][0-9]{1,2}[./-][0-9]{2,4}\.?|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/i;
 const ISSUE_TIME = /\bvrijeme\s*[:#-]?\s*([0-9]{1,2}[:.,][0-9]{2}(?:[:.,][0-9]{2})?)/i;
+// "broj" must be tried before "br\.?": the optional dot lets "br\.?" match just the "br" of
+// "broj" and stop there, so trying it first leaves "oj" to be captured as the document number.
 const DOCUMENT_NUMBER =
-  /\b(?:ra[čc]un|r-?1|br\.)\s*(?:br\.?|broj)?\s*[:#-]?\s*([a-z0-9][a-z0-9./-]*)/i;
+  /\b(?:ra[čc]un|r-?1|br\.)\s*(?:broj|br\.?)?\s*[:#-]?\s*([a-z0-9][a-z0-9./-]*)/i;
 
 function capture(content: string, expression: RegExp): string | null {
   return expression.exec(content)?.[1] ?? null;

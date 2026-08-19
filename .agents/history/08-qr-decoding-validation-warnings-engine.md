@@ -105,11 +105,15 @@ did not, both fixed before commit:
    `"10752/310012/2"` for that receipt, so the fallback never runs — but the fallback exists precisely
    for receipts where Azure's structured field is absent, and this receipt's own OCR `content` (see the
    Task 08 evidence table under D1) shows exactly the `"Račun broj:\n<number>\n"` shape that triggers
-   it. **Not fixed here** — `croatian.ts` is Task 07's file and outside this task's scope; bundling an
-   unrelated regex fix into this commit would break the roadmap's one-atomic-commit-per-task discipline.
-   Flagged for a small, isolated follow-up fix (likely swapping the alternation order to
-   `(?:broj|br\.?)?`, verified independently to resolve both cases above) or for Task 12's evaluation
-   pass to pick up as a corrected-field pattern.
+   it. **Not fixed in this commit** — `croatian.ts` is Task 07's file and outside this task's scope;
+   bundling an unrelated regex fix into this commit would break the roadmap's one-atomic-commit-per-task
+   discipline. **Fixed separately, immediately after, in its own commit**: swapping the alternation
+   order to `(?:broj|br\.?)?` so `"broj"` is tried before the dot-optional `"br\.?"` abbreviation.
+   Verified against `"Račun br. 381/1/3"` (existing case, still correct), `"Račun broj: 381/1/3"` and
+   `"Račun broj:\n381/1/3"` (both now correct), `"r1 123"`, `"r-1 123"`, `"br. 123"` (all still
+   correct), and the malformed-input case (still `null`) — plus the real `26515835.jpg` fixture
+   content itself, which now correctly yields `"10752/310012/2"` instead of `"oj"`. A regression test
+   was added to `croatian.test.ts`.
    Because this bug only affected a **newly written Task 08 test's fixture content**, not any
    pre-existing assertion, the fix was to change that fixture's content to a form the regex already
    handles correctly (`"Račun br. 381/1/3"`, matching `croatian.test.ts`'s known-good case) rather than
