@@ -40,4 +40,11 @@ describe("Croatian receipt text parsing", () => {
       "a1b2c3d4e5f60718293a4b5c6d7e8f90",
     );
   });
+
+  it("finds a document number after the full word 'broj', not just the 'br.' abbreviation", () => {
+    // Regression: the alternation used to try "br\.?" before "broj", which matches just "br" of
+    // "broj" (the dot is optional) and stops there, capturing "oj" instead of the real number.
+    expect(findDocumentNumber("Račun broj: 381/1/3")).toBe("381/1/3");
+    expect(findDocumentNumber("Račun broj:\n381/1/3")).toBe("381/1/3");
+  });
 });
