@@ -119,6 +119,11 @@ Current coverage and what each test protects:
 | `api/src/providers/document-extraction/azure-fields.test.ts` | Recorded Azure fixtures map to canonical fields offline; exact decimal strings come from text rather than provider floats |
 | `api/src/providers/document-extraction/azure.test.ts` | Azure retryability classification, deterministic fallbacks isolated from the network, and — regression coverage for a real post-review bug — the request's abort signal is proven to reach the long-running poll, and a poll that outlives `EXTRACTION_TIMEOUT_MS` is proven to reject as a retryable failure rather than hang |
 | `api/src/services/receipt-extraction.test.ts` | Background extraction writes review/original data together and contains expected and unexpected failures |
+| `api/src/providers/document-extraction/fiscal-qr.test.ts` | Croatian fiscal QR URLs, a bare JIR UUID, case-insensitive parameters, ZKI, malformed payloads and separator-less `izn` parsing remain deterministic, local and non-throwing |
+| `api/src/providers/document-extraction/azure-fields.test.ts` (Task 08) | Unreadable source values are tracked as `unreadableFields` without persisting bad data; structured Azure values still take precedence when valid |
+| `api/src/providers/document-extraction/azure.test.ts` (Task 08) | Barcode feature propagation, QR extraction and marker-safe text fallbacks preserve normal field extraction when a QR is absent |
+| `api/src/validation/warnings.test.ts` | Pure, stable-order warning rules cover critical gaps, unreadable values, exact VAT arithmetic, QR total/date/time mismatches and the not-enough-information path; corrected values clear warnings without OCR rerunning |
+| `api/src/services/receipt-extraction.test.ts` (Task 08) | Background extraction persists QR data and computed warnings together; no QR persists as `null` |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
 keys are computed from a Supabase error code, so Phase 6.5's literal-`t("…")` scan cannot follow
@@ -216,7 +221,7 @@ Catches a `t("some.key")` that was never added to the locale files, which would 
 to the user.
 
 ```
-node -e "const fs=require('fs'),path=require('path'); const en=JSON.parse(fs.readFileSync('client/src/i18n/locales/en.json','utf8')); const flat=(o,p='')=>Object.entries(o).flatMap(([k,v])=>typeof v==='object'?flat(v,p+k+'.'):[p+k]); const known=new Set(flat(en)); const files=[]; (function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,e.name); if(e.isDirectory())walk(f); else if(/\.tsx?$/.test(e.name))files.push(f);}})('client/src'); const bad=[]; for(const f of files){const s=fs.readFileSync(f,'utf8'); for(const m of s.matchAll(/\bt\(\s*[\"']([^\"']+)[\"']/g)) if(!known.has(m[1])) bad.push(f+' -> '+m[1]);} if(bad.length) throw new Error('unknown translation keys: '+bad.join(', ')); console.log('ok');"
+node -e "const fs=require('fs'),path=require('path'),q=String.fromCharCode(34,39); const en=JSON.parse(fs.readFileSync('client/src/i18n/locales/en.json','utf8')); const flat=(o,p='')=>Object.entries(o).flatMap(([k,v])=>typeof v==='object'?flat(v,p+k+'.'):[p+k]); const known=new Set(flat(en)); const files=[]; const calls=new RegExp('\\bt\\(\\s*['+q+']([^'+q+']+)['+q+']','g'); (function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,e.name); if(e.isDirectory())walk(f); else if(/\.tsx?$/.test(e.name))files.push(f);}})('client/src'); const bad=[]; for(const f of files){const s=fs.readFileSync(f,'utf8'); for(const m of s.matchAll(calls)) if(!known.has(m[1])) bad.push(f+' -> '+m[1]);} if(bad.length) throw new Error('unknown translation keys: '+bad.join(', ')); console.log('ok');"
 ```
 
 ### 6.6 Documentation matches the code
@@ -226,7 +231,7 @@ mentions exists, that every script is documented, that every file path and local
 resolves, and that the documented environment variables match `.env.example` exactly.
 
 ```
-node -e "const fs=require('fs'); const r=fs.readFileSync('README.md','utf8'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); const fail=[]; const mentioned=new Set([...r.matchAll(/npm run ([a-z:-]+)/g)].map(m=>m[1])); const defined=new Set(Object.keys(pkg.scripts)); const a=[...mentioned].filter(s=>!defined.has(s)); if(a.length) fail.push('undefined scripts: '+a); const b=[...defined].filter(s=>!mentioned.has(s) && !r.includes('npm '+s) && s!=='prepare'); if(b.length) fail.push('undocumented scripts: '+b); const paths=[...r.matchAll(/\`([a-zA-Z0-9_.\/-]+\.(?:ts|tsx|json|md|css|html|example))\`/g)].map(m=>m[1]); const c=[...new Set(paths)].filter(p=>!fs.existsSync(p)); if(c.length) fail.push('broken paths: '+c); const links=[...r.matchAll(/\]\(([^)h][^)]*)\)/g)].map(m=>m[1]).filter(l=>!l.startsWith('#')); const d=links.filter(l=>!fs.existsSync(l)); if(d.length) fail.push('broken links: '+d); const cfg=r.split('## Configuration')[1].split('## Logging')[0]; const env=new Set([...fs.readFileSync('.env.example','utf8').matchAll(/^([A-Z0-9_]+)=/gm)].map(m=>m[1])); const doc=new Set([...cfg.matchAll(/\| \`([A-Z][A-Z0-9_]{2,})\`/g)].map(m=>m[1])); const e=[...env].filter(v=>!doc.has(v)); if(e.length) fail.push('env vars not documented: '+e); const f=[...doc].filter(v=>!env.has(v)); if(f.length) fail.push('documented but absent from .env.example: '+f); if(fail.length) throw new Error(fail.join(' | ')); console.log('ok');"
+node -e "const fs=require('fs'); const r=fs.readFileSync('README.md','utf8'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); const fail=[]; const tick=String.fromCharCode(96); const mentioned=new Set([...r.matchAll(/npm run ([a-z:-]+)/g)].map(m=>m[1])); const defined=new Set(Object.keys(pkg.scripts)); const a=[...mentioned].filter(s=>!defined.has(s)); if(a.length) fail.push('undefined scripts: '+a); const b=[...defined].filter(s=>!mentioned.has(s) && !r.includes('npm '+s) && s!=='prepare'); if(b.length) fail.push('undocumented scripts: '+b); const paths=[...r.matchAll(new RegExp(tick+'([a-zA-Z0-9_.\\/-]+\\.(?:ts|tsx|json|md|css|html|example))'+tick,'g'))].map(m=>m[1]); const c=[...new Set(paths)].filter(p=>!fs.existsSync(p)); if(c.length) fail.push('broken paths: '+c); const links=[...r.matchAll(/\]\(([^)h][^)]*)\)/g)].map(m=>m[1]).filter(l=>!l.startsWith('#')); const d=links.filter(l=>!fs.existsSync(l)); if(d.length) fail.push('broken links: '+d); const cfg=r.split('## Configuration')[1].split('## Logging')[0]; const env=new Set([...fs.readFileSync('.env.example','utf8').matchAll(/^([A-Z0-9_]+)=/gm)].map(m=>m[1])); const doc=new Set([...cfg.matchAll(new RegExp('\\| '+tick+'([A-Z][A-Z0-9_]{2,})'+tick,'g'))].map(m=>m[1])); const e=[...env].filter(v=>!doc.has(v)); if(e.length) fail.push('env vars not documented: '+e); const f=[...doc].filter(v=>!env.has(v)); if(f.length) fail.push('documented but absent from .env.example: '+f); if(fail.length) throw new Error(fail.join(' | ')); console.log('ok');"
 ```
 
 Also confirm by hand that the per-workspace commands the README documents still work — a workspace
@@ -294,6 +299,22 @@ node -e "const fs=require('fs'); const hi=String.fromCharCode(0xC0)+'-'+String.f
 If this fails, do not just retype the affected key — check how the edit was made (a shell heredoc or
 tool that assumed the wrong source encoding is the usual cause) so the same key does not get corrupted
 again on the next edit.
+
+### 6.12 QR handling never performs a network request
+
+The fiscal QR URL is evidence to parse, never a destination to follow (PRD §9.3).
+
+```
+node -e "const fs=require('fs'),p=require('path'); const bad=[]; for(const f of ['api/src/providers/document-extraction/fiscal-qr.ts','api/src/validation/warnings.ts']){ const s=fs.readFileSync(f,'utf8'); if(/\bfetch\s*\(|https?\.(get|request)\s*\(|axios/.test(s)) bad.push(f);} if(bad.length) throw new Error('QR handling must never perform a network request: '+bad.join(', ')); console.log('ok');"
+```
+
+### 6.13 Warnings never gate an action
+
+```
+node -e "const fs=require('fs'),path=require('path'); const bad=[]; (function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,e.name); if(e.isDirectory())walk(f); else if(/\.ts$/.test(e.name)&&!/\.test\.ts$/.test(e.name)){const s=fs.readFileSync(f,'utf8'); if(/if\s*\([^)]*warnings[^)]*\.length/.test(s)) bad.push(f);}}})('api/src'); if(bad.length) throw new Error('a warning count is being used as a gate: '+bad.join(', ')); console.log('ok');"
+```
+
+This is a grep, not a proof. The durable guarantee is that no endpoint consults `warnings` at all.
 
 ---
 
@@ -365,9 +386,10 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 07 there are five journeys: the shared contract, authentication, source-document
-lifecycle, mobile capture/processing and extraction/retry. Review is only a ready destination; the
-editable review form and history remain future work.** Everything below runs against real servers, not mocks.
+**As of Task 08 there are six journeys: the shared contract, authentication, source-document
+lifecycle, mobile capture/processing, extraction/retry and QR/warnings. Review is only a ready
+destination; the editable review form and history remain future work.** Everything below runs against
+real servers, not mocks.
 
 ### 8.1 Start the stack
 
@@ -522,6 +544,20 @@ disposable receipt and confirm it reaches `failed`; restore the endpoint, use Re
 reaches `review`. Check both languages and confirm no provider field name appears in the API response
 or UI.
 
+### 8.9 Journey — QR decoding and warnings
+
+1. Upload `C:\Users\Frane\Desktop\računi\racuntaksi1.jpg`. It reaches `review`; its private row's
+   `qr_extraction` has JIR, `issueDate` `2025-03-31`, `issueTime` `23:59` and total `"132.72"`.
+2. Upload `C:\Users\Frane\Desktop\računi\26515835.jpg`. Its QR raw value preserves `izn=199`, total
+   remains `null`, and no `qr_total_mismatch` is stored.
+3. Upload `C:\Users\Frane\Desktop\računi\images.jpg`. It reaches `review` normally with
+   `qr_extraction` null.
+4. In a disposable stored row, compare its canonical total against the QR total with
+   `computeWarnings`; a mismatch yields exactly one `qr_total_mismatch`, and restoring the matching
+   total clears it without OCR rerunning.
+5. Confirm the API response and application logs expose neither QR payload content nor Azure field
+   names.
+
 ---
 
 ## Phase 9: Journeys to add as the roadmap progresses
@@ -530,7 +566,6 @@ Phase 8 must grow with the product. When a task below ships, add its journey and
 
 | Task | Journey to add |
 |---|---|
-| 08 | A readable fiscal QR decodes and stores. Missing and damaged QR codes still reach `review`. A deliberate QR/total mismatch raises exactly one warning that clears after correction. |
 | 09 | Pre-populated review form → edit a wrong document number → save → confirm **with a warning outstanding** succeeds. `original_extraction` still holds the pre-edit machine values. |
 | 10 | History lists only the current user's receipts, newest first, paged and status-filtered. Soft delete removes it from history while the row persists with `deleted_at` set. |
 | 11 | CSV opens in a spreadsheet with Croatian characters intact; a seller name starting with `=`, `+`, `-` or `@` is neutralized. JSON contains no Azure property name. `100.50` exports as exactly `100.50`. |

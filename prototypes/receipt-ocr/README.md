@@ -8,10 +8,10 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 06 implementation is complete. Automated and desktop-browser validation passed;
-> real-phone camera validation is deferred until the prototype is hosted. Authenticated users can
-> photograph or choose a receipt, inspect it before uploading, and follow its processing state. The
-> API derives identity only from a verified Supabase access token; Azure extraction arrives in Task 07.
+> **Status:** Task 08 implementation is complete. Authenticated users can photograph or choose a
+> receipt, follow asynchronous Azure extraction, and receive persisted informational warnings about
+> missing or inconsistent data. Real-phone camera validation remains deferred until the prototype is
+> hosted.
 
 ## Prerequisites
 
@@ -260,6 +260,10 @@ examples (six photos and one PDF) found seller, document number and total in all
 in six, with labelled Croatian text as the fallback; and symbol-backed currency in four. The receipt
 model was retained only in the comparison harness because it does not expose a document-number field.
 
+Every request enables Azure's free `barcodes` feature. It adds QR data without changing the mapped
+field values; Azure's inline `:barcode:`/layout markers are stripped before Croatian text fallbacks run
+so a marker can never become a canonical value.
+
 Azure field names stay inside the provider adapter. The result is mapped to the application's canonical
 receipt fields, stored once as both `original_extraction` and `canonical_data`, and the raw provider
 response is retained separately for debugging. Failed, retryable calls can re-run from the private
@@ -270,6 +274,17 @@ Confidence is recorded per canonical field but never suppresses a readable value
 therefore highlight a low-confidence value later without forcing a person to retype it. Amounts and
 quantities are parsed from the provider's text `content`, never from `valueCurrency.amount` or
 `valueNumber`: those are JavaScript numbers and would lose the required decimal precision.
+
+### QR decoding
+
+Azure supplies QR payloads server-side for JPEG, PNG, HEIF and PDF sources; no QR-decoding dependency
+or client image conversion is needed. The Croatian parser accepts fiscal URLs containing JIR or ZKI,
+and the observed bare-JIR UUID variant. It stores the decoded record in the private `qr_extraction`
+column and never uses it to fill, replace or overwrite canonical values.
+
+`izn` is comparable only when it contains `,` or `.`. A real receipt has `izn=199` while its total is
+`1,99 EUR`; interpreting it as `199.00` would manufacture a false mismatch. The raw payload remains
+preserved as evidence, but the QR URL is never fetched, resolved or rendered as HTML.
 
 ## Authentication
 
@@ -397,7 +412,16 @@ than a rule a route has to remember. **Do not flatten the two tiers into one sch
 ### Warnings
 
 `shared/src/warnings.ts` holds the warning **taxonomy** — a stable machine code plus the dotted field
-path it concerns. The rules that decide when a warning applies land in Task 08.
+path it concerns. `api/src/validation/warnings.ts` computes the rules after extraction and can be
+reused by Task 09 when an editable field changes; warnings are codes, not server-rendered prose.
+
+The API currently produces six informational checks: `missing_critical_field` (`sellerName`,
+`documentNumber`, `issueDate`, `total`, `currency`); `unparseable_date`/`unparseable_amount` when
+source text existed but could not normalize; `vat_arithmetic_mismatch` on a complete `vatBreakdown`;
+`qr_total_mismatch` on `total`; and `qr_datetime_mismatch` on `issueDate`. Incomplete VAT or QR data
+emits nothing rather than guessing. `document_quality` intentionally remains unproduced because Azure
+confidence data is not a reliable quality signal; see
+`.agents/history/08-qr-decoding-validation-warnings-engine.md` for the evidence.
 
 Warning **messages** live in the client locale files, not in `shared`, matching the error convention
 above: the server emits a code, the client owns the human copy. Every code needs an `hr` and an `en`

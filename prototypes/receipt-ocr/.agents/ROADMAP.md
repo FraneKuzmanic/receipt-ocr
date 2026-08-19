@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 07 implementation complete — Task 08 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
+**Status:** Task 08 implementation complete — Task 09 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -121,7 +121,10 @@ Each is owned by a specific task and must be resolved there, not earlier:
   **Resolved:** Azure Document Intelligence `2024-11-30` with `prebuilt-invoice`; record all
   confidence rather than discarding low-confidence values; use deterministic Croatian text fallbacks
   for fiscal identifiers and model gaps. See [history](history/07-azure-extraction-provider-canonical-mapper.md).
-- **QR decode library and Croatian fiscal QR payload format** → Task 08.
+- ~~**QR decode library and Croatian fiscal QR payload format** → Task 08.~~
+  **Resolved:** Azure Document Intelligence's free `barcodes` feature runs server-side in the existing
+  `prebuilt-invoice` call; the parser accepts fiscal JIR/ZKI URLs plus an observed bare JIR UUID and
+  never fetches the URL. See [history](history/08-qr-decoding-validation-warnings-engine.md).
 - **Hosting provider for the deployed PoC** → Task 12.
 - **Password reset** → **deferred with no owning task.** PRD §7.1 and Task 04 both qualify it with
   "if readily available from the provider", and it is not: it needs custom SMTP, an email template,
@@ -156,7 +159,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ✅* Done with a docu
 | 05  | Receipt upload API & source-document persistence | 2         | ✅     | [plan](plans/receipt-upload-source-document-persistence.md) | [history](history/05-receipt-upload-source-document-persistence.md) |
 | 06  | Mobile capture & upload UI                       | 2         | ✅*    | [plan](plans/mobile-capture-upload-ui.md)         | [history](history/06-mobile-capture-upload-ui.md) |
 | 07  | Azure extraction provider & canonical mapper     | 2         | ✅*    | [plan](plans/azure-extraction-provider-canonical-mapper.md) | [history](history/07-azure-extraction-provider-canonical-mapper.md) |
-| 08  | QR decoding & validation/warnings engine         | 2         | ⬜     | —                                                 | —       |
+| 08  | QR decoding & validation/warnings engine         | 2         | ✅     | [plan](plans/qr-decoding-validation-warnings-engine.md) | [history](history/08-qr-decoding-validation-warnings-engine.md) |
 | 09  | Review form, editing & confirmation              | 3         | ⬜     | —                                                 | —       |
 | 10  | History, detail view & soft delete               | 3         | ⬜     | —                                                 | —       |
 | 11  | CSV & JSON export                                | 3         | ⬜     | —                                                 | —       |
@@ -475,7 +478,7 @@ the roadmap.
 ### Task 08 — QR decoding & validation/warnings engine
 
 **Goal:** Croatian fiscal QR codes are decoded when present and cross-checked against the OCR
-result; deterministic checks produce field-attached warnings that recalculate after edits.
+result; deterministic checks produce field-attached warnings ready for Task 09 to recalculate after edits.
 
 **Depends on:** 07.
 
@@ -487,17 +490,18 @@ result; deterministic checks produce field-attached warnings that recalculate af
   and never allowed to overwrite a user-confirmed value.
 - QR content treated as untrusted: no URL is fetched, no Tax Administration verification, nothing
   from the payload is rendered unescaped (PRD §9.3).
-- Warning rules engine — pure functions over a `CanonicalReceipt` plus optional QR data, so it can
-  run on both the initial extraction and every subsequent edit without re-running OCR:
+- Warning rules engine — pure functions over canonical fields plus optional QR data, run during initial
+  extraction and ready for Task 09 to reuse on every edit without re-running OCR:
   - missing critical field (seller, document number, issue date, total, currency)
   - unparseable date
   - unparseable monetary value
   - VAT arithmetic inconsistency when there is enough information
   - QR total vs. current total mismatch
   - QR date/time vs. current date/time mismatch
-  - image/document quality warning carried over from capture
+- `document_quality` remains deliberately unproduced: available server-side confidence is not a
+  reliable quality signal.
 - Every warning: stable code, affected field path, `hr`/`en` message. Never blocking.
-- Warnings persisted on the receipt and recomputed on `PATCH`.
+- Warnings persisted on the receipt at extraction; `PATCH` recomputation belongs to Task 09.
 
 **Not in this task:** duplicate detection, buyer-OIB matching, company verification, LLM
 validation — all explicitly out of scope (§7.8).

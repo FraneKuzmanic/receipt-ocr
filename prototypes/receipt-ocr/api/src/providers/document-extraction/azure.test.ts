@@ -64,6 +64,7 @@ describe("Azure extraction provider", () => {
     expect(result.metadata.fields.documentNumber).toEqual({ confidence: 0.8, source: "model" });
     expect(result.metadata.fields.sellerOib).toEqual({ confidence: null, source: "text" });
     expect(result.metadata.latencyMs).toBeGreaterThanOrEqual(0);
+    expect(result.qr).toBeNull();
   });
 
   it("preserves provider failures", async () => {
@@ -99,8 +100,12 @@ describe("Azure extraction provider", () => {
     const provider = createAzureProvider({ client: fakeClient });
     await provider.extract({ bytes: Buffer.from("receipt"), contentType: "image/jpeg" });
 
-    const requestOptions = post.mock.calls[0]![0] as { abortSignal: AbortSignal };
+    const requestOptions = post.mock.calls[0]![0] as {
+      abortSignal: AbortSignal;
+      queryParameters: { features: string[] };
+    };
     const requestSignal = requestOptions.abortSignal;
+    expect(requestOptions.queryParameters.features).toEqual(["barcodes"]);
     expect(pollUntilDone).toHaveBeenCalledWith({ abortSignal: requestSignal });
   });
 
@@ -133,5 +138,42 @@ describe("Azure extraction provider", () => {
     await expect(
       provider.extract({ bytes: Buffer.from("receipt"), contentType: "image/jpeg" }),
     ).rejects.toMatchObject({ retryable: true, reason: "provider_unavailable" });
+  });
+
+  it("extracts fiscal QR data and strips inline barcode markers before text fallbacks", async () => {
+    const provider = createAzureProvider({
+      analyze: async () => ({
+        analyzeResult: {
+          ...analyzeResult,
+          content: "Račun br. 381/1/3\n:barcode:\nJIR: 18916f95-5787-4e7f-a190-3a091970cfa2",
+          documents: [{ ...analyzeResult.documents![0]!, fields: {} }],
+          pages: [
+            {
+              pageNumber: 1,
+              spans: [],
+              barcodes: [
+                {
+                  kind: "QRCode",
+                  value:
+                    "https://porezna.gov.hr/rn?jir=18916f95-5787-4e7f-a190-3a091970cfa2&datv=20250331_2359&izn=132,72",
+                  span: { offset: 0, length: 1 },
+                  confidence: 1,
+                },
+              ],
+            },
+          ],
+        },
+        raw: { status: "succeeded" },
+      }),
+    });
+
+    const result = await provider.extract({
+      bytes: Buffer.from("receipt"),
+      contentType: "image/jpeg",
+    });
+
+    expect(result.qr).toMatchObject({ total: "132.72", issueTime: "23:59" });
+    expect(result.fields.documentNumber).toBe("381/1/3");
+    expect(result.fields.jir).toBe("18916f95-5787-4e7f-a190-3a091970cfa2");
   });
 });

@@ -1,12 +1,12 @@
 {
   "status": "succeeded",
-  "createdDateTime": "2026-08-19T09:36:12Z",
-  "lastUpdatedDateTime": "2026-08-19T09:36:16Z",
+  "createdDateTime": "2026-08-19T12:38:48Z",
+  "lastUpdatedDateTime": "2026-08-19T12:38:50Z",
   "analyzeResult": {
     "apiVersion": "2024-11-30",
     "modelId": "prebuilt-invoice",
     "stringIndexType": "textElements",
-    "content": "Semovcanka Nova j.d.o.o.\nTrgovina mjesovitom robom\nSemovci, S.Radica 127 A, 48350 D\njURDjEVÁC\nOIB: 79435261200\ntel: 048-280-913\nMJESTO: 1 Semovcanka Nova, Semov\nci\nRACUN: 22-1-1\nDat .: 21.02.2020,14:26:38\nOperater :Pcela Strsljan\nSTOL/NARUDZBA : 85\nNaziv\nKolicina jmj Cijena\nIznos\nPIVO PAB 2L\n1.00 kom\n15.99\n15.99\nPIVO PAN RAD.2L\n1.00 kom\n21.99\nGROZDjE\n21.99\n1.00 kom\n12.74\n12.74\nRAJCICA SJECKANA\nKELJ\n1.00 kom\n12.99\n12.99\n1.00 kg\n11.99\nHRANA RIAL PSI 3 KG\n11.99\n1.00 kom\n27.99\n27.99\nUKUPNO\n103,69\nNAC.PLAC .: NOVCANICE I KOVANICE\nEURO:\n13,94 (1 Eur= 7,43567)\nPorez\n%\nOsnovica\nIznos\nPDV\n25.00\n82,95\n20,74\nUkupno porezi\n20,74\nJIR: ac12e053-3300-496a-8ad4-1bd2c10b0ec6\nZKI: 08a78e71e4e01080e6755ffe3bfdb1e6\n\"obracun prema naplacenim naknad\nama\nNAJLJEPSA HVALA NA POVJERENJU\nWIFI: SeMO547T",
+    "content": "Semovcanka Nova j.d.o.o.\nTrgovina mjesovitom robom\nSemovci, S.Radica 127 A, 48350 D\njURDjEVÁC\nOIB: 79435261200\ntel: 048-280-913\nMJESTO: 1 Semovcanka Nova, Semov\nci\nRACUN: 22-1-1\nDat .: 21.02.2020,14:26:38\nOperater :Pcela Strsljan\nSTOL/NARUDZBA : 85\nNaziv\nKolicina jmj Cijena\nIznos\nPIVO PAB 2L\n1.00 kom\n15.99\n15.99\nPIVO PAN RAD.2L\n1.00 kom\n21.99\nGROZDjE\n21.99\n1.00 kom\n12.74\n12.74\nRAJCICA SJECKANA\nKELJ\n1.00 kom\n12.99\n12.99\n1.00 kg\n11.99\nHRANA RIAL PSI 3 KG\n11.99\n1.00 kom\n27.99\n27.99\nUKUPNO\n103,69\nNAC.PLAC .: NOVCANICE I KOVANICE\nEURO:\n13,94 (1 Eur= 7,43567)\nPorez\n%\nOsnovica\nIznos\nPDV\n25.00\n82,95\n20,74\nUkupno porezi\n20,74\nJIR: ac12e053-3300-496a-8ad4-1bd2c10b0ec6\nZKI: 08a78e71e4e01080e6755ffe3bfdb1e6\n:barcode:\n\"obracun prema naplacenim naknad\nama\nNAJLJEPSA HVALA NA POVJERENJU\nWIFI: SeMO547T",
     "pages": [
       {
         "pageNumber": 1,
@@ -965,7 +965,7 @@
             "polygon": [110, 1322, 198, 1324, 198, 1354, 109, 1350],
             "confidence": 0.951,
             "span": {
-              "offset": 705,
+              "offset": 715,
               "length": 8
             }
           },
@@ -974,7 +974,7 @@
             "polygon": [210, 1325, 264, 1326, 264, 1356, 210, 1354],
             "confidence": 0.994,
             "span": {
-              "offset": 714,
+              "offset": 724,
               "length": 5
             }
           },
@@ -983,7 +983,7 @@
             "polygon": [277, 1327, 389, 1330, 388, 1360, 277, 1357],
             "confidence": 0.992,
             "span": {
-              "offset": 720,
+              "offset": 730,
               "length": 10
             }
           },
@@ -992,7 +992,7 @@
             "polygon": [401, 1330, 470, 1331, 470, 1361, 400, 1360],
             "confidence": 0.992,
             "span": {
-              "offset": 731,
+              "offset": 741,
               "length": 6
             }
           },
@@ -1001,7 +1001,7 @@
             "polygon": [265, 1357, 301, 1358, 301, 1377, 264, 1376],
             "confidence": 0.996,
             "span": {
-              "offset": 738,
+              "offset": 748,
               "length": 3
             }
           },
@@ -1010,7 +1010,7 @@
             "polygon": [130, 1397, 231, 1399, 231, 1423, 130, 1421],
             "confidence": 0.988,
             "span": {
-              "offset": 742,
+              "offset": 752,
               "length": 9
             }
           },
@@ -1019,7 +1019,7 @@
             "polygon": [243, 1399, 298, 1401, 298, 1425, 242, 1423],
             "confidence": 0.992,
             "span": {
-              "offset": 752,
+              "offset": 762,
               "length": 5
             }
           },
@@ -1028,7 +1028,7 @@
             "polygon": [311, 1401, 332, 1402, 331, 1426, 311, 1425],
             "confidence": 0.992,
             "span": {
-              "offset": 758,
+              "offset": 768,
               "length": 2
             }
           },
@@ -1037,7 +1037,7 @@
             "polygon": [344, 1402, 458, 1404, 458, 1430, 343, 1426],
             "confidence": 0.988,
             "span": {
-              "offset": 761,
+              "offset": 771,
               "length": 10
             }
           },
@@ -1046,7 +1046,7 @@
             "polygon": [207, 1422, 262, 1423, 261, 1447, 207, 1446],
             "confidence": 0.992,
             "span": {
-              "offset": 772,
+              "offset": 782,
               "length": 5
             }
           },
@@ -1055,7 +1055,7 @@
             "polygon": [276, 1424, 366, 1426, 366, 1450, 276, 1447],
             "confidence": 0.647,
             "span": {
-              "offset": 778,
+              "offset": 788,
               "length": 8
             }
           }
@@ -1626,7 +1626,7 @@
             "polygon": [110, 1322, 470, 1331, 469, 1361, 109, 1352],
             "spans": [
               {
-                "offset": 705,
+                "offset": 715,
                 "length": 32
               }
             ]
@@ -1636,7 +1636,7 @@
             "polygon": [265, 1356, 300, 1358, 300, 1377, 264, 1376],
             "spans": [
               {
-                "offset": 738,
+                "offset": 748,
                 "length": 3
               }
             ]
@@ -1646,7 +1646,7 @@
             "polygon": [130, 1397, 458, 1404, 457, 1429, 130, 1421],
             "spans": [
               {
-                "offset": 742,
+                "offset": 752,
                 "length": 29
               }
             ]
@@ -1656,16 +1656,28 @@
             "polygon": [207, 1422, 366, 1426, 365, 1449, 207, 1445],
             "spans": [
               {
-                "offset": 772,
+                "offset": 782,
                 "length": 14
               }
             ]
           }
         ],
+        "barcodes": [
+          {
+            "kind": "QRCode",
+            "value": "ac12e053-3300-496a-8ad4-1bd2c10b0ec6",
+            "span": {
+              "offset": 705,
+              "length": 9
+            },
+            "polygon": [234, 1161, 345, 1162, 344, 1278, 233, 1277],
+            "confidence": 1
+          }
+        ],
         "spans": [
           {
             "offset": 0,
-            "length": 786
+            "length": 796
           }
         ]
       }
@@ -3346,7 +3358,7 @@
         "spans": [
           {
             "offset": 0,
-            "length": 786
+            "length": 796
           }
         ]
       }

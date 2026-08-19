@@ -23,6 +23,27 @@ describe("Azure field mapper", () => {
     expect(missingFiscal.fields.sellerOib).toBeUndefined();
   });
 
+  it("records source values that could not be normalized without persisting them", async () => {
+    const raw = JSON.parse(
+      await readFile(new URL("./fixtures/mapper-edge-cases.json", import.meta.url), "utf8"),
+    ) as { invoice: AnalyzeResultOutput };
+    const document = raw.invoice.documents?.[0];
+    if (document === undefined) throw new Error("Fixture has no document.");
+    const unreadableDate = mapAnalyzeResult({
+      ...raw.invoice,
+      documents: [
+        {
+          ...document,
+          fields: { InvoiceDate: { type: "string", content: "31/03/2025," } },
+        },
+      ],
+    });
+
+    expect(unreadableDate.unreadableFields).toEqual(["issueDate"]);
+    expect(unreadableDate.fields.issueDate).toBeUndefined();
+    expect(mapAnalyzeResult(raw.invoice).unreadableFields).toEqual([]);
+  });
+
   it("uses receipt text for exact decimal values and never the provider floats", async () => {
     const raw = JSON.parse(
       await readFile(new URL("./fixtures/mapper-edge-cases.json", import.meta.url), "utf8"),

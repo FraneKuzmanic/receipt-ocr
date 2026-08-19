@@ -1,12 +1,12 @@
 {
   "status": "succeeded",
-  "createdDateTime": "2026-08-19T09:35:40Z",
-  "lastUpdatedDateTime": "2026-08-19T09:35:49Z",
+  "createdDateTime": "2026-08-19T12:38:24Z",
+  "lastUpdatedDateTime": "2026-08-19T12:38:27Z",
   "analyzeResult": {
     "apiVersion": "2024-11-30",
     "modelId": "prebuilt-invoice",
     "stringIndexType": "textElements",
-    "content": "Eurospin Hrvatska d.o.o.\nEURO\nJelačićev trg 7, 51000 Rijeka\nOIB: 62357811032\nSpin\nEUROSPIN SISAK\nSupernova Sisak West\nZagrebačka ul. 49g\n44000 Sisak\nBLAGAJNA 2\nEUR\nNet 2,092kg × 0,95 EUR/kg\nLIMUN rfz\n1,99\nMEĐUZBROJ\n1,99\nMEĐUZBROJ\n1,99\nUKUPNO EUR\n1,99\nGOTOVINA\n2,00\nZA VRATITI\n0,01\n23.1.2024. 15:12\nPB. 0396\nStopa%\nOsnovica\nIznos poreza\n05.00%\n01.90\n00.09\nRačun broj:\n10752/310012/2\nZKI: 602b3d9defd5587af4de4b7f848a52c5\nJIR: 1193a137-a1f5-4085-9e1b-3a0919701a4f\nBLAGAJNIK: 012-009\nHVALA I DOVIĐENJA",
+    "content": "Eurospin Hrvatska d.o.o.\nEURO\nJelačićev trg 7, 51000 Rijeka\nOIB: 62357811032\nSpin\nEUROSPIN SISAK\nSupernova Sisak West\nZagrebačka ul. 49g\n44000 Sisak\nBLAGAJNA 2\nEUR\nNet 2,092kg × 0,95 EUR/kg\nLIMUN rfz\n1,99\nMEĐUZBROJ\n1,99\nMEĐUZBROJ\n1,99\nUKUPNO EUR\n1,99\nGOTOVINA\n2,00\nZA VRATITI\n0,01\n23.1.2024. 15:12\nPB. 0396\nStopa%\nOsnovica\nIznos poreza\n05.00%\n01.90\n00.09\nRačun broj:\n10752/310012/2\n:barcode:\nZKI: 602b3d9defd5587af4de4b7f848a52c5\nJIR: 1193a137-a1f5-4085-9e1b-3a0919701a4f\nBLAGAJNIK: 012-009\nHVALA I DOVIĐENJA",
     "pages": [
       {
         "pageNumber": 1,
@@ -551,7 +551,7 @@
             "polygon": [56, 2519, 157, 2516, 157, 2568, 56, 2571],
             "confidence": 0.992,
             "span": {
-              "offset": 382,
+              "offset": 392,
               "length": 4
             }
           },
@@ -560,7 +560,7 @@
             "polygon": [199, 2515, 1074, 2505, 1074, 2556, 199, 2568],
             "confidence": 0.956,
             "span": {
-              "offset": 387,
+              "offset": 397,
               "length": 32
             }
           },
@@ -569,7 +569,7 @@
             "polygon": [58, 2580, 159, 2577, 160, 2631, 58, 2634],
             "confidence": 0.992,
             "span": {
-              "offset": 420,
+              "offset": 430,
               "length": 4
             }
           },
@@ -578,7 +578,7 @@
             "polygon": [202, 2576, 1180, 2562, 1180, 2617, 203, 2630],
             "confidence": 0.25,
             "span": {
-              "offset": 425,
+              "offset": 435,
               "length": 36
             }
           },
@@ -587,7 +587,7 @@
             "polygon": [64, 2703, 406, 2693, 406, 2747, 65, 2756],
             "confidence": 0.989,
             "span": {
-              "offset": 462,
+              "offset": 472,
               "length": 10
             }
           },
@@ -596,7 +596,7 @@
             "polygon": [459, 2691, 696, 2687, 696, 2740, 460, 2746],
             "confidence": 0.993,
             "span": {
-              "offset": 473,
+              "offset": 483,
               "length": 7
             }
           },
@@ -605,7 +605,7 @@
             "polygon": [421, 2929, 559, 2927, 560, 2979, 421, 2980],
             "confidence": 0.994,
             "span": {
-              "offset": 481,
+              "offset": 491,
               "length": 5
             }
           },
@@ -614,7 +614,7 @@
             "polygon": [593, 2927, 610, 2927, 610, 2978, 593, 2979],
             "confidence": 0.992,
             "span": {
-              "offset": 487,
+              "offset": 497,
               "length": 1
             }
           },
@@ -623,7 +623,7 @@
             "polygon": [642, 2927, 887, 2928, 887, 2980, 642, 2979],
             "confidence": 0.176,
             "span": {
-              "offset": 489,
+              "offset": 499,
               "length": 9
             }
           }
@@ -974,7 +974,7 @@
             "polygon": [56, 2515, 1073, 2504, 1074, 2555, 56, 2570],
             "spans": [
               {
-                "offset": 382,
+                "offset": 392,
                 "length": 37
               }
             ]
@@ -984,7 +984,7 @@
             "polygon": [57, 2576, 1179, 2562, 1180, 2616, 58, 2633],
             "spans": [
               {
-                "offset": 420,
+                "offset": 430,
                 "length": 41
               }
             ]
@@ -994,7 +994,7 @@
             "polygon": [64, 2701, 695, 2687, 696, 2739, 65, 2755],
             "spans": [
               {
-                "offset": 462,
+                "offset": 472,
                 "length": 18
               }
             ]
@@ -1004,16 +1004,28 @@
             "polygon": [421, 2927, 886, 2926, 887, 2979, 421, 2980],
             "spans": [
               {
-                "offset": 481,
+                "offset": 491,
                 "length": 17
               }
             ]
           }
         ],
+        "barcodes": [
+          {
+            "kind": "QRCode",
+            "value": "https://porezna.gov.hr/rn?jir=1193a137-a1f5-4085-9e1b-3a0919701a4f&datv=20240123_1512&izn=199",
+            "span": {
+              "offset": 382,
+              "length": 9
+            },
+            "polygon": [460, 2070, 831, 2064, 837, 2440, 466, 2446],
+            "confidence": 1
+          }
+        ],
         "spans": [
           {
             "offset": 0,
-            "length": 498
+            "length": 508
           }
         ]
       }
@@ -1839,7 +1851,7 @@
         "spans": [
           {
             "offset": 0,
-            "length": 498
+            "length": 508
           }
         ]
       }

@@ -17,6 +17,7 @@ type Fields = Record<string, DocumentFieldOutput>;
 export interface MappedAnalyzeResult {
   readonly fields: CanonicalReceiptFields;
   readonly fieldMetadata: Record<string, ExtractionFieldMetadata>;
+  readonly unreadableFields: string[];
   readonly documentConfidence: number | null;
 }
 
@@ -37,6 +38,7 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
   const sourceFields = document?.fields ?? {};
   const fields: CanonicalReceiptFields = {};
   const fieldMetadata: Record<string, ExtractionFieldMetadata> = {};
+  const unreadableFields: string[] = [];
 
   assignText(
     fields,
@@ -54,16 +56,35 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
       first(sourceFields, TEXT_FIELD_ALIASES[canonical]),
     );
   }
-  assignAmount(fields, fieldMetadata, "subtotal", first(sourceFields, ["SubTotal", "Subtotal"]));
-  assignAmount(fields, fieldMetadata, "total", first(sourceFields, ["InvoiceTotal", "Total"]));
+  assignAmount(
+    fields,
+    fieldMetadata,
+    unreadableFields,
+    "subtotal",
+    first(sourceFields, ["SubTotal", "Subtotal"]),
+  );
+  assignAmount(
+    fields,
+    fieldMetadata,
+    unreadableFields,
+    "total",
+    first(sourceFields, ["InvoiceTotal", "Total"]),
+  );
 
   assignDate(
     fields,
     fieldMetadata,
+    unreadableFields,
     "issueDate",
     first(sourceFields, ["InvoiceDate", "TransactionDate"]),
   );
-  assignTime(fields, fieldMetadata, "issueTime", first(sourceFields, ["TransactionTime"]));
+  assignTime(
+    fields,
+    fieldMetadata,
+    unreadableFields,
+    "issueTime",
+    first(sourceFields, ["TransactionTime"]),
+  );
 
   const totalField = first(sourceFields, ["InvoiceTotal", "Total"]);
   const currency = totalField?.valueCurrency;
@@ -84,7 +105,12 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
     fieldMetadata.items = metadata(first(sourceFields, ["Items"]));
   }
 
-  return { fields, fieldMetadata, documentConfidence: document?.confidence ?? null };
+  return {
+    fields,
+    fieldMetadata,
+    unreadableFields,
+    documentConfidence: document?.confidence ?? null,
+  };
 }
 
 function first(fields: Fields, names: readonly string[]): DocumentFieldOutput | undefined {
@@ -109,11 +135,15 @@ function assignText(
 function assignAmount(
   fields: CanonicalReceiptFields,
   metadataByField: Record<string, ExtractionFieldMetadata>,
+  unreadableFields: string[],
   canonical: "subtotal" | "total",
   field: DocumentFieldOutput | undefined,
 ): void {
   const amount = parseAmount(field?.content);
-  if (amount === null) return;
+  if (amount === null) {
+    recordUnreadable(unreadableFields, canonical, field);
+    return;
+  }
   fields[canonical] = amount;
   metadataByField[canonical] = metadata(field);
 }
@@ -121,11 +151,15 @@ function assignAmount(
 function assignDate(
   fields: CanonicalReceiptFields,
   metadataByField: Record<string, ExtractionFieldMetadata>,
+  unreadableFields: string[],
   canonical: "issueDate",
   field: DocumentFieldOutput | undefined,
 ): void {
   const value = parseIssueDate(field?.valueDate ?? field?.content);
-  if (value === null) return;
+  if (value === null) {
+    recordUnreadable(unreadableFields, canonical, field);
+    return;
+  }
   fields[canonical] = value;
   metadataByField[canonical] = metadata(field);
 }
@@ -133,11 +167,15 @@ function assignDate(
 function assignTime(
   fields: CanonicalReceiptFields,
   metadataByField: Record<string, ExtractionFieldMetadata>,
+  unreadableFields: string[],
   canonical: "issueTime",
   field: DocumentFieldOutput | undefined,
 ): void {
   const value = parseIssueTime(field?.valueTime ?? field?.content);
-  if (value === null) return;
+  if (value === null) {
+    recordUnreadable(unreadableFields, canonical, field);
+    return;
+  }
   fields[canonical] = value;
   metadataByField[canonical] = metadata(field);
 }
@@ -174,4 +212,14 @@ function mapItems(field: DocumentFieldOutput | undefined): ReceiptItem[] | null 
 
 function metadata(field: DocumentFieldOutput | undefined): ExtractionFieldMetadata {
   return { confidence: field?.confidence ?? null, source: "model" };
+}
+
+function recordUnreadable(
+  unreadableFields: string[],
+  canonical: string,
+  field: DocumentFieldOutput | undefined,
+): void {
+  if (typeof field?.content === "string" && field.content.trim() !== "") {
+    unreadableFields.push(canonical);
+  }
 }

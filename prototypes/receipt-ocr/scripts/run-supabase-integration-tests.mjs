@@ -13,17 +13,25 @@ const target = useLocal ? resolveLocalTarget() : resolveHostedTarget();
 
 console.log(`\nSupabase integration tests → ${target.label}: ${hostOf(target.env.SUPABASE_URL)}\n`);
 
-const test = spawnSync(
-  process.execPath,
-  [vitestEntry, "run", "--config", "api/vitest.integration.config.ts"],
-  {
-    stdio: "inherit",
-    windowsHide: true,
-    env: { ...process.env, ...target.env },
-  },
-);
+const integrationFiles = [
+  "src/auth/auth.integration.ts",
+  "src/repositories/receipts.integration.ts",
+  "src/routes/receipts.integration.ts",
+];
 
-process.exit(test.status ?? 1);
+for (const file of integrationFiles) {
+  const test = spawnSync(
+    process.execPath,
+    [vitestEntry, "run", file, "--config", "api/vitest.integration.config.ts"],
+    {
+      stdio: "inherit",
+      windowsHide: true,
+      env: { ...process.env, ...target.env },
+    },
+  );
+
+  if (test.status !== 0) process.exit(test.status ?? 1);
+}
 
 /** The Docker-backed stack. Required for schema work; it issues symmetric JWTs, not ES256. */
 function resolveLocalTarget() {

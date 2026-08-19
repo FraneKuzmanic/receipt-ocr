@@ -15,6 +15,7 @@ import {
   findZki,
 } from "./croatian.js";
 import { mapAnalyzeResult } from "./azure-fields.js";
+import { parseFiscalQr, type FiscalQrData } from "./fiscal-qr.js";
 import { ExtractionError, type DocumentExtractionProvider, type ExtractionInput } from "./types.js";
 
 export const AZURE_API_VERSION = "2024-11-30";
@@ -67,7 +68,7 @@ export function createAzureProvider(
         const mapped = mapAnalyzeResult(response.analyzeResult);
         const fields = { ...mapped.fields };
         const metadata = { ...mapped.fieldMetadata };
-        applyTextFallbacks(fields, metadata, response.analyzeResult.content);
+        applyTextFallbacks(fields, metadata, stripContentMarkers(response.analyzeResult.content));
 
         return {
           fields,
@@ -79,7 +80,9 @@ export function createAzureProvider(
             latencyMs: Date.now() - startedAt,
             documentConfidence: mapped.documentConfidence,
             fields: metadata,
+            unreadableFields: mapped.unreadableFields,
           },
+          qr: extractFiscalQr(response.analyzeResult),
           raw: response.raw,
         };
       } catch (error) {
@@ -111,7 +114,7 @@ async function analyzeWithAzure(
   const initial = await client.path("/documentModels/{modelId}:analyze", settings.modelId).post({
     contentType: "application/json",
     body: { base64Source: input.bytes.toString("base64") },
-    queryParameters: { locale: settings.locale },
+    queryParameters: { locale: settings.locale, features: ["barcodes"] },
     abortSignal: signal,
   });
   if (isUnexpected(initial)) throw classifyAzureFailure(initial.status);
@@ -124,6 +127,26 @@ async function analyzeWithAzure(
     throw new ExtractionError("provider_rejected", false);
   }
   return { analyzeResult: operation.analyzeResult, raw: operation };
+}
+
+function stripContentMarkers(content: string): string {
+  return content.replace(/:(?:barcode|formula|selected|unselected):/g, "");
+}
+
+function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | null {
+  let firstQr: FiscalQrData | null = null;
+
+  for (const page of analyzeResult.pages ?? []) {
+    for (const barcode of page.barcodes ?? []) {
+      if (barcode.kind !== "QRCode") continue;
+      const qr = parseFiscalQr(barcode.value);
+      if (firstQr === null) firstQr = qr;
+      if (qr.jir !== null || qr.zki !== null || qr.issueDate !== null || qr.total !== null)
+        return qr;
+    }
+  }
+
+  return firstQr;
 }
 
 function applyTextFallbacks(

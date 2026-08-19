@@ -1,12 +1,12 @@
 {
   "status": "succeeded",
-  "createdDateTime": "2026-08-19T09:36:20Z",
-  "lastUpdatedDateTime": "2026-08-19T09:36:24Z",
+  "createdDateTime": "2026-08-19T12:38:55Z",
+  "lastUpdatedDateTime": "2026-08-19T12:38:57Z",
   "analyzeResult": {
     "apiVersion": "2024-11-30",
     "modelId": "prebuilt-invoice",
     "stringIndexType": "textElements",
-    "content": "S.A.L.N. SYSTEMS j.d.o.o.\nvana Ancica 3,10373 Ivanja Reka\nOIB: 85092357159\nOperater:\nĆL\nBroj Racuna: 224/STP/3\nOPP: STP\nONU: 3\nNadnevak: 31/03/2025, 23:59:47\nNacin placanja: Gotovina\nUsluga: Prijevoz putnika\nUdaljenost: 10.64 km\nVrijeme: 00:16:19 (HH:MM:SS)\nTotal:\n132.72 EUR\n999.98 HRK\nFiksni tečaj: 7.53450kn = 1 EUR\nZKI: cf706ac762a61389c6c46af0ec9\n0c5c5\nJIR: 18916f95-5787-4e7f-a190-3a0\n91970cfa2\nPoslovní subjekt nije u sustavu\nROV-a po osnovi clanka 90.\nakona o PDV-u)\nPowered by: Smart Taksimetar PRO",
+    "content": "S.A.L.N. SYSTEMS j.d.o.o.\nvana Ancica 3,10373 Ivanja Reka\nOIB: 85092357159\nOperater:\nĆL\nBroj Racuna: 224/STP/3\nOPP: STP\nONU: 3\nNadnevak: 31/03/2025, 23:59:47\nNacin placanja: Gotovina\nUsluga: Prijevoz putnika\nUdaljenost: 10.64 km\nVrijeme: 00:16:19 (HH:MM:SS)\nTotal:\n132.72 EUR\n999.98 HRK\nFiksni tečaj: 7.53450kn = 1 EUR\nZKI: cf706ac762a61389c6c46af0ec9\n0c5c5\nJIR: 18916f95-5787-4e7f-a190-3a0\n91970cfa2\nPoslovní subjekt nije u sustavu\nROV-a po osnovi clanka 90.\nakona o PDV-u)\n:barcode:\nPowered by: Smart Taksimetar PRO",
     "pages": [
       {
         "pageNumber": 1,
@@ -596,7 +596,7 @@
             "polygon": [214, 824, 262, 826, 262, 842, 214, 841],
             "confidence": 0.995,
             "span": {
-              "offset": 475,
+              "offset": 485,
               "length": 7
             }
           },
@@ -605,7 +605,7 @@
             "polygon": [269, 826, 287, 827, 286, 843, 269, 842],
             "confidence": 0.981,
             "span": {
-              "offset": 483,
+              "offset": 493,
               "length": 3
             }
           },
@@ -614,7 +614,7 @@
             "polygon": [295, 827, 327, 829, 327, 845, 295, 843],
             "confidence": 0.995,
             "span": {
-              "offset": 487,
+              "offset": 497,
               "length": 5
             }
           },
@@ -623,7 +623,7 @@
             "polygon": [335, 830, 401, 828, 402, 843, 335, 846],
             "confidence": 0.992,
             "span": {
-              "offset": 493,
+              "offset": 503,
               "length": 10
             }
           },
@@ -632,7 +632,7 @@
             "polygon": [407, 827, 427, 823, 429, 838, 408, 842],
             "confidence": 0.963,
             "span": {
-              "offset": 504,
+              "offset": 514,
               "length": 3
             }
           }
@@ -883,16 +883,28 @@
             "polygon": [214, 824, 428, 823, 428, 846, 214, 847],
             "spans": [
               {
-                "offset": 475,
+                "offset": 485,
                 "length": 32
               }
             ]
           }
         ],
+        "barcodes": [
+          {
+            "kind": "QRCode",
+            "value": "https://porezna.gov.hr/rn?jir=18916f95-5787-4e7f-a190-3a091970cfa2&datv=20250331_2359&izn=132,72",
+            "span": {
+              "offset": 475,
+              "length": 9
+            },
+            "polygon": [255, 661, 394, 663, 392, 811, 254, 809],
+            "confidence": 1
+          }
+        ],
         "spans": [
           {
             "offset": 0,
-            "length": 507
+            "length": 517
           }
         ]
       }
@@ -1065,7 +1077,7 @@
         "spans": [
           {
             "offset": 0,
-            "length": 507
+            "length": 517
           }
         ]
       }

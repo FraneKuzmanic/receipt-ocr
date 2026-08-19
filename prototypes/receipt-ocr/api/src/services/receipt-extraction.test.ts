@@ -17,7 +17,13 @@ vi.mock("../repositories/receipts.js", () => ({
 const { extractReceipt } = await import("./receipt-extraction.js");
 
 const providerResult = {
-  fields: { sellerName: "Seller", total: "100.50" },
+  fields: {
+    sellerName: "Seller",
+    documentNumber: "381/1/3",
+    issueDate: "2026-08-19",
+    total: "100.50",
+    currency: "EUR",
+  },
   metadata: {
     provider: "azure-document-intelligence",
     modelId: "prebuilt-invoice",
@@ -26,6 +32,15 @@ const providerResult = {
     latencyMs: 100,
     documentConfidence: 0.9,
     fields: {},
+    unreadableFields: [],
+  },
+  qr: {
+    raw: "https://porezna.gov.hr/rn?jir=18916f95-5787-4e7f-a190-3a091970cfa2&izn=100,50",
+    jir: "18916f95-5787-4e7f-a190-3a091970cfa2",
+    zki: null,
+    issueDate: null,
+    issueTime: null,
+    total: "100.50",
   },
   raw: { status: "succeeded" },
 };
@@ -56,7 +71,18 @@ describe("receipt extraction service", () => {
         status: "review",
         canonicalData: providerResult.fields,
         originalExtraction: providerResult.fields,
+        qrExtraction: providerResult.qr,
+        warnings: [],
       }),
+    );
+  });
+
+  it("persists null QR extraction when Azure found no QR code", async () => {
+    await extractReceipt(input({ extract: async () => ({ ...providerResult, qr: null }) }));
+
+    expect(update).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ qrExtraction: null }),
     );
   });
 
