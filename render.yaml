@@ -3,7 +3,7 @@ services:
     name: receipt-ocr-api
     env: node
     plan: free
-    buildCommand: npm install --include=dev && npm run build
+    buildCommand: rm -rf node_modules package-lock.json && npm install --include=dev && npm run build
     startCommand: node api/dist/index.js
     envVars:
       - key: NODE_ENV
@@ -41,7 +41,7 @@ services:
   - type: web
     name: receipt-ocr-client
     runtime: static
-    buildCommand: npm install --include=dev && npm run build
+    buildCommand: rm -rf node_modules package-lock.json && npm install --include=dev && npm run build
     staticPublishPath: client/dist
     envVars:
       - key: VITE_SUPABASE_URL
