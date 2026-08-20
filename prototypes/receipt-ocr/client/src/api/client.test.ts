@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import { supabase } from "../lib/supabase";
-import { ApiError, createReceipt, getHealth, getReceipt } from "./client";
+import {
+  ApiError,
+  createReceipt,
+  deleteReceipt,
+  getHealth,
+  getReceipt,
+  getReceipts,
+} from "./client";
 
 type SessionResult = Awaited<ReturnType<typeof supabase.auth.getSession>>;
 type SignOutResult = Awaited<ReturnType<typeof supabase.auth.signOut>>;
@@ -117,6 +124,31 @@ describe("the API client", () => {
 
     await expect(getReceipt(receipt.id, controller.signal)).resolves.toEqual(receipt);
     expect(fetchMock.mock.calls[0]?.[1]?.signal).toBe(controller.signal);
+  });
+
+  it("requests filtered receipt pages and parses the shared response", async () => {
+    getSession.mockResolvedValue(sessionResult("token-abc"));
+    const response = { items: [], page: 2, limit: 20, total: 42 };
+    const fetchMock = respondWith(200, response);
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getReceipts({ page: 2, status: "confirmed" })).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/receipts?page=2&status=confirmed",
+      expect.any(Object),
+    );
+  });
+
+  it("deletes a receipt without parsing the empty response body", async () => {
+    getSession.mockResolvedValue(sessionResult("token-abc"));
+    const fetchMock = vi.fn(() => Promise.resolve(new Response(null, { status: 204 })));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(deleteReceipt("receipt/id")).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/receipts/receipt%2Fid",
+      expect.objectContaining({ method: "DELETE" }),
+    );
   });
 
   it("keeps a stable server error code and tolerates malformed errors", async () => {

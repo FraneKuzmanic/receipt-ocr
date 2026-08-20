@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
-import { updateReceiptRequestSchema } from "@receipt/shared";
+import { listReceiptsQuerySchema, updateReceiptRequestSchema } from "@receipt/shared";
 import { HttpError } from "../middleware/error-handler.js";
 import { authenticated } from "../middleware/require-auth.js";
 import { ReceiptRepository } from "../repositories/receipts.js";
@@ -27,6 +27,18 @@ const idSchema = z.uuid();
 
 export function createReceiptsRouter(extractionProvider: DocumentExtractionProvider): Router {
   const router = Router();
+
+  /** PRD §10.2. Owner scoping and soft-delete filtering live in the repository. */
+  router.get(
+    "/",
+    authenticated(async (req, res, auth) => {
+      const query = listReceiptsQuerySchema.safeParse(req.query);
+      if (!query.success) throw new HttpError(400, "invalid_request");
+
+      const page = await new ReceiptRepository(auth.client, auth.userId).listPage(query.data);
+      res.json({ ...page, page: query.data.page, limit: query.data.limit });
+    }),
+  );
 
   /**
    * PRD §10.3. A receipt owned by someone else returns 404, never 403: telling a caller that an

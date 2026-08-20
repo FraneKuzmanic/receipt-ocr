@@ -8,10 +8,10 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 09 implementation is complete. Authenticated users can photograph or choose a
-> receipt, follow asynchronous Azure extraction, then review, correct and explicitly confirm the
-> extracted data beside the original document. Real-phone camera validation remains deferred until
-> the prototype is hosted.
+> **Status:** Task 10 implementation is complete. Authenticated users can photograph or choose a
+> receipt, follow asynchronous Azure extraction, then review, correct, confirm, revisit and
+> soft-delete it from a paged history beside the original document. Real-phone camera validation
+> remains deferred until the prototype is hosted.
 
 ## Prerequisites
 
@@ -177,6 +177,7 @@ only a per-project run catches a stale project name.
 | ------ | ------------------- | ---- | --------------------------------------------- |
 | `GET`  | `/api/health`       | —    | `200 {"status":"ok","uptimeSeconds":number}`   |
 | `GET`  | `/api/receipts/:id` | Yes  | `200` canonical receipt, `404` if not yours    |
+| `GET` | `/api/receipts` | Yes | `200 {"items","page","limit","total"}`; accepts `page`, `limit` and optional `status` |
 | `PATCH` | `/api/receipts/:id` | Yes | `200` updated review receipt, `409 edit_not_allowed` outside `review`/`confirmed` |
 | `POST` | `/api/receipts/:id/confirm` | Yes | `200 {"id", "status", "confirmedAt"}`, `409 confirm_not_allowed` outside `review` |
 | `POST` | `/api/receipts` | Yes | `201 {"id", "status", "createdAt"}` after one multipart `file` part |
@@ -188,6 +189,10 @@ The health path and response type are defined once in `shared/src/health.ts` (`H
 `HealthResponse`) and imported by both sides, so a change to either breaks the build rather than
 production. `GET /api/receipts/:id` returns the canonical receipt plus the provider-neutral
 `lowConfidenceFields` projection used by review; provider metadata stays private.
+
+`GET /api/receipts` is owner-scoped and excludes soft-deleted rows. Its strict query accepts
+`page` (default `1`), `limit` (default `20`, maximum `100`) and an optional receipt `status`; `total`
+is the unpaged count of the filtered result.
 
 Protected requests carry the Supabase access token:
 
@@ -272,6 +277,24 @@ available with warnings outstanding.
 
 The original-source URL expires after 300 seconds. The source panel reloads it once after a failed
 image request and also offers a manual reload; it never displays or logs the signed URL.
+
+### History and soft delete
+
+The signed-in header exposes **Receipts**, a mobile card list rather than a desktop table. It displays
+the issue date, seller, document number, total and status, offers a four-status filter, pages through
+server results, and opens `review`/`confirmed` receipts in the existing editable review screen with
+their source document. `processing` and `failed` rows open the processing route, which owns polling
+and retry.
+
+History sorts by `created_at desc`, not `issue_date`: creation time is non-null and backed by the
+active-receipt partial index, while OCR issue dates can be absent. The API defaults each page to 20
+rows and echoes its applied limit. Deletion is a translatable two-step action that sets `deleted_at`;
+the row and source object remain retained, but it disappears from history and no new source URL can be
+issued.
+
+Totals remain decimal strings. A malformed three-character currency code cannot take down history:
+the UI falls back to a locale-formatted amount followed by the raw code, and preserves trailing zeros
+when no currency is available.
 
 ### Extraction
 
@@ -549,7 +572,7 @@ namespaced by feature (`common.*`, `home.*`, `errors.*`, `warnings.*`) so later 
 against `client/src/i18n/locales/en.json` via a `CustomTypeOptions` augmentation, so an unknown key
 is a compile error.
 
-Two tests guard the locale files, and both are load-bearing:
+Three tests guard the locale files, and all are load-bearing:
 
 - `client/src/i18n/i18n.test.ts` — `hr` and `en` have identical key sets and no empty values. If it
   fails, translate the missing key rather than deleting it from the other file.
@@ -557,6 +580,9 @@ Two tests guard the locale files, and both are load-bearing:
   languages, and no orphan message exists. This one exists because `/validate` Phase 6.5 only sees
   translation calls whose key is a string literal; warnings will be rendered from a template literal
   built out of the code, which that scan cannot follow.
+- `client/src/i18n/receiptStatuses.test.ts` — every `RECEIPT_STATUSES` value has a non-empty history
+  label in both languages, with no orphan label. History builds this key from a template literal, so
+  the literal-key scan cannot protect it.
 
 ## Configuration
 

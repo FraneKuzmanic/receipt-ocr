@@ -3,7 +3,9 @@
     "appName": "Receipt Scanner",
     "retry": "Try again",
     "loading": "Loading",
-    "language": "Language"
+    "language": "Language",
+    "navCapture": "Scan",
+    "navHistory": "Receipts"
   },
   "home": {
     "title": "Receipt digitization",
@@ -99,6 +101,35 @@
       "save": "The changes could not be saved. Try again.",
       "confirm": "The receipt could not be confirmed. Try again.",
       "load": "The receipt could not be loaded. Try again."
+    }
+  },
+  "history": {
+    "title": "Your receipts",
+    "empty": "You have not saved any receipts yet.",
+    "emptyAction": "Scan your first receipt",
+    "filterLabel": "Status",
+    "filterAll": "All",
+    "noDate": "No date",
+    "noSeller": "Unknown seller",
+    "noNumber": "No receipt number",
+    "noTotal": "No total",
+    "delete": "Delete",
+    "confirmDelete": "Delete this receipt",
+    "cancelDelete": "Keep it",
+    "deleting": "Deleting",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{pages}}",
+    "count": "{{count}} receipts",
+    "status": {
+      "processing": "Processing",
+      "review": "Needs review",
+      "confirmed": "Confirmed",
+      "failed": "Failed"
+    },
+    "errors": {
+      "load": "Your receipts could not be loaded. Try again.",
+      "delete": "This receipt could not be deleted. Try again."
     }
   },
   "auth": {

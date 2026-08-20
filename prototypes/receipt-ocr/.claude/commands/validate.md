@@ -98,9 +98,10 @@ Current coverage and what each test protects:
 | `shared/src/receipt.test.ts` | The canonical schema accepts an all-null and an all-absent receipt, requires UUID persisted identifiers, rejects an unknown status, rejects unnormalized money and dates, and rejects unknown keys. Also the **provider-independence guard**: no Azure vocabulary anywhere in `shared/src` (PRD §6.2) |
 | `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold |
 | `api/src/app.test.ts` | `GET /api/health` returns the shared `HealthResponse` shape at runtime; unknown routes return a JSON error body, never an HTML stack trace |
-| `api/src/repositories/receipts.test.ts` | Database rows map explicitly to canonical objects, timestamps normalize, canonical JSON/warnings are validated, generated projections are ignored, owner/deleted filters are present, and provider errors become stable internal categories |
+| `api/src/repositories/receipts.test.ts` | Database rows map explicitly to canonical objects, timestamps normalize, canonical JSON/warnings are validated, generated projections are ignored, owner/deleted filters survive list paging, inclusive range bounds and exact counts are correct, and provider errors become stable internal categories |
 | `client/src/i18n/i18n.test.ts` | `hr` and `en` have identical key sets and no empty values (PRD §7.13) |
 | `client/src/i18n/warnings.test.ts` | Every `WARNING_CODES` entry has a non-empty `hr` and `en` message, and no orphan message exists. Also proves the canonical model imports from `client` under Vite's `bundler` resolution |
+| `client/src/i18n/receiptStatuses.test.ts` | Every `RECEIPT_STATUSES` entry has a non-empty `hr` and `en` history label, with no orphan status label |
 | `client/src/components/LanguageSwitcher.test.tsx` | Switching language changes rendered copy and persists to `localStorage` |
 | `api/src/auth/authenticator.test.ts` | Claims are accepted only when `role` is `authenticated` and `sub` is a UUID; an `anon` or `service_role` token is refused; every rejection returns `null` rather than throwing |
 | `api/src/middleware/require-auth.test.ts` | Missing, non-`Bearer` and empty-token headers all fail `401 unauthorized`; a verification outage becomes a 500, never a silent 401; a success passes the proven `userId`; `authenticated()` used without `requireAuth` fails loudly instead of answering 401 |
@@ -108,12 +109,14 @@ Current coverage and what each test protects:
 | `client/src/auth/authErrors.test.ts` | Every mapped Supabase error code has a non-empty `hr` and `en` message; unknown and missing codes fall back to `auth.errors.generic` |
 | `client/src/auth/AuthProvider.test.tsx` | `loading` stays true until the first session read, so a signed-in user never sees a login flash on reload; the session follows `onAuthStateChange`; failures surface a translation key, never Supabase's English prose; the subscription unsubscribes on unmount |
 | `client/src/auth/ProtectedRoute.test.tsx` | Spinner while loading — neither outcome rendered early — redirect to `/login` when signed out, children when signed in |
-| `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none |
+| `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none; paged list queries and body-less deletes use the shared authenticated wrapper |
 | `client/src/capture/receiptFile.test.ts` | Client-only source classification accepts supported types and empty-MIME extension fallback, applies the 10 MB boundary, and keeps resolution/blur guidance advisory through deterministic pixel samples |
 | `client/src/routes/HomePage.test.tsx` | Native camera hint and always-visible picker fallback, preview/retake, advisory warnings, exact-file upload, translated upload errors and one in-flight submission |
 | `client/src/routes/ProcessingPage.test.tsx` | Immediate sequential polling, no overlap, review/confirmed routing, failed/error/timeout actions, retry window and unmount abort cleanup |
 | `client/src/review/reviewForm.test.ts` | Locale-formatted review input normalizes to canonical strings, preserves trailing zeroes and turns empty values into nulls. |
-| `client/src/routes/ReviewPage.test.tsx` | Pre-population, warning and low-confidence rendering, explicit save, and non-blocking confirmation through the rendered UI. |
+| `client/src/routes/ReviewPage.test.tsx` | Pre-population, warning and low-confidence rendering, explicit save, non-blocking confirmation and failed-receipt redirection through the rendered UI. |
+| `client/src/history/receiptSummary.test.ts` | Guarded history total formatting preserves decimal precision and falls back safely for malformed currency codes; every receipt status maps to the correct destination. |
+| `client/src/routes/HistoryPage.test.tsx` | History summary, empty/error states, filter, paging, two-step delete, malformed-currency resilience and per-status destinations. |
 | `api/src/upload/source-file.test.ts` | Byte-sniffs the five accepted source types; rejects disguised executables, text and HEIC sequences; validates PDFs; preserves/caps filenames |
 | `api/src/upload/multipart.test.ts` | Multipart limits and malformed forms become stable, translatable upload error codes before a route can reach Storage |
 | `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
@@ -134,6 +137,10 @@ them. Without this test a mapped code with no translation would reach a user as 
 **The warning-message test is load-bearing in a way 6.5 cannot replace.** Phase 6.5 only scans
 literal `t("…")` calls; the review form will render warnings with a template literal, which that scan
 cannot follow. A new warning code without translations would otherwise reach a user as a raw key.
+
+**The receipt-status test is load-bearing for the same template-literal reason.** History maps a
+receipt status to `history.status.*` at render time, so both the compiler and Phase 6.5 need this
+parity test to prevent a missing message from reaching a user as a raw key.
 
 **The locale parity test is load-bearing.** Every task that adds user-facing copy must add the key to
 both `en.json` and `hr.json`. A failure here means a language was left behind — translate it, never
@@ -394,9 +401,9 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 09 there are seven journeys: the shared contract, authentication, source-document
-lifecycle, mobile capture/processing, extraction/retry, QR/warnings and review/confirmation. History
-remains future work.** Everything below runs against real servers, not mocks.
+**As of Task 10 there are eight journeys: the shared contract, authentication, source-document
+lifecycle, mobile capture/processing, extraction/retry, QR/warnings, review/confirmation and history.
+Everything below runs against real servers, not mocks.**
 
 ### 8.1 Start the stack
 
@@ -577,13 +584,24 @@ Croatian, and check the 375 px layout is usable one-handed.
 
 ---
 
+### 8.11 Journey - history, detail and soft delete
+
+Sign in, upload two receipts and confirm one. Open `/receipts` and verify newest-first ordering; use
+each status filter to isolate `processing`, `review`, `confirmed` and `failed`; and verify paging with
+`limit=1`. A `review` or `confirmed` row must open the review screen with its original source, while a
+`processing` or `failed` row opens the processing route. Soft-delete one row through the two-step
+control: it disappears from the list, while its real database row retains `deleted_at`. At 375 px,
+the list and controls must have 44 px targets and no horizontal overflow. Repeat the visible flow in
+Croatian.
+
+---
+
 ## Phase 9: Journeys to add as the roadmap progresses
 
 Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
 
 | Task | Journey to add |
 |---|---|
-| 10 | History lists only the current user's receipts, newest first, paged and status-filtered. Soft delete removes it from history while the row persists with `deleted_at` set. |
 | 11 | CSV opens in a spreadsheet with Croatian characters intact; a seller name starting with `=`, `+`, `-` or `@` is neutralized. JSON contains no Azure property name. `100.50` exports as exactly `100.50`. |
 | 12 | Full journey on a real phone against the deployed environment; Playwright critical-path suite passes. |
 

@@ -6,6 +6,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   confirmReceiptResponseSchema,
   createReceiptResponseSchema,
+  listReceiptsResponseSchema,
   receiptDetailResponseSchema,
   sourceDocumentResponseSchema,
 } from "@receipt/shared";
@@ -110,7 +111,8 @@ describe("receipt source lifecycle against the hosted project", () => {
   });
 
   it("rejects renamed executable bytes without creating a row", async () => {
-    const before = await new ReceiptRepository(userA, userAId).listCurrent();
+    const before = (await new ReceiptRepository(userA, userAId).listPage({ page: 1, limit: 100 }))
+      .total;
     const response = await request(app)
       .post("/api/receipts")
       .set("Authorization", `Bearer ${tokenA}`)
@@ -121,9 +123,11 @@ describe("receipt source lifecycle against the hosted project", () => {
 
     expect(response.status).toBe(415);
     expect(response.body).toEqual({ error: { code: "unsupported_media_type" } });
-    await expect(new ReceiptRepository(userA, userAId).listCurrent()).resolves.toHaveLength(
-      before.length,
-    );
+    await expect(
+      new ReceiptRepository(userA, userAId)
+        .listPage({ page: 1, limit: 100 })
+        .then((page) => page.total),
+    ).resolves.toBe(before);
   });
 
   it("rejects an oversized file cleanly", async () => {
@@ -175,6 +179,91 @@ describe("receipt source lifecycle against the hosted project", () => {
       const lookup = await request(app).get(path).set("Authorization", `Bearer ${tokenA}`);
       expect(lookup.status).toBe(404);
     }
+  });
+
+  it("lists only current, owner-scoped receipts with filters and paging", async () => {
+    const reviewId = randomUUID();
+    const confirmedId = randomUUID();
+    const processingId = randomUUID();
+    const userBReceiptId = randomUUID();
+    const rows = [
+      { id: reviewId, status: "review" as const, userId: userAId, client: userA },
+      { id: confirmedId, status: "confirmed" as const, userId: userAId, client: userA },
+      { id: processingId, status: "processing" as const, userId: userAId, client: userA },
+      { id: userBReceiptId, status: "confirmed" as const, userId: userBId, client: userB },
+    ];
+
+    for (const row of rows) {
+      const path = sourceObjectPath(row.userId, row.id);
+      await new ReceiptRepository(row.client, row.userId).create({
+        id: row.id,
+        sourceObjectPath: path,
+        sourceOriginalFilename: "list.jpg",
+        sourceContentType: "image/jpeg",
+        status: row.status,
+      });
+      sourcePaths.push(path);
+    }
+
+    const all = await request(app).get("/api/receipts").set("Authorization", `Bearer ${tokenA}`);
+    expect(all.status).toBe(200);
+    const allPage = listReceiptsResponseSchema.parse(all.body);
+    const ids = allPage.items.map((receipt) => receipt.id);
+    expect(ids).toEqual(expect.arrayContaining([reviewId, confirmedId, processingId]));
+    expect(ids).not.toContain(userBReceiptId);
+    expect(ids).not.toContain(uploadedReceiptId);
+    expect(allPage.items.map((receipt) => receipt.createdAt)).toEqual(
+      allPage.items
+        .map((receipt) => receipt.createdAt)
+        .toSorted()
+        .toReversed(),
+    );
+
+    const confirmed = await request(app)
+      .get("/api/receipts?status=confirmed")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(confirmed.status).toBe(200);
+    expect(listReceiptsResponseSchema.parse(confirmed.body).items).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: confirmedId, status: "confirmed" })]),
+    );
+    expect(
+      listReceiptsResponseSchema
+        .parse(confirmed.body)
+        .items.every((receipt) => receipt.status === "confirmed"),
+    ).toBe(true);
+
+    const processing = await request(app)
+      .get("/api/receipts?status=processing")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(processing.status).toBe(200);
+    expect(listReceiptsResponseSchema.parse(processing.body).items).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: processingId, status: "processing" })]),
+    );
+
+    const first = await request(app)
+      .get("/api/receipts?limit=1&page=1")
+      .set("Authorization", `Bearer ${tokenA}`);
+    const second = await request(app)
+      .get("/api/receipts?limit=1&page=2")
+      .set("Authorization", `Bearer ${tokenA}`);
+    const firstPage = listReceiptsResponseSchema.parse(first.body);
+    const secondPage = listReceiptsResponseSchema.parse(second.body);
+    expect(firstPage.items).toHaveLength(1);
+    expect(secondPage.items).toHaveLength(1);
+    expect(firstPage.items[0]?.id).not.toBe(secondPage.items[0]?.id);
+    expect(firstPage.total).toBe(secondPage.total);
+
+    const beyond = await request(app)
+      .get("/api/receipts?limit=1&page=999")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(beyond.status).toBe(200);
+    expect(listReceiptsResponseSchema.parse(beyond.body).items).toEqual([]);
+
+    const invalid = await request(app)
+      .get("/api/receipts?status=nonsense")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(invalid.status).toBe(400);
+    expect(invalid.body).toEqual({ error: { code: "invalid_request" } });
   });
 
   it("lets a direct signed URL expire", async () => {
