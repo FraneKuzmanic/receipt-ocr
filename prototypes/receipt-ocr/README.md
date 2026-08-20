@@ -8,10 +8,10 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 08 implementation is complete. Authenticated users can photograph or choose a
-> receipt, follow asynchronous Azure extraction, and receive persisted informational warnings about
-> missing or inconsistent data. Real-phone camera validation remains deferred until the prototype is
-> hosted.
+> **Status:** Task 09 implementation is complete. Authenticated users can photograph or choose a
+> receipt, follow asynchronous Azure extraction, then review, correct and explicitly confirm the
+> extracted data beside the original document. Real-phone camera validation remains deferred until
+> the prototype is hosted.
 
 ## Prerequisites
 
@@ -177,6 +177,8 @@ only a per-project run catches a stale project name.
 | ------ | ------------------- | ---- | --------------------------------------------- |
 | `GET`  | `/api/health`       | —    | `200 {"status":"ok","uptimeSeconds":number}`   |
 | `GET`  | `/api/receipts/:id` | Yes  | `200` canonical receipt, `404` if not yours    |
+| `PATCH` | `/api/receipts/:id` | Yes | `200` updated review receipt, `409 edit_not_allowed` outside `review`/`confirmed` |
+| `POST` | `/api/receipts/:id/confirm` | Yes | `200 {"id", "status", "confirmedAt"}`, `409 confirm_not_allowed` outside `review` |
 | `POST` | `/api/receipts` | Yes | `201 {"id", "status", "createdAt"}` after one multipart `file` part |
 | `POST` | `/api/receipts/:id/retry` | Yes | `202 {"id", "status"}` for retryable `failed` or stranded `processing` receipts; otherwise `409 retry_not_allowed` |
 | `GET` | `/api/receipts/:id/source` | Yes | `200 {"url", "contentType", "originalFilename", "expiresAt"}`, `404` if not yours or deleted |
@@ -184,7 +186,8 @@ only a per-project run catches a stale project name.
 
 The health path and response type are defined once in `shared/src/health.ts` (`HEALTH_PATH`,
 `HealthResponse`) and imported by both sides, so a change to either breaks the build rather than
-production. `GET /api/receipts/:id` returns `canonicalReceiptSchema` as it stands.
+production. `GET /api/receipts/:id` returns the canonical receipt plus the provider-neutral
+`lowConfidenceFields` projection used by review; provider metadata stays private.
 
 Protected requests carry the Supabase access token:
 
@@ -251,6 +254,24 @@ browser.
 After a successful upload, the client polls the receipt every **2 seconds** for up to **60 seconds**.
 It moves a `review` receipt to the review-ready destination, exposes a retry action for a failed
 extraction, and exposes check-again plus upload-another actions for network errors or a timeout.
+
+### Review and confirmation
+
+A receipt in review opens a mobile-friendly editable form with the source document one tap away on a
+narrow screen and alongside it on larger screens. Saving is explicit rather than debounced:
+locale-formatted dates and amounts are normalized only when the user chooses Save, avoiding errors
+while a value is half typed. React Hook Form performs that interaction validation directly; the
+canonical Zod schema remains the server-boundary contract and is intentionally not used as a form
+resolver.
+
+The detail response exposes lowConfidenceFields, a provider-neutral list of canonical field names.
+Inputs keep canonical strings after a save but accept Croatian and English locale formatting on entry.
+PATCH is allowed only in review and confirmed; it never changes status. Confirm moves only review to
+confirmed and is idempotent afterwards. Warnings are always informational, so confirmation remains
+available with warnings outstanding.
+
+The original-source URL expires after 300 seconds. The source panel reloads it once after a failed
+image request and also offers a manual reload; it never displays or logs the signed URL.
 
 ### Extraction
 

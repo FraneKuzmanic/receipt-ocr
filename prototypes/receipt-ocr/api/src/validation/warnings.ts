@@ -29,6 +29,7 @@ export function computeWarnings(input: WarningInput): ReceiptWarning[] {
   }
 
   for (const field of input.unreadable ?? []) {
+    if (!isMissing(fieldValue(input.fields, field))) continue;
     if (field === "issueDate" || field === "issueTime") {
       warnings.push({ code: "unparseable_date", field });
     }
@@ -62,6 +63,13 @@ export function computeWarnings(input: WarningInput): ReceiptWarning[] {
 
 function isMissing(value: string | null | undefined): boolean {
   return value === null || value === undefined || value.trim() === "";
+}
+
+function fieldValue(fields: CanonicalReceiptFields, field: string): string | null | undefined {
+  if (field === "issueDate" || field === "issueTime" || field === "total" || field === "subtotal") {
+    return fields[field];
+  }
+  return undefined;
 }
 
 function hasVatMismatch(fields: CanonicalReceiptFields): boolean {
