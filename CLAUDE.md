@@ -69,6 +69,10 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 Push back strongly when Im wrong. Actively challenge weak reasoning. If I push back and you were right, hold the line.
 
+## 6. System Evolution
+
+Learn from your mistakes. Don't just patch bugs and forget. Turn failures into global rules that build institutional knowledge into the AI layer.
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
