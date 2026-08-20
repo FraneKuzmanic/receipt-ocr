@@ -13,6 +13,7 @@ const processingReceipt = {
   userId: "00000000-0000-4000-8000-000000000002",
   status: "processing" as const,
   warnings: [],
+  lowConfidenceFields: [],
   createdAt: "2026-08-18T10:00:00.000Z",
   updatedAt: "2026-08-18T10:00:00.000Z",
 };

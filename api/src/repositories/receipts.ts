@@ -57,6 +57,13 @@ export interface ReceiptExtractionState {
   readonly extractionMetadata: Json | null;
 }
 
+export interface ReceiptReviewState {
+  readonly status: ReceiptStatus;
+  readonly fields: CanonicalReceiptFields;
+  readonly qrExtraction: Json | null;
+  readonly extractionMetadata: Json | null;
+}
+
 export type ReceiptRepositoryErrorCode = "invalid_data" | "query_failed";
 
 export class ReceiptRepositoryError extends Error {
@@ -156,6 +163,30 @@ export class ReceiptRepository {
           status: receiptStatusSchema.parse(data.status),
           extractionMetadata: data.extraction_metadata,
         };
+  }
+
+  async findReviewState(id: string): Promise<ReceiptReviewState | null> {
+    const { data, error } = await this.#client
+      .from("receipts")
+      .select("status, canonical_data, qr_extraction, extraction_metadata")
+      .eq("id", uuidSchema.parse(id))
+      .eq("user_id", this.#userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    if (data === null) return null;
+
+    try {
+      return {
+        status: receiptStatusSchema.parse(data.status),
+        fields: canonicalReceiptFieldsSchema.parse(data.canonical_data),
+        qrExtraction: data.qr_extraction,
+        extractionMetadata: data.extraction_metadata,
+      };
+    } catch (caught) {
+      throw new ReceiptRepositoryError("invalid_data", caught);
+    }
   }
 
   async listCurrent(): Promise<CanonicalReceipt[]> {

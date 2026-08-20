@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   confirmReceiptResponseSchema,
   createReceiptResponseSchema,
+  receiptDetailResponseSchema,
   listReceiptsQuerySchema,
   updateReceiptRequestSchema,
 } from "./api.js";
@@ -86,5 +87,23 @@ describe("response DTOs", () => {
       confirmedAt: "2026-08-17T12:04:00Z",
     };
     expect(confirmReceiptResponseSchema.safeParse(body).success).toBe(true);
+  });
+
+  it("requires a strict low-confidence projection for review responses", () => {
+    const body = {
+      id: "123e4567-e89b-42d3-a456-426614174000",
+      userId: "123e4567-e89b-42d3-a456-426614174001",
+      status: "review",
+      warnings: [],
+      createdAt: "2026-08-17T12:00:00Z",
+      updatedAt: "2026-08-17T12:00:00Z",
+      lowConfidenceFields: [],
+    };
+
+    expect(receiptDetailResponseSchema.safeParse(body).success).toBe(true);
+    expect(
+      receiptDetailResponseSchema.safeParse({ ...body, lowConfidenceFields: undefined }).success,
+    ).toBe(false);
+    expect(receiptDetailResponseSchema.safeParse({ ...body, extra: true }).success).toBe(false);
   });
 });

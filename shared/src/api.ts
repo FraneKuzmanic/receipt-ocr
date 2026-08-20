@@ -28,6 +28,13 @@ export const createReceiptResponseSchema = canonicalReceiptSchema.pick({
 
 export type CreateReceiptResponse = z.infer<typeof createReceiptResponseSchema>;
 
+/** The review surface exposes canonical low-confidence field names, never provider metadata. */
+export const receiptDetailResponseSchema = canonicalReceiptSchema.extend({
+  lowConfidenceFields: z.array(z.string()),
+});
+
+export type ReceiptDetailResponse = z.infer<typeof receiptDetailResponseSchema>;
+
 /** PRD §10.8 — `GET /api/receipts/:id/source` */
 export const sourceDocumentResponseSchema = z
   .object({

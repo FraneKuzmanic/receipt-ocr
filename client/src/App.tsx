@@ -6,7 +6,7 @@ import { LoginPage } from "./routes/LoginPage";
 import { NotFoundPage } from "./routes/NotFoundPage";
 import { ProcessingPage } from "./routes/ProcessingPage";
 import { RegisterPage } from "./routes/RegisterPage";
-import { ReviewReadyPage } from "./routes/ReviewReadyPage";
+import { ReviewPage } from "./routes/ReviewPage";
 
 export function App() {
   return (
@@ -20,7 +20,7 @@ export function App() {
         <Route element={<ProtectedRoute />}>
           <Route index element={<HomePage />} />
           <Route path="receipts/:id/processing" element={<ProcessingPage />} />
-          <Route path="receipts/:id/review" element={<ReviewReadyPage />} />
+          <Route path="receipts/:id/review" element={<ReviewPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>

@@ -55,15 +55,30 @@ describe("missing critical field warnings", () => {
 });
 
 describe("unparseable date and amount warnings", () => {
-  it("distinguishes unreadable source content from absent values", () => {
-    expect(computeWarnings({ fields: completeFields, unreadable: ["issueDate"] })).toContainEqual({
+  it("distinguishes unreadable source content from absent values, and clears once corrected", () => {
+    const unreadableDate = { ...completeFields, issueDate: undefined };
+    const unreadableTotal = { ...completeFields, total: undefined };
+
+    expect(computeWarnings({ fields: unreadableDate, unreadable: ["issueDate"] })).toContainEqual({
       code: "unparseable_date",
       field: "issueDate",
     });
-    expect(computeWarnings({ fields: completeFields, unreadable: ["total"] })).toContainEqual({
+    expect(computeWarnings({ fields: unreadableTotal, unreadable: ["total"] })).toContainEqual({
       code: "unparseable_amount",
       field: "total",
     });
+    expect(
+      warningsByCode(
+        computeWarnings({ fields: completeFields, unreadable: ["issueDate"] }),
+        "unparseable_date",
+      ),
+    ).toEqual([]);
+    expect(
+      warningsByCode(
+        computeWarnings({ fields: completeFields, unreadable: ["total"] }),
+        "unparseable_amount",
+      ),
+    ).toEqual([]);
     expect(computeWarnings({ fields: completeFields, unreadable: [] })).toEqual([]);
   });
 });

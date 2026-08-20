@@ -1,11 +1,16 @@
 import {
   HEALTH_PATH,
   apiErrorResponseSchema,
-  canonicalReceiptSchema,
+  confirmReceiptResponseSchema,
   createReceiptResponseSchema,
-  type CanonicalReceipt,
+  receiptDetailResponseSchema,
+  sourceDocumentResponseSchema,
+  type ConfirmReceiptResponse,
   type CreateReceiptResponse,
   type HealthResponse,
+  type ReceiptDetailResponse,
+  type SourceDocumentResponse,
+  type UpdateReceiptRequest,
 } from "@receipt/shared";
 import { supabase } from "../lib/supabase";
 
@@ -71,11 +76,35 @@ export async function createReceipt(file: File): Promise<CreateReceiptResponse> 
   return createReceiptResponseSchema.parse(await response.json());
 }
 
-export async function getReceipt(id: string, signal?: AbortSignal): Promise<CanonicalReceipt> {
+export async function getReceipt(id: string, signal?: AbortSignal): Promise<ReceiptDetailResponse> {
   const response = await request(`/api/receipts/${encodeURIComponent(id)}`, { signal });
-  return canonicalReceiptSchema.parse(await response.json());
+  return receiptDetailResponseSchema.parse(await response.json());
 }
 
 export async function retryReceipt(id: string): Promise<void> {
   await request(`/api/receipts/${encodeURIComponent(id)}/retry`, { method: "POST" });
+}
+
+export async function updateReceipt(
+  id: string,
+  patch: UpdateReceiptRequest,
+): Promise<ReceiptDetailResponse> {
+  const response = await request(`/api/receipts/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  return receiptDetailResponseSchema.parse(await response.json());
+}
+
+export async function confirmReceipt(id: string): Promise<ConfirmReceiptResponse> {
+  const response = await request(`/api/receipts/${encodeURIComponent(id)}/confirm`, {
+    method: "POST",
+  });
+  return confirmReceiptResponseSchema.parse(await response.json());
+}
+
+export async function getReceiptSource(id: string): Promise<SourceDocumentResponse> {
+  const response = await request(`/api/receipts/${encodeURIComponent(id)}/source`);
+  return sourceDocumentResponseSchema.parse(await response.json());
 }

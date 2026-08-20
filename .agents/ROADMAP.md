@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 08 implementation complete — Task 09 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
+**Status:** Task 09 implementation complete — Task 10 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -160,7 +160,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ✅* Done with a docu
 | 06  | Mobile capture & upload UI                       | 2         | ✅*    | [plan](plans/mobile-capture-upload-ui.md)         | [history](history/06-mobile-capture-upload-ui.md) |
 | 07  | Azure extraction provider & canonical mapper     | 2         | ✅*    | [plan](plans/azure-extraction-provider-canonical-mapper.md) | [history](history/07-azure-extraction-provider-canonical-mapper.md) |
 | 08  | QR decoding & validation/warnings engine         | 2         | ✅     | [plan](plans/qr-decoding-validation-warnings-engine.md) | [history](history/08-qr-decoding-validation-warnings-engine.md) |
-| 09  | Review form, editing & confirmation              | 3         | ⬜     | —                                                 | —       |
+| 09  | Review form, editing & confirmation              | 3         | ✅     | [plan](plans/review-form-editing-confirmation.md) | [history](history/09-review-form-editing-confirmation.md) |
 | 10  | History, detail view & soft delete               | 3         | ⬜     | —                                                 | —       |
 | 11  | CSV & JSON export                                | 3         | ⬜     | —                                                 | —       |
 | 12  | PoC evaluation, hardening & documentation        | 4         | ⬜     | —                                                 | —       |

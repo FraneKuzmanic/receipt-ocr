@@ -3,7 +3,12 @@ import { PDFDocument } from "pdf-lib";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { createReceiptResponseSchema, sourceDocumentResponseSchema } from "@receipt/shared";
+import {
+  confirmReceiptResponseSchema,
+  createReceiptResponseSchema,
+  receiptDetailResponseSchema,
+  sourceDocumentResponseSchema,
+} from "@receipt/shared";
 import { createApp } from "../app.js";
 import { config } from "../config.js";
 import type { Database } from "../database.types.js";
@@ -47,7 +52,7 @@ const provider: DocumentExtractionProvider = {
         analyzedAt: new Date().toISOString(),
         latencyMs: 1,
         documentConfidence: 1,
-        fields: {},
+        fields: { documentNumber: { confidence: 0.5, source: "model" } },
         unreadableFields: [],
       },
       qr: null,
@@ -60,6 +65,7 @@ const app = createApp({ extractionProvider: provider });
 let tokenA = "";
 let tokenB = "";
 let uploadedReceiptId = "";
+let reviewReceiptId = "";
 
 beforeAll(async () => {
   tokenA = await createAndSignIn(userA, userAId, userAEmail);
@@ -191,6 +197,7 @@ describe("receipt source lifecycle against the hosted project", () => {
     sourcePaths.push(sourceObjectPath(userAId, created.id));
 
     const receipt = await waitForStatus(created.id, tokenA, "review");
+    reviewReceiptId = created.id;
     expect(receipt).toMatchObject({ sellerName: "Integration seller", total: "8.08" });
 
     const { data, error } = await admin
@@ -202,6 +209,85 @@ describe("receipt source lifecycle against the hosted project", () => {
     expect(data?.original_extraction).toEqual(data?.canonical_data);
     expect(data?.raw_provider_result).not.toBeNull();
     expect(data?.extraction_metadata).toMatchObject({ latencyMs: 1 });
+  });
+
+  it("edits and confirms a review receipt without changing its machine extraction", async () => {
+    const patch = await request(app)
+      .patch(`/api/receipts/${reviewReceiptId}`)
+      .set("Authorization", `Bearer ${tokenA}`)
+      .send({ documentNumber: "381/1/4" });
+    expect(patch.status).toBe(200);
+    expect(receiptDetailResponseSchema.parse(patch.body)).toMatchObject({
+      documentNumber: "381/1/4",
+      status: "review",
+      lowConfidenceFields: ["documentNumber"],
+    });
+
+    const afterPatch = await admin
+      .from("receipts")
+      .select("canonical_data, original_extraction")
+      .eq("id", reviewReceiptId)
+      .single();
+    expect(afterPatch.data?.canonical_data).toMatchObject({ documentNumber: "381/1/4" });
+    expect(afterPatch.data?.original_extraction).toMatchObject({ documentNumber: "381/1/3" });
+
+    const confirmed = await request(app)
+      .post(`/api/receipts/${reviewReceiptId}/confirm`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(confirmed.status).toBe(200);
+    expect(confirmReceiptResponseSchema.parse(confirmed.body)).toMatchObject({
+      status: "confirmed",
+    });
+
+    const repeat = await request(app)
+      .post(`/api/receipts/${reviewReceiptId}/confirm`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(repeat.status).toBe(200);
+
+    const afterConfirm = await admin
+      .from("receipts")
+      .select("original_extraction")
+      .eq("id", reviewReceiptId)
+      .single();
+    expect(afterConfirm.data?.original_extraction).toMatchObject({ documentNumber: "381/1/3" });
+  });
+
+  it("rejects edits and confirmation outside review, forged bodies, and cross-user access", async () => {
+    const processingId = randomUUID();
+    await new ReceiptRepository(userA, userAId).create({
+      id: processingId,
+      sourceObjectPath: sourceObjectPath(userAId, processingId),
+      sourceOriginalFilename: "processing.jpg",
+      sourceContentType: "image/jpeg",
+    });
+
+    const editProcessing = await request(app)
+      .patch(`/api/receipts/${processingId}`)
+      .set("Authorization", `Bearer ${tokenA}`)
+      .send({ documentNumber: "381/1/4" });
+    expect(editProcessing.status).toBe(409);
+
+    const confirmProcessing = await request(app)
+      .post(`/api/receipts/${processingId}/confirm`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(confirmProcessing.status).toBe(409);
+
+    const forged = await request(app)
+      .patch(`/api/receipts/${reviewReceiptId}`)
+      .set("Authorization", `Bearer ${tokenA}`)
+      .send({ userId: userBId });
+    expect(forged.status).toBe(400);
+
+    const crossUserPatch = await request(app)
+      .patch(`/api/receipts/${reviewReceiptId}`)
+      .set("Authorization", `Bearer ${tokenB}`)
+      .send({ documentNumber: "nope" });
+    expect(crossUserPatch.status).toBe(404);
+
+    const crossUserConfirm = await request(app)
+      .post(`/api/receipts/${reviewReceiptId}/confirm`)
+      .set("Authorization", `Bearer ${tokenB}`);
+    expect(crossUserConfirm.status).toBe(404);
   });
 
   it("retries a retryable failure but never allows another user or review receipt to retry", async () => {

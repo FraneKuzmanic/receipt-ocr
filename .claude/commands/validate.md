@@ -112,6 +112,8 @@ Current coverage and what each test protects:
 | `client/src/capture/receiptFile.test.ts` | Client-only source classification accepts supported types and empty-MIME extension fallback, applies the 10 MB boundary, and keeps resolution/blur guidance advisory through deterministic pixel samples |
 | `client/src/routes/HomePage.test.tsx` | Native camera hint and always-visible picker fallback, preview/retake, advisory warnings, exact-file upload, translated upload errors and one in-flight submission |
 | `client/src/routes/ProcessingPage.test.tsx` | Immediate sequential polling, no overlap, review/confirmed routing, failed/error/timeout actions, retry window and unmount abort cleanup |
+| `client/src/review/reviewForm.test.ts` | Locale-formatted review input normalizes to canonical strings, preserves trailing zeroes and turns empty values into nulls. |
+| `client/src/routes/ReviewPage.test.tsx` | Pre-population, warning and low-confidence rendering, explicit save, and non-blocking confirmation through the rendered UI. |
 | `api/src/upload/source-file.test.ts` | Byte-sniffs the five accepted source types; rejects disguised executables, text and HEIC sequences; validates PDFs; preserves/caps filenames |
 | `api/src/upload/multipart.test.ts` | Multipart limits and malformed forms become stable, translatable upload error codes before a route can reach Storage |
 | `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
@@ -316,6 +318,12 @@ node -e "const fs=require('fs'),path=require('path'); const bad=[]; (function wa
 
 This is a grep, not a proof. The durable guarantee is that no endpoint consults `warnings` at all.
 
+### 6.14 Receipt routes never rewrite machine extraction
+
+```
+node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/routes/receipts.ts','utf8'); if(/originalExtraction/.test(s)) throw new Error('a receipt route writes original extraction; machine values must stay frozen'); console.log('ok');"
+```
+
 ---
 
 ## Phase 7: Supabase integration
@@ -386,10 +394,9 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 08 there are six journeys: the shared contract, authentication, source-document
-lifecycle, mobile capture/processing, extraction/retry and QR/warnings. Review is only a ready
-destination; the editable review form and history remain future work.** Everything below runs against
-real servers, not mocks.
+**As of Task 09 there are seven journeys: the shared contract, authentication, source-document
+lifecycle, mobile capture/processing, extraction/retry, QR/warnings and review/confirmation. History
+remains future work.** Everything below runs against real servers, not mocks.
 
 ### 8.1 Start the stack
 
@@ -560,13 +567,22 @@ or UI.
 
 ---
 
+### 8.10 Journey - review, edit and confirmation
+
+Upload a receipt that reaches `review`, open its review route, and confirm the source is easy to
+compare with the pre-populated form. Correct a wrong document number, save, and verify the returned
+warnings recalculate. Confirm while an informational warning remains; it must succeed only after the
+explicit action. Verify the stored machine extraction remains unchanged, repeat the visible flow in
+Croatian, and check the 375 px layout is usable one-handed.
+
+---
+
 ## Phase 9: Journeys to add as the roadmap progresses
 
 Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
 
 | Task | Journey to add |
 |---|---|
-| 09 | Pre-populated review form → edit a wrong document number → save → confirm **with a warning outstanding** succeeds. `original_extraction` still holds the pre-edit machine values. |
 | 10 | History lists only the current user's receipts, newest first, paged and status-filtered. Soft delete removes it from history while the row persists with `deleted_at` set. |
 | 11 | CSV opens in a spreadsheet with Croatian characters intact; a seller name starting with `=`, `+`, `-` or `@` is neutralized. JSON contains no Azure property name. `100.50` exports as exactly `100.50`. |
 | 12 | Full journey on a real phone against the deployed environment; Playwright critical-path suite passes. |

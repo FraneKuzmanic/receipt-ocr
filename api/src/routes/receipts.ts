@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
+import { updateReceiptRequestSchema } from "@receipt/shared";
 import { HttpError } from "../middleware/error-handler.js";
 import { authenticated } from "../middleware/require-auth.js";
 import { ReceiptRepository } from "../repositories/receipts.js";
 import { extractReceipt } from "../services/receipt-extraction.js";
+import { computeWarnings } from "../validation/warnings.js";
 import {
   SOURCE_URL_TTL_SECONDS,
   createSourceSignedUrl,
@@ -15,7 +17,11 @@ import {
 } from "../storage/receipt-sources.js";
 import { receiptSourceUpload } from "../upload/multipart.js";
 import { validateSourceFile } from "../upload/source-file.js";
-import type { DocumentExtractionProvider } from "../providers/document-extraction/types.js";
+import {
+  LOW_CONFIDENCE_THRESHOLD,
+  type DocumentExtractionProvider,
+} from "../providers/document-extraction/types.js";
+import { parseFiscalQr } from "../providers/document-extraction/fiscal-qr.js";
 
 const idSchema = z.uuid();
 
@@ -40,7 +46,66 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
       const receipt = await repository.findById(id.data);
       if (receipt === null) throw new HttpError(404, "not_found");
 
-      res.json(receipt);
+      const state = await repository.findReviewState(id.data);
+      if (state === null) throw new HttpError(404, "not_found");
+
+      res.json({ ...receipt, lowConfidenceFields: lowConfidenceFields(state.extractionMetadata) });
+    }),
+  );
+
+  router.patch(
+    "/:id",
+    authenticated(async (req, res, auth) => {
+      const id = idSchema.safeParse(req.params["id"]);
+      if (!id.success) throw new HttpError(400, "invalid_request");
+
+      const body = updateReceiptRequestSchema.safeParse(req.body);
+      if (!body.success) throw new HttpError(400, "invalid_request");
+
+      const repository = new ReceiptRepository(auth.client, auth.userId);
+      const state = await repository.findReviewState(id.data);
+      if (state === null) throw new HttpError(404, "not_found");
+      if (state.status !== "review" && state.status !== "confirmed") {
+        throw new HttpError(409, "edit_not_allowed");
+      }
+
+      const fields = { ...state.fields, ...body.data };
+      const receipt = await repository.update(id.data, {
+        canonicalData: fields,
+        warnings: computeWarnings({
+          fields,
+          qr: storedQr(state.qrExtraction),
+          unreadable: unreadableFields(state.extractionMetadata),
+        }),
+      });
+      if (receipt === null) throw new HttpError(404, "not_found");
+
+      res.json({ ...receipt, lowConfidenceFields: lowConfidenceFields(state.extractionMetadata) });
+    }),
+  );
+
+  router.post(
+    "/:id/confirm",
+    authenticated(async (req, res, auth) => {
+      const id = idSchema.safeParse(req.params["id"]);
+      if (!id.success) throw new HttpError(400, "invalid_request");
+
+      const repository = new ReceiptRepository(auth.client, auth.userId);
+      const receipt = await repository.findById(id.data);
+      if (receipt === null) throw new HttpError(404, "not_found");
+      if (receipt.status === "confirmed") {
+        res.json({ id: receipt.id, status: receipt.status, confirmedAt: receipt.confirmedAt });
+        return;
+      }
+      if (receipt.status !== "review") throw new HttpError(409, "confirm_not_allowed");
+
+      const confirmed = await repository.update(id.data, {
+        status: "confirmed",
+        confirmedAt: new Date().toISOString(),
+      });
+      if (confirmed === null) throw new HttpError(404, "not_found");
+
+      res.json({ id: confirmed.id, status: confirmed.status, confirmedAt: confirmed.confirmedAt });
     }),
   );
 
@@ -162,4 +227,30 @@ function isExplicitlyNonRetryable(metadata: unknown): boolean {
     !Array.isArray(failure) &&
     (failure as Record<string, unknown>)["retryable"] === false
   );
+}
+
+export function lowConfidenceFields(metadata: unknown): string[] {
+  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return [];
+  const fields = (metadata as Record<string, unknown>)["fields"];
+  if (fields === null || typeof fields !== "object" || Array.isArray(fields)) return [];
+
+  return Object.entries(fields).flatMap(([field, value]) => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
+    const confidence = (value as Record<string, unknown>)["confidence"];
+    return typeof confidence === "number" && confidence < LOW_CONFIDENCE_THRESHOLD ? [field] : [];
+  });
+}
+
+function unreadableFields(metadata: unknown): string[] {
+  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return [];
+  const values = (metadata as Record<string, unknown>)["unreadableFields"];
+  return Array.isArray(values)
+    ? values.filter((value): value is string => typeof value === "string")
+    : [];
+}
+
+function storedQr(value: unknown) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
+  const raw = (value as Record<string, unknown>)["raw"];
+  return typeof raw === "string" ? parseFiscalQr(raw) : null;
 }
