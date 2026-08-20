@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { AppLayout } from "./components/AppLayout";
 import { HomePage } from "./routes/HomePage";
+import { HistoryPage } from "./routes/HistoryPage";
 import { LoginPage } from "./routes/LoginPage";
 import { NotFoundPage } from "./routes/NotFoundPage";
 import { ProcessingPage } from "./routes/ProcessingPage";
@@ -19,6 +20,7 @@ export function App() {
             unknown URL would render without a session and become an authentication bypass. */}
         <Route element={<ProtectedRoute />}>
           <Route index element={<HomePage />} />
+          <Route path="receipts" element={<HistoryPage />} />
           <Route path="receipts/:id/processing" element={<ProcessingPage />} />
           <Route path="receipts/:id/review" element={<ReviewPage />} />
           <Route path="*" element={<NotFoundPage />} />

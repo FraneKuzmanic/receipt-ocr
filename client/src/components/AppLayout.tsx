@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet } from "react-router";
+import { Link, Outlet } from "react-router";
 import { useAuth } from "../auth/useAuth";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
@@ -33,6 +33,22 @@ export function AppLayout() {
             )}
           </div>
         </div>
+        {session === null ? null : (
+          <div className="mx-auto flex max-w-3xl gap-2 px-4 pb-3">
+            <Link
+              to="/"
+              className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              {t("common.navCapture")}
+            </Link>
+            <Link
+              to="/receipts"
+              className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              {t("common.navHistory")}
+            </Link>
+          </div>
+        )}
       </header>
       <main className="mx-auto max-w-3xl px-4 py-6">
         <Outlet />

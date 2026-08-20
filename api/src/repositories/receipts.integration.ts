@@ -93,15 +93,14 @@ describe("ReceiptRepository against local Supabase", () => {
     });
     expect(updated).toMatchObject({ status: "review", sellerName: "Corrected seller" });
 
-    const current = await repositoryA.listCurrent();
-    expect(current.some((receipt) => receipt.id === repositoryReceiptId)).toBe(true);
+    const current = await repositoryA.listPage({ page: 1, limit: 100 });
+    expect(current.items.some((receipt) => receipt.id === repositoryReceiptId)).toBe(true);
 
     const deleted = await repositoryA.softDelete(repositoryReceiptId);
     expect(deleted?.deletedAt).not.toBeNull();
     await expect(repositoryA.findById(repositoryReceiptId)).resolves.toBeNull();
-    await expect(repositoryA.listCurrent()).resolves.not.toContainEqual(
-      expect.objectContaining({ id: repositoryReceiptId }),
-    );
+    const afterDelete = await repositoryA.listPage({ page: 1, limit: 100 });
+    expect(afterDelete.items.some((receipt) => receipt.id === repositoryReceiptId)).toBe(false);
   });
 
   it("prevents a second authenticated user from reading, updating, or inserting for user A", async () => {

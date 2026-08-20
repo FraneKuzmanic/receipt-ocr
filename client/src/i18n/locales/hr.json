@@ -3,7 +3,9 @@
     "appName": "Skener računa",
     "retry": "Pokušaj ponovno",
     "loading": "Učitavanje",
-    "language": "Jezik"
+    "language": "Jezik",
+    "navCapture": "Skeniranje",
+    "navHistory": "Računi"
   },
   "home": {
     "title": "Digitalizacija računa",
@@ -99,6 +101,35 @@
       "save": "Nije moguće spremiti promjene. Pokušajte ponovno.",
       "confirm": "Nije moguće potvrditi račun. Pokušajte ponovno.",
       "load": "Nije moguće učitati račun. Pokušajte ponovno."
+    }
+  },
+  "history": {
+    "title": "Vaši računi",
+    "empty": "Još nemate spremljenih računa.",
+    "emptyAction": "Skenirajte svoj prvi račun",
+    "filterLabel": "Status",
+    "filterAll": "Svi",
+    "noDate": "Bez datuma",
+    "noSeller": "Nepoznat prodavatelj",
+    "noNumber": "Bez broja računa",
+    "noTotal": "Bez iznosa",
+    "delete": "Obrišite",
+    "confirmDelete": "Obrišite ovaj račun",
+    "cancelDelete": "Zadržite ga",
+    "deleting": "Brišemo",
+    "previous": "Prethodna",
+    "next": "Sljedeća",
+    "pageOf": "Stranica {{page}} od {{pages}}",
+    "count": "{{count}} računa",
+    "status": {
+      "processing": "U obradi",
+      "review": "Za pregled",
+      "confirmed": "Potvrđen",
+      "failed": "Neuspješno"
+    },
+    "errors": {
+      "load": "Nije moguće učitati vaše račune. Pokušajte ponovno.",
+      "delete": "Nije moguće obrisati ovaj račun. Pokušajte ponovno."
     }
   },
   "auth": {

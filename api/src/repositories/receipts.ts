@@ -64,6 +64,17 @@ export interface ReceiptReviewState {
   readonly extractionMetadata: Json | null;
 }
 
+export interface ListReceiptsOptions {
+  readonly page: number;
+  readonly limit: number;
+  readonly status?: ReceiptStatus;
+}
+
+export interface ReceiptPage {
+  readonly items: CanonicalReceipt[];
+  readonly total: number;
+}
+
 export type ReceiptRepositoryErrorCode = "invalid_data" | "query_failed";
 
 export class ReceiptRepositoryError extends Error {
@@ -189,16 +200,44 @@ export class ReceiptRepository {
     }
   }
 
-  async listCurrent(): Promise<CanonicalReceipt[]> {
-    const { data, error } = await this.#client
+  /** PRD §10.2 — the authenticated user's non-deleted receipts, newest first. */
+  async listPage(options: ListReceiptsOptions): Promise<ReceiptPage> {
+    const from = (options.page - 1) * options.limit;
+    const filtered = this.#client
       .from("receipts")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("user_id", this.#userId)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false });
+      .is("deleted_at", null);
 
+    const { data, error, count } = await (
+      options.status === undefined ? filtered : filtered.eq("status", options.status)
+    )
+      .order("created_at", { ascending: false })
+      .range(from, from + options.limit - 1);
+
+    if (error?.code === "PGRST103") {
+      const { error: countError, count: exactCount } = await (
+        options.status === undefined
+          ? this.#client
+              .from("receipts")
+              .select("*", { count: "exact" })
+              .eq("user_id", this.#userId)
+              .is("deleted_at", null)
+          : this.#client
+              .from("receipts")
+              .select("*", { count: "exact" })
+              .eq("user_id", this.#userId)
+              .is("deleted_at", null)
+              .eq("status", options.status)
+      )
+        .order("created_at", { ascending: false })
+        .range(0, 0);
+
+      if (countError) throw new ReceiptRepositoryError("query_failed", countError);
+      return { items: [], total: exactCount ?? 0 };
+    }
     if (error) throw new ReceiptRepositoryError("query_failed", error);
-    return data.map(mapReceiptRow);
+    return { items: data.map(mapReceiptRow), total: count ?? 0 };
   }
 
   async update(id: string, input: UpdateReceiptInput): Promise<CanonicalReceipt | null> {

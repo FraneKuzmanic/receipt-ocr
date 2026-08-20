@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { confirmReceipt, getReceipt, getReceiptSource, updateReceipt } from "../api/client";
 import "../i18n";
@@ -40,6 +40,10 @@ function renderPage() {
       </Routes>
     </MemoryRouter>,
   );
+}
+
+function Location() {
+  return <p data-testid="location">{useLocation().pathname}</p>;
 }
 
 beforeEach(() => {
@@ -139,5 +143,21 @@ describe("ReviewPage", () => {
 
     await waitFor(() => expect(mockedConfirmReceipt).toHaveBeenCalledWith(receipt.id));
     expect(screen.getByText("Receipt confirmed")).toBeInTheDocument();
+  });
+
+  it("redirects a failed receipt to the processing route", async () => {
+    mockedGetReceipt.mockResolvedValue({ ...receipt, status: "failed" });
+    render(
+      <MemoryRouter initialEntries={[`/receipts/${receipt.id}/review`]}>
+        <Routes>
+          <Route path="/receipts/:id/review" element={<ReviewPage />} />
+          <Route path="/receipts/:id/processing" element={<Location />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId("location")).toHaveTextContent(
+      `/receipts/${receipt.id}/processing`,
+    );
   });
 });

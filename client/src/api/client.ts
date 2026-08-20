@@ -3,12 +3,15 @@ import {
   apiErrorResponseSchema,
   confirmReceiptResponseSchema,
   createReceiptResponseSchema,
+  listReceiptsResponseSchema,
   receiptDetailResponseSchema,
   sourceDocumentResponseSchema,
   type ConfirmReceiptResponse,
   type CreateReceiptResponse,
   type HealthResponse,
+  type ListReceiptsResponse,
   type ReceiptDetailResponse,
+  type ReceiptStatus,
   type SourceDocumentResponse,
   type UpdateReceiptRequest,
 } from "@receipt/shared";
@@ -81,6 +84,19 @@ export async function getReceipt(id: string, signal?: AbortSignal): Promise<Rece
   return receiptDetailResponseSchema.parse(await response.json());
 }
 
+export async function getReceipts(
+  query: { page?: number; status?: ReceiptStatus } = {},
+  signal?: AbortSignal,
+): Promise<ListReceiptsResponse> {
+  const params = new URLSearchParams();
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.status !== undefined) params.set("status", query.status);
+  const search = params.toString();
+
+  const response = await request(`/api/receipts${search === "" ? "" : `?${search}`}`, { signal });
+  return listReceiptsResponseSchema.parse(await response.json());
+}
+
 export async function retryReceipt(id: string): Promise<void> {
   await request(`/api/receipts/${encodeURIComponent(id)}/retry`, { method: "POST" });
 }
@@ -102,6 +118,10 @@ export async function confirmReceipt(id: string): Promise<ConfirmReceiptResponse
     method: "POST",
   });
   return confirmReceiptResponseSchema.parse(await response.json());
+}
+
+export async function deleteReceipt(id: string): Promise<void> {
+  await request(`/api/receipts/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
 export async function getReceiptSource(id: string): Promise<SourceDocumentResponse> {

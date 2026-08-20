@@ -35,7 +35,11 @@ function receiptRow(overrides: Partial<ReceiptRow> = {}): ReceiptRow {
   };
 }
 
-type QueryResult = { data: ReceiptRow | ReceiptRow[] | null; error: unknown };
+type QueryResult = {
+  data: ReceiptRow | ReceiptRow[] | null;
+  error: unknown;
+  count?: number | null;
+};
 
 class QueryDouble {
   readonly calls: Array<{ method: string; args: unknown[] }> = [];
@@ -76,9 +80,20 @@ class QueryDouble {
     return Promise.resolve(this.result);
   }
 
-  order(...args: unknown[]): Promise<QueryResult> {
-    this.calls.push({ method: "order", args });
-    return Promise.resolve(this.result);
+  order(...args: unknown[]): this {
+    return this.record("order", args);
+  }
+
+  range(...args: unknown[]): this {
+    return this.record("range", args);
+  }
+
+  // oxlint-disable-next-line unicorn/no-thenable -- Supabase query builders are thenable.
+  then<TResult1 = QueryResult, TResult2 = never>(
+    onfulfilled?: ((value: QueryResult) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): Promise<TResult1 | TResult2> {
+    return Promise.resolve(this.result).then(onfulfilled, onrejected);
   }
 
   private record(method: string, args: unknown[]): this {
@@ -153,16 +168,37 @@ describe("ReceiptRepository", () => {
     expect(query.calls).toContainEqual({ method: "is", args: ["deleted_at", null] });
   });
 
-  it("lists only current user rows newest first", async () => {
+  it("lists a page for the current user with inclusive paging bounds", async () => {
     const rows = [receiptRow()];
-    const { repository, query } = repositoryWith({ data: rows, error: null });
+    const { repository, query } = repositoryWith({ data: rows, error: null, count: 42 });
 
-    await expect(repository.listCurrent()).resolves.toHaveLength(1);
+    await expect(repository.listPage({ page: 2, limit: 20 })).resolves.toMatchObject({
+      items: [expect.objectContaining({ id: RECEIPT_ID })],
+      total: 42,
+    });
     expect(query.calls).toContainEqual({
       method: "order",
       args: ["created_at", { ascending: false }],
     });
+    expect(query.calls).toContainEqual({ method: "range", args: [20, 39] });
+    expect(query.calls).toContainEqual({ method: "eq", args: ["user_id", USER_ID] });
     expect(query.calls).toContainEqual({ method: "is", args: ["deleted_at", null] });
+  });
+
+  it("applies a status filter only when supplied", async () => {
+    const withStatus = repositoryWith({ data: [], error: null });
+    await withStatus.repository.listPage({ page: 1, limit: 20, status: "confirmed" });
+    expect(withStatus.query.calls).toContainEqual({
+      method: "eq",
+      args: ["status", "confirmed"],
+    });
+
+    const withoutStatus = repositoryWith({ data: [], error: null });
+    await withoutStatus.repository.listPage({ page: 1, limit: 20 });
+    expect(withoutStatus.query.calls).not.toContainEqual({
+      method: "eq",
+      args: ["status", "confirmed"],
+    });
   });
 
   it("soft deletes with mutation timestamps and owner filters", async () => {

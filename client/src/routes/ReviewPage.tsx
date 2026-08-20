@@ -54,8 +54,9 @@ export function ReviewPage() {
     void getReceipt(id)
       .then((next) => {
         if (!active) return;
-        if (next.status === "processing") navigate(`/receipts/${id}/processing`, { replace: true });
-        else setReceipt(next);
+        if (next.status === "processing" || next.status === "failed") {
+          navigate(`/receipts/${id}/processing`, { replace: true });
+        } else setReceipt(next);
       })
       .catch(() => active && setFailed(true));
     return () => {
