@@ -2,7 +2,7 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 10 implementation complete — Task 11 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
+**Status:** Task 11 complete and validated — Task 12 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
 
 This roadmap divides the PRD into 12 sequential tasks. Each task is one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -162,7 +162,7 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ✅* Done with a docu
 | 08  | QR decoding & validation/warnings engine         | 2         | ✅     | [plan](plans/qr-decoding-validation-warnings-engine.md) | [history](history/08-qr-decoding-validation-warnings-engine.md) |
 | 09  | Review form, editing & confirmation              | 3         | ✅     | [plan](plans/review-form-editing-confirmation.md) | [history](history/09-review-form-editing-confirmation.md) |
 | 10  | History, detail view & soft delete               | 3         | ✅     | [plan](plans/history-detail-view-soft-delete.md) | [history](history/10-history-detail-view-soft-delete.md) |
-| 11  | CSV & JSON export                                | 3         | ⬜     | —                                                 | —       |
+| 11  | CSV & JSON export                                | 3         | ✅     | [plan](plans/csv-json-export.md)                 | [history](history/11-csv-json-export.md) |
 | 12  | PoC evaluation, hardening & documentation        | 4         | ⬜     | —                                                 | —       |
 
 **Dependency graph** — the chain is mostly linear, with two places where work can be split:

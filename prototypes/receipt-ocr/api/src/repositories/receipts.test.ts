@@ -43,8 +43,9 @@ type QueryResult = {
 
 class QueryDouble {
   readonly calls: Array<{ method: string; args: unknown[] }> = [];
+  #nextResultIndex = 0;
 
-  constructor(readonly result: QueryResult) {}
+  constructor(readonly result: QueryResult | QueryResult[]) {}
 
   from(...args: unknown[]): this {
     return this.record("from", args);
@@ -72,12 +73,12 @@ class QueryDouble {
 
   single(): Promise<QueryResult> {
     this.calls.push({ method: "single", args: [] });
-    return Promise.resolve(this.result);
+    return Promise.resolve(this.nextResult());
   }
 
   maybeSingle(): Promise<QueryResult> {
     this.calls.push({ method: "maybeSingle", args: [] });
-    return Promise.resolve(this.result);
+    return Promise.resolve(this.nextResult());
   }
 
   order(...args: unknown[]): this {
@@ -93,16 +94,24 @@ class QueryDouble {
     onfulfilled?: ((value: QueryResult) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
-    return Promise.resolve(this.result).then(onfulfilled, onrejected);
+    return Promise.resolve(this.nextResult()).then(onfulfilled, onrejected);
   }
 
   private record(method: string, args: unknown[]): this {
     this.calls.push({ method, args });
     return this;
   }
+
+  private nextResult(): QueryResult {
+    if (!Array.isArray(this.result)) return this.result;
+    const result = this.result[this.#nextResultIndex] ?? this.result.at(-1);
+    this.#nextResultIndex += 1;
+    if (result === undefined) throw new Error("QueryDouble needs at least one result.");
+    return result;
+  }
 }
 
-function repositoryWith(result: QueryResult): {
+function repositoryWith(result: QueryResult | QueryResult[]): {
   repository: ReceiptRepository;
   query: QueryDouble;
 } {
@@ -199,6 +208,47 @@ describe("ReceiptRepository", () => {
       method: "eq",
       args: ["status", "confirmed"],
     });
+  });
+
+  it("lists confirmed receipts for export with owner, status and soft-delete filters", async () => {
+    const row = receiptRow({ status: "confirmed" });
+    const { repository, query } = repositoryWith({ data: [row], error: null });
+
+    await expect(repository.listConfirmedForExport()).resolves.toEqual([
+      expect.objectContaining({ id: RECEIPT_ID, status: "confirmed", total: "100.50" }),
+    ]);
+
+    expect(query.calls).toContainEqual({ method: "eq", args: ["user_id", USER_ID] });
+    expect(query.calls).toContainEqual({ method: "is", args: ["deleted_at", null] });
+    expect(query.calls).toContainEqual({ method: "eq", args: ["status", "confirmed"] });
+    expect(query.calls).toContainEqual({
+      method: "order",
+      args: ["created_at", { ascending: false }],
+    });
+    expect(query.calls).toContainEqual({ method: "order", args: ["id", { ascending: false }] });
+  });
+
+  it("pages export queries until the first short page", async () => {
+    const fullPage = Array.from({ length: 500 }, (_, index) =>
+      receiptRow({
+        id: `aaaaaaaa-aaaa-4aaa-8aaa-${String(index).padStart(12, "0")}`,
+        status: "confirmed",
+      }),
+    );
+    const shortPage = [
+      receiptRow({ id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", status: "confirmed" }),
+    ];
+    const { repository, query } = repositoryWith([
+      { data: fullPage, error: null },
+      { data: shortPage, error: null },
+    ]);
+
+    await expect(repository.listConfirmedForExport()).resolves.toHaveLength(501);
+
+    expect(query.calls.filter((call) => call.method === "range")).toEqual([
+      { method: "range", args: [0, 499] },
+      { method: "range", args: [500, 999] },
+    ]);
   });
 
   it("soft deletes with mutation timestamps and owner filters", async () => {

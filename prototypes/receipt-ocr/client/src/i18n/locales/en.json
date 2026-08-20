@@ -105,6 +105,11 @@
   },
   "history": {
     "title": "Your receipts",
+    "exportTitle": "Export",
+    "exportCsv": "Download CSV",
+    "exportJson": "Download JSON",
+    "exporting": "Preparing",
+    "exportHint": "Confirmed receipts only.",
     "empty": "You have not saved any receipts yet.",
     "emptyAction": "Scan your first receipt",
     "filterLabel": "Status",
@@ -129,7 +134,8 @@
     },
     "errors": {
       "load": "Your receipts could not be loaded. Try again.",
-      "delete": "This receipt could not be deleted. Try again."
+      "delete": "This receipt could not be deleted. Try again.",
+      "export": "The export could not be created. Try again."
     }
   },
   "auth": {

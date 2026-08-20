@@ -6,6 +6,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   confirmReceiptResponseSchema,
   createReceiptResponseSchema,
+  jsonExportResponseSchema,
   listReceiptsResponseSchema,
   receiptDetailResponseSchema,
   sourceDocumentResponseSchema,
@@ -264,6 +265,101 @@ describe("receipt source lifecycle against the hosted project", () => {
       .set("Authorization", `Bearer ${tokenA}`);
     expect(invalid.status).toBe(400);
     expect(invalid.body).toEqual({ error: { code: "invalid_request" } });
+  });
+
+  it("exports only confirmed, non-deleted owner receipts", async () => {
+    const exportedId = randomUUID();
+    const reviewId = randomUUID();
+    const deletedId = randomUUID();
+    const userBReceiptId = randomUUID();
+    const rows = [
+      {
+        id: exportedId,
+        status: "confirmed" as const,
+        userId: userAId,
+        client: userA,
+        canonicalData: { sellerName: "=Formula seller", total: "100.50", currency: "EUR" },
+      },
+      {
+        id: reviewId,
+        status: "review" as const,
+        userId: userAId,
+        client: userA,
+        canonicalData: { sellerName: "Review seller", total: "10.00", currency: "EUR" },
+      },
+      {
+        id: deletedId,
+        status: "confirmed" as const,
+        userId: userAId,
+        client: userA,
+        canonicalData: { sellerName: "Deleted seller", total: "20.00", currency: "EUR" },
+      },
+      {
+        id: userBReceiptId,
+        status: "confirmed" as const,
+        userId: userBId,
+        client: userB,
+        canonicalData: { sellerName: "Other user seller", total: "30.00", currency: "EUR" },
+      },
+    ];
+
+    for (const row of rows) {
+      const path = sourceObjectPath(row.userId, row.id);
+      await new ReceiptRepository(row.client, row.userId).create({
+        id: row.id,
+        sourceObjectPath: path,
+        sourceOriginalFilename: "export.jpg",
+        sourceContentType: "image/jpeg",
+        status: row.status,
+        canonicalData: row.canonicalData,
+      });
+      sourcePaths.push(path);
+    }
+    await new ReceiptRepository(userA, userAId).softDelete(deletedId);
+
+    const csv = await request(app)
+      .get("/api/receipts/export?format=csv")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(csv.status).toBe(200);
+    expect(csv.headers["content-type"]).toMatch(/^text\/csv/);
+    expect(csv.text.at(0)).toBe("\uFEFF");
+    expect(csv.text).toContain(exportedId);
+    expect(csv.text).toContain("'=Formula seller");
+    expect(csv.text).toContain(",100.50,");
+    expect(csv.text).not.toContain(reviewId);
+    expect(csv.text).not.toContain(deletedId);
+    expect(csv.text).not.toContain(userBReceiptId);
+
+    const json = await request(app)
+      .get("/api/receipts/export?format=json")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(json.status).toBe(200);
+    const body = jsonExportResponseSchema.parse(json.body);
+    expect(body.schemaVersion).toBe(1);
+    expect(body.receipts).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: exportedId, total: "100.50" })]),
+    );
+    expect(body.receipts.map((receipt) => receipt.id)).not.toEqual(
+      expect.arrayContaining([reviewId, deletedId, userBReceiptId]),
+    );
+    expect(JSON.stringify(body)).not.toContain("rawProviderResult");
+  });
+
+  it("rejects invalid export requests", async () => {
+    const missing = await request(app)
+      .get("/api/receipts/export")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(missing.status).toBe(400);
+    expect(missing.body).toEqual({ error: { code: "invalid_request" } });
+
+    const invalid = await request(app)
+      .get("/api/receipts/export?format=xml")
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(invalid.status).toBe(400);
+    expect(invalid.body).toEqual({ error: { code: "invalid_request" } });
+
+    const unauthorized = await request(app).get("/api/receipts/export?format=json");
+    expect(unauthorized.status).toBe(401);
   });
 
   it("lets a direct signed URL expire", async () => {

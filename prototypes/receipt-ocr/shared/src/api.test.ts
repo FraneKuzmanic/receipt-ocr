@@ -2,10 +2,24 @@ import { describe, expect, it } from "vitest";
 import {
   confirmReceiptResponseSchema,
   createReceiptResponseSchema,
+  exportedReceiptSchema,
+  jsonExportResponseSchema,
   receiptDetailResponseSchema,
   listReceiptsQuerySchema,
   updateReceiptRequestSchema,
 } from "./api.js";
+
+const baseReceipt = {
+  id: "123e4567-e89b-42d3-a456-426614174000",
+  userId: "123e4567-e89b-42d3-a456-426614174001",
+  status: "confirmed",
+  total: "100.50",
+  warnings: [],
+  createdAt: "2026-08-17T12:00:00Z",
+  updatedAt: "2026-08-17T12:00:00Z",
+  confirmedAt: "2026-08-17T12:04:00Z",
+  deletedAt: null,
+};
 
 describe("updateReceiptRequestSchema", () => {
   it("rejects a forged userId in the request body", () => {
@@ -105,5 +119,45 @@ describe("response DTOs", () => {
       receiptDetailResponseSchema.safeParse({ ...body, lowConfidenceFields: undefined }).success,
     ).toBe(false);
     expect(receiptDetailResponseSchema.safeParse({ ...body, extra: true }).success).toBe(false);
+  });
+
+  it("exports receipts without owner or soft-delete fields", () => {
+    const { userId: _userId, deletedAt: _deletedAt, ...exported } = baseReceipt;
+    const result = exportedReceiptSchema.safeParse({ ...exported, userId: baseReceipt.userId });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.code === "unrecognized_keys")).toBe(true);
+    expect(exportedReceiptSchema.safeParse(exported).success).toBe(true);
+  });
+
+  it("pins the JSON export schema version", () => {
+    const { userId: _userId, deletedAt: _deletedAt, ...exported } = baseReceipt;
+
+    expect(
+      jsonExportResponseSchema.safeParse({ schemaVersion: 2, receipts: [exported] }).success,
+    ).toBe(false);
+    expect(
+      jsonExportResponseSchema.safeParse({ schemaVersion: 1, receipts: [exported] }).success,
+    ).toBe(true);
+  });
+
+  it("accepts an exported receipt with optional fields absent", () => {
+    const result = exportedReceiptSchema.safeParse({
+      id: baseReceipt.id,
+      status: "confirmed",
+      warnings: [],
+      createdAt: baseReceipt.createdAt,
+      updatedAt: baseReceipt.updatedAt,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("preserves trailing-zero money through the JSON export DTO", () => {
+    const { userId: _userId, deletedAt: _deletedAt, ...exported } = baseReceipt;
+
+    const result = jsonExportResponseSchema.parse({ schemaVersion: 1, receipts: [exported] });
+
+    expect(result.receipts[0]?.total).toBe("100.50");
   });
 });

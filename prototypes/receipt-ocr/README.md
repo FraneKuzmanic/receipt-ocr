@@ -8,10 +8,10 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 10 implementation is complete. Authenticated users can photograph or choose a
-> receipt, follow asynchronous Azure extraction, then review, correct, confirm, revisit and
-> soft-delete it from a paged history beside the original document. Real-phone camera validation
-> remains deferred until the prototype is hosted.
+> **Status:** Task 11 is complete. Authenticated users can photograph or choose a receipt, follow
+> asynchronous Azure extraction, then review, correct, confirm, revisit, soft-delete and export
+> confirmed receipts as CSV or JSON. Real-phone camera validation remains deferred until the
+> prototype is hosted.
 
 ## Prerequisites
 
@@ -184,6 +184,7 @@ only a per-project run catches a stale project name.
 | `POST` | `/api/receipts/:id/retry` | Yes | `202 {"id", "status"}` for retryable `failed` or stranded `processing` receipts; otherwise `409 retry_not_allowed` |
 | `GET` | `/api/receipts/:id/source` | Yes | `200 {"url", "contentType", "originalFilename", "expiresAt"}`, `404` if not yours or deleted |
 | `DELETE` | `/api/receipts/:id` | Yes | `204`, then the receipt and source endpoint return `404` |
+| `GET` | `/api/receipts/export` | Yes | `200` CSV or JSON for confirmed, non-deleted receipts; requires `format=csv\|json` |
 
 The health path and response type are defined once in `shared/src/health.ts` (`HEALTH_PATH`,
 `HealthResponse`) and imported by both sides, so a change to either breaks the build rather than
@@ -193,6 +194,10 @@ production. `GET /api/receipts/:id` returns the canonical receipt plus the provi
 `GET /api/receipts` is owner-scoped and excludes soft-deleted rows. Its strict query accepts
 `page` (default `1`), `limit` (default `20`, maximum `100`) and an optional receipt `status`; `total`
 is the unpaged count of the filtered result.
+
+`GET /api/receipts/export` is owner-scoped, excludes soft-deleted rows and exports only confirmed
+receipts. The route must stay registered before `GET /api/receipts/:id`; Express matches routes in
+registration order, so a later `/export` route would be parsed as `:id = "export"`.
 
 Protected requests carry the Supabase access token:
 
@@ -295,6 +300,65 @@ issued.
 Totals remain decimal strings. A malformed three-character currency code cannot take down history:
 the UI falls back to a locale-formatted amount followed by the raw code, and preserves trailing zeros
 when no currency is available.
+
+### Export
+
+The history page offers CSV and JSON downloads. Both formats always export the authenticated user's
+confirmed, non-deleted receipts; the current history status filter does not change the export scope.
+
+CSV v1 has one row per receipt and these columns, in order:
+
+```text
+id
+status
+sellerName
+sellerAddress
+sellerOib
+buyerName
+buyerAddress
+buyerOib
+documentNumber
+issueDate
+issueTime
+subtotal
+total
+currency
+vatBreakdown
+paymentMethod
+jir
+zki
+confirmedAt
+createdAt
+updatedAt
+```
+
+Line items are intentionally excluded from CSV v1. `vatBreakdown` is serialized as compact JSON in a
+single CSV column so any number of VAT rates can round-trip without an arbitrary column cap. Empty
+canonical values export as empty CSV fields, never as `null` or guessed defaults.
+
+The CSV response is UTF-8 with a BOM and uses CRLF row breaks, so Windows spreadsheet tools preserve
+Croatian characters such as `š`, `č`, `ć`, `ž` and `đ`. RFC 4180 escaping is used: fields containing
+quotes, commas or line breaks are quoted, and embedded quotes are doubled.
+
+Spreadsheet formula neutralization applies to untrusted text columns only. A text value beginning
+with `=`, `+`, `-`, `@`, tab, carriage return, line feed or the full-width formula variants is prefixed
+with a single quote before CSV escaping. Money, date and timestamp columns are not neutralized because
+their schemas already restrict them; this keeps a valid negative total such as `-12.50` usable as a
+number in spreadsheets.
+
+JSON export returns this envelope:
+
+```json
+{
+  "schemaVersion": 1,
+  "receipts": []
+}
+```
+
+Each JSON receipt uses canonical field names only, omits the caller's own `userId`, omits `deletedAt`
+because deleted rows are outside the export scope, preserves nested `vatBreakdown`, and includes
+optional `items` when they exist. Money remains the exact confirmed decimal string, so `100.50`
+exports as `"100.50"`.
 
 ### Extraction
 
@@ -487,11 +551,12 @@ type under the obvious name (`canonicalReceiptSchema` → `CanonicalReceipt`).
 | `shared/src/warnings.ts` | `WARNING_CODES`, `warningCodeSchema`, `receiptWarningSchema` |
 | `shared/src/upload.ts` | `SOURCE_CONTENT_TYPES`, `sourceContentTypeSchema`, `UPLOAD_ERROR_CODES`, `uploadErrorCodeSchema` |
 | `shared/src/receipt.ts` | `RECEIPT_STATUSES`, `receiptStatusSchema`, `vatBreakdownSchema`, `receiptItemSchema`, `canonicalReceiptFieldsSchema`, `canonicalReceiptSchema` |
-| `shared/src/api.ts` | `apiErrorResponseSchema`, `createReceiptResponseSchema`, `sourceDocumentResponseSchema`, `listReceiptsQuerySchema`, `listReceiptsResponseSchema`, `updateReceiptRequestSchema`, `confirmReceiptResponseSchema`, `EXPORT_FORMATS`, `exportFormatSchema` |
+| `shared/src/api.ts` | `apiErrorResponseSchema`, `createReceiptResponseSchema`, `sourceDocumentResponseSchema`, `listReceiptsQuerySchema`, `listReceiptsResponseSchema`, `updateReceiptRequestSchema`, `confirmReceiptResponseSchema`, `EXPORT_FORMATS`, `EXPORT_SCHEMA_VERSION`, `exportFormatSchema`, `exportedReceiptSchema`, `jsonExportResponseSchema` |
 | `shared/src/health.ts` | `HEALTH_PATH`, `HealthResponse` |
 
-The export body's `schemaVersion` is deliberately **absent** until Task 11. `GET /api/receipts/:id`
-returns `canonicalReceiptSchema` as it stands.
+The export body is versioned with `schemaVersion: 1`. `GET /api/receipts/:id` returns
+`canonicalReceiptSchema` plus `lowConfidenceFields`; JSON export returns the derived
+`exportedReceiptSchema` inside `jsonExportResponseSchema`.
 
 ### Adding tests to `shared`
 

@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { RECEIPT_STATUSES, type ListReceiptsResponse, type ReceiptStatus } from "@receipt/shared";
-import { deleteReceipt, getReceipts } from "../api/client";
+import {
+  RECEIPT_STATUSES,
+  type ExportFormat,
+  type ListReceiptsResponse,
+  type ReceiptStatus,
+} from "@receipt/shared";
+import { deleteReceipt, exportReceipts, getReceipts } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Spinner } from "../components/Spinner";
+import { exportFilename, saveBlob } from "../history/download";
 import { formatReceiptTotal, receiptRoute } from "../history/receiptSummary";
 
 export function HistoryPage() {
@@ -16,6 +22,8 @@ export function HistoryPage() {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
+  const [exporting, setExporting] = useState<ReadonlySet<ExportFormat>>(() => new Set());
+  const [exportFailed, setExportFailed] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
@@ -53,6 +61,23 @@ export function HistoryPage() {
     }
   }
 
+  async function download(format: ExportFormat) {
+    setExporting((current) => new Set(current).add(format));
+    setExportFailed(false);
+    try {
+      const blob = await exportReceipts(format);
+      saveBlob(blob, exportFilename(format, new Date()));
+    } catch {
+      setExportFailed(true);
+    } finally {
+      setExporting((current) => {
+        const next = new Set(current);
+        next.delete(format);
+        return next;
+      });
+    }
+  }
+
   const totalPages = data === null ? 1 : Math.max(1, Math.ceil(data.total / data.limit));
 
   return (
@@ -62,6 +87,31 @@ export function HistoryPage() {
         {data === null ? null : (
           <p className="text-sm text-slate-600">{t("history.count", { count: data.total })}</p>
         )}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div>
+          <h2 className="font-semibold text-slate-900">{t("history.exportTitle")}</h2>
+          <p className="mt-1 text-sm text-slate-600">{t("history.exportHint")}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void download("csv")}
+            disabled={exporting.has("csv")}
+            className="min-h-11 rounded-lg bg-slate-900 px-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {exporting.has("csv") ? t("history.exporting") : t("history.exportCsv")}
+          </button>
+          <button
+            type="button"
+            onClick={() => void download("json")}
+            disabled={exporting.has("json")}
+            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400"
+          >
+            {exporting.has("json") ? t("history.exporting") : t("history.exportJson")}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1">
@@ -94,6 +144,7 @@ export function HistoryPage() {
         />
       ) : null}
       {deleteFailed ? <ErrorMessage message={t("history.errors.delete")} /> : null}
+      {exportFailed ? <ErrorMessage message={t("history.errors.export")} /> : null}
 
       {data !== null && data.items.length === 0 ? (
         <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5">
