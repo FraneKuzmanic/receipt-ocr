@@ -90,6 +90,45 @@ describe("ReviewPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  // Three codes were computed, persisted and returned by the API but rendered nowhere, because the
+  // form only looked up the field paths it happened to remember: `vat_arithmetic_mismatch` is
+  // emitted against the bare `vatBreakdown` path while the VAT fieldset only read indexed cells,
+  // and `subtotal`/`issueTime` had no lookup at all. Driving every code through the real engine's
+  // field paths is what keeps a future warning from going silently invisible.
+  it("renders a message for every warning the engine can emit", async () => {
+    mockedGetReceipt.mockResolvedValue({
+      ...receipt,
+      vatBreakdown: [{ rate: "25", taxableBase: "1.00", vatAmount: "0.25" }],
+      warnings: [
+        { code: "missing_critical_field", field: "sellerName" },
+        { code: "unparseable_date", field: "issueDate" },
+        { code: "unparseable_date", field: "issueTime" },
+        { code: "unparseable_amount", field: "total" },
+        { code: "unparseable_amount", field: "subtotal" },
+        { code: "vat_arithmetic_mismatch", field: "vatBreakdown" },
+        { code: "qr_total_mismatch", field: "total" },
+        { code: "qr_datetime_mismatch", field: "issueDate" },
+      ],
+    });
+    renderPage();
+
+    expect(
+      await screen.findByText("The VAT amounts do not add up to the total."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("This date could not be read. Check it against the receipt."),
+    ).toHaveLength(2);
+    expect(
+      screen.getAllByText("This amount could not be read. Check it against the receipt."),
+    ).toHaveLength(2);
+    expect(
+      screen.getByText("The total differs from the amount in the receipt's QR code."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("The date or time differs from the receipt's QR code."),
+    ).toBeInTheDocument();
+  });
+
   it("allows confirmation while warnings remain", async () => {
     const user = userEvent.setup();
     renderPage();

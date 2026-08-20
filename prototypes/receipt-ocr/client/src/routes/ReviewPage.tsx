@@ -214,6 +214,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
               {...register("issueTime", { validate: timeValidation })}
             />
             {formError(formState.errors.issueTime?.message)}
+            {messages("issueTime")}
           </label>
           <label className="flex flex-col gap-1">
             <span>{t("review.fields.subtotal")}</span>
@@ -222,6 +223,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
               {...register("subtotal", { validate: amountValidation })}
             />
             {formError(formState.errors.subtotal?.message)}
+            {messages("subtotal")}
           </label>
           <label className="flex flex-col gap-1">
             <span>{t("review.fields.total")}</span>
@@ -251,6 +253,10 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
 
         <fieldset className="flex flex-col gap-3">
           <legend className="font-semibold">{t("review.vat")}</legend>
+          {/* `vat_arithmetic_mismatch` concerns the breakdown as a whole, so the engine emits it
+              against the bare `vatBreakdown` path rather than an indexed cell. It has to be read
+              here; the per-cell lookups below can never match it. */}
+          {messages("vatBreakdown")}
           {vat.fields.map((field, index) => (
             <div key={field.id} className="grid gap-2 rounded border border-slate-200 p-3">
               {(["rate", "taxableBase", "vatAmount"] as const).map((name) => (
