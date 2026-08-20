@@ -675,6 +675,7 @@ first.
 | `DATABASE_URL`                         | —                       | Task 03; Supabase CLI only, not read at runtime |
 | `VITE_SUPABASE_URL`                    | —                       | Browser; same value as `SUPABASE_URL` |
 | `VITE_SUPABASE_PUBLISHABLE_KEY`        | —                       | Browser; same value as `SUPABASE_PUBLISHABLE_KEY` |
+| `VITE_API_BASE_URL`                    | *(empty)*                | Browser; only needed when the client and API are deployed as separate origins |
 
 Supabase issues the two keys as **publishable** and **secret**; they replace the older **anon** and
 **service_role** pair, and map onto them one for one. The names here follow what the dashboard now

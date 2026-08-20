@@ -5,6 +5,8 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_PUBLISHABLE_KEY: string;
+  // Optional: only needed when the client and API are deployed as separate origins.
+  readonly VITE_API_BASE_URL?: string;
 }
 
 interface ImportMeta {
