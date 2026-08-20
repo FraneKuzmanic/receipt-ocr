@@ -10,9 +10,6 @@ services:
         value: production
       - key: LOG_LEVEL
         value: info
-      # Must match the client static site's actual URL for CORS to work.
-      # Render assigns https://<name>.onrender.com unless that name is taken;
-      # confirm the client service's real URL after both are created and fix this if it differs.
       - key: WEB_ORIGIN
         value: https://receipt-ocr-client.onrender.com
       - key: AZURE_DI_MODEL_ID
@@ -48,6 +45,8 @@ services:
         sync: false
       - key: VITE_SUPABASE_PUBLISHABLE_KEY
         sync: false
+      - key: VITE_API_BASE_URL
+        value: https://receipt-ocr-api-lzx4.onrender.com
     routes:
       - type: rewrite
         source: /*
