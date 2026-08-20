@@ -4,6 +4,7 @@ import {
   ApiError,
   createReceipt,
   deleteReceipt,
+  exportReceipts,
   getHealth,
   getReceipt,
   getReceipts,
@@ -149,6 +150,27 @@ describe("the API client", () => {
       "/api/receipts/receipt%2Fid",
       expect.objectContaining({ method: "DELETE" }),
     );
+  });
+
+  it("downloads exports through the authenticated request path", async () => {
+    getSession.mockResolvedValue(sessionResult("token-abc"));
+    const body = "id,total\r\n1,100.50";
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        new Response(body, {
+          status: 200,
+          headers: { "Content-Type": "text/csv; charset=utf-8" },
+        }),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const blob = await exportReceipts("csv");
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/receipts/export?format=csv", expect.any(Object));
+    expect(sentHeaders(fetchMock).get("Authorization")).toBe("Bearer token-abc");
+    await expect(blob.text()).resolves.toBe(body);
+    expect(blob.type).toBe("text/csv;charset=utf-8");
   });
 
   it("keeps a stable server error code and tolerates malformed errors", async () => {

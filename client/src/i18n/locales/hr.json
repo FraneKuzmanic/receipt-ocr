@@ -105,6 +105,11 @@
   },
   "history": {
     "title": "Vaši računi",
+    "exportTitle": "Izvoz",
+    "exportCsv": "Preuzmi CSV",
+    "exportJson": "Preuzmi JSON",
+    "exporting": "Priprema",
+    "exportHint": "Samo potvrđeni računi.",
     "empty": "Još nemate spremljenih računa.",
     "emptyAction": "Skenirajte svoj prvi račun",
     "filterLabel": "Status",
@@ -129,7 +134,8 @@
     },
     "errors": {
       "load": "Nije moguće učitati vaše račune. Pokušajte ponovno.",
-      "delete": "Nije moguće obrisati ovaj račun. Pokušajte ponovno."
+      "delete": "Nije moguće obrisati ovaj račun. Pokušajte ponovno.",
+      "export": "Izvoz nije bilo moguće stvoriti. Pokušajte ponovno."
     }
   },
   "auth": {

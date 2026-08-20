@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20
 **Plan:** `.agents/plans/history-detail-view-soft-delete.md`
-**Commit:** Uncommitted — awaiting human review and `/commit`.
+**Commit:** `5e1b11b`
 
 ## What was built
 

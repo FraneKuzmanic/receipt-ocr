@@ -1,9 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
-import { listReceiptsQuerySchema, updateReceiptRequestSchema } from "@receipt/shared";
+import {
+  exportFormatSchema,
+  listReceiptsQuerySchema,
+  updateReceiptRequestSchema,
+} from "@receipt/shared";
 import { HttpError } from "../middleware/error-handler.js";
 import { authenticated } from "../middleware/require-auth.js";
+import { toCsv, toJsonExport } from "../export/receipts.js";
 import { ReceiptRepository } from "../repositories/receipts.js";
 import { extractReceipt } from "../services/receipt-extraction.js";
 import { computeWarnings } from "../validation/warnings.js";
@@ -37,6 +42,28 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
 
       const page = await new ReceiptRepository(auth.client, auth.userId).listPage(query.data);
       res.json({ ...page, page: query.data.page, limit: query.data.limit });
+    }),
+  );
+
+  router.get(
+    "/export",
+    authenticated(async (req, res, auth) => {
+      const format = exportFormatSchema.safeParse(req.query["format"]);
+      if (!format.success) throw new HttpError(400, "invalid_request");
+
+      const receipts = await new ReceiptRepository(
+        auth.client,
+        auth.userId,
+      ).listConfirmedForExport();
+
+      if (format.data === "csv") {
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader("Content-Disposition", 'attachment; filename="receipts.csv"');
+        res.send(toCsv(receipts));
+        return;
+      }
+
+      res.json(toJsonExport(receipts));
     }),
   );
 

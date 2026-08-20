@@ -20,6 +20,7 @@ type ReceiptUpdate = Database["public"]["Tables"]["receipts"]["Update"];
 
 const uuidSchema = z.uuid();
 const warningsSchema = z.array(receiptWarningSchema);
+const EXPORT_PAGE_SIZE = 500;
 
 export interface CreateReceiptInput {
   id?: string;
@@ -238,6 +239,27 @@ export class ReceiptRepository {
     }
     if (error) throw new ReceiptRepositoryError("query_failed", error);
     return { items: data.map(mapReceiptRow), total: count ?? 0 };
+  }
+
+  /** PRD §10.9 — confirmed, non-deleted receipts for a portable user export. */
+  async listConfirmedForExport(): Promise<CanonicalReceipt[]> {
+    const items: CanonicalReceipt[] = [];
+
+    for (let from = 0; ; from += EXPORT_PAGE_SIZE) {
+      const { data, error } = await this.#client
+        .from("receipts")
+        .select("*")
+        .eq("user_id", this.#userId)
+        .is("deleted_at", null)
+        .eq("status", "confirmed")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(from, from + EXPORT_PAGE_SIZE - 1);
+
+      if (error) throw new ReceiptRepositoryError("query_failed", error);
+      items.push(...data.map(mapReceiptRow));
+      if (data.length < EXPORT_PAGE_SIZE) return items;
+    }
   }
 
   async update(id: string, input: UpdateReceiptInput): Promise<CanonicalReceipt | null> {

@@ -3,11 +3,20 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import type { CanonicalReceipt } from "@receipt/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deleteReceipt, getReceipts } from "../api/client";
+import { deleteReceipt, exportReceipts, getReceipts } from "../api/client";
+import { exportFilename, saveBlob } from "../history/download";
 import "../i18n";
 import { HistoryPage } from "./HistoryPage";
 
-vi.mock("../api/client", () => ({ getReceipts: vi.fn(), deleteReceipt: vi.fn() }));
+vi.mock("../api/client", () => ({
+  getReceipts: vi.fn(),
+  deleteReceipt: vi.fn(),
+  exportReceipts: vi.fn(),
+}));
+vi.mock("../history/download", () => ({
+  exportFilename: vi.fn((format: string) => `receipts-2026-08-20.${format}`),
+  saveBlob: vi.fn(),
+}));
 
 const receipt: CanonicalReceipt = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -25,6 +34,9 @@ const receipt: CanonicalReceipt = {
 
 const mockedGetReceipts = vi.mocked(getReceipts);
 const mockedDeleteReceipt = vi.mocked(deleteReceipt);
+const mockedExportReceipts = vi.mocked(exportReceipts);
+const mockedExportFilename = vi.mocked(exportFilename);
+const mockedSaveBlob = vi.mocked(saveBlob);
 
 function page(items = [receipt], total = items.length, pageNumber = 1, limit = 20) {
   return { items, page: pageNumber, limit, total };
@@ -47,6 +59,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockedGetReceipts.mockResolvedValue(page());
   mockedDeleteReceipt.mockResolvedValue();
+  mockedExportReceipts.mockResolvedValue(new Blob(["export"]));
 });
 
 describe("HistoryPage", () => {
@@ -120,6 +133,45 @@ describe("HistoryPage", () => {
     await user.click(screen.getByRole("button", { name: "Delete this receipt" }));
     await waitFor(() => expect(mockedDeleteReceipt).toHaveBeenCalledWith(receipt.id));
     await waitFor(() => expect(mockedGetReceipts).toHaveBeenCalledTimes(2));
+  });
+
+  it("downloads CSV exports from history", async () => {
+    const user = userEvent.setup();
+    const blob = new Blob(["csv"]);
+    mockedExportReceipts.mockResolvedValue(blob);
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Download CSV" }));
+
+    await waitFor(() => expect(mockedExportReceipts).toHaveBeenCalledWith("csv"));
+    expect(mockedExportFilename).toHaveBeenCalledWith("csv", expect.any(Date));
+    expect(mockedSaveBlob).toHaveBeenCalledWith(blob, "receipts-2026-08-20.csv");
+  });
+
+  it("downloads JSON exports from history", async () => {
+    const user = userEvent.setup();
+    const blob = new Blob(["json"]);
+    mockedExportReceipts.mockResolvedValue(blob);
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Download JSON" }));
+
+    await waitFor(() => expect(mockedExportReceipts).toHaveBeenCalledWith("json"));
+    expect(mockedExportFilename).toHaveBeenCalledWith("json", expect.any(Date));
+    expect(mockedSaveBlob).toHaveBeenCalledWith(blob, "receipts-2026-08-20.json");
+  });
+
+  it("renders an export failure without disabling the other format", async () => {
+    const user = userEvent.setup();
+    mockedExportReceipts.mockRejectedValueOnce(new Error("export failed"));
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Download CSV" }));
+
+    expect(
+      await screen.findByText("The export could not be created. Try again."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download JSON" })).toBeEnabled();
   });
 
   it("keeps rendering when a receipt has a malformed currency", async () => {

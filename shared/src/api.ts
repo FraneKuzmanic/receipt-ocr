@@ -99,3 +99,21 @@ export type ConfirmReceiptResponse = z.infer<typeof confirmReceiptResponseSchema
 export const EXPORT_FORMATS = ["csv", "json"] as const;
 export const exportFormatSchema = z.enum(EXPORT_FORMATS);
 export type ExportFormat = z.infer<typeof exportFormatSchema>;
+
+export const EXPORT_SCHEMA_VERSION = 1;
+
+export const exportedReceiptSchema = canonicalReceiptSchema.omit({
+  userId: true,
+  deletedAt: true,
+});
+
+export type ExportedReceipt = z.infer<typeof exportedReceiptSchema>;
+
+export const jsonExportResponseSchema = z
+  .object({
+    schemaVersion: z.literal(EXPORT_SCHEMA_VERSION),
+    receipts: z.array(exportedReceiptSchema),
+  })
+  .strict();
+
+export type JsonExportResponse = z.infer<typeof jsonExportResponseSchema>;

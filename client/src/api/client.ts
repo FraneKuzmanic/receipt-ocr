@@ -8,6 +8,7 @@ import {
   sourceDocumentResponseSchema,
   type ConfirmReceiptResponse,
   type CreateReceiptResponse,
+  type ExportFormat,
   type HealthResponse,
   type ListReceiptsResponse,
   type ReceiptDetailResponse,
@@ -127,4 +128,9 @@ export async function deleteReceipt(id: string): Promise<void> {
 export async function getReceiptSource(id: string): Promise<SourceDocumentResponse> {
   const response = await request(`/api/receipts/${encodeURIComponent(id)}/source`);
   return sourceDocumentResponseSchema.parse(await response.json());
+}
+
+export async function exportReceipts(format: ExportFormat): Promise<Blob> {
+  const response = await request(`/api/receipts/export?format=${format}`);
+  return await response.blob();
 }

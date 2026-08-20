@@ -96,9 +96,10 @@ Current coverage and what each test protects:
 | `shared/src/money.test.ts` | Croatian and English amounts parse to one canonical decimal string; trailing zeros survive (`100.50` never becomes `100.5`); values beyond float precision are exact; unreadable input returns `null` and never throws; `Big.strict` rejects a JS number at runtime; the Croatian kuna abbreviation `kn` (not only the ISO code `HRK`) is stripped like any other currency token — a real receipt's `total` was silently dropped before this was added |
 | `shared/src/datetime.test.ts` | Croatian day-first dates normalize to `yyyy-mm-dd`; the calendar is validated by hand including leap years; a time with no seconds does not gain `:00`; output satisfies `z.iso.date()` / `z.iso.time()` |
 | `shared/src/receipt.test.ts` | The canonical schema accepts an all-null and an all-absent receipt, requires UUID persisted identifiers, rejects an unknown status, rejects unnormalized money and dates, and rejects unknown keys. Also the **provider-independence guard**: no Azure vocabulary anywhere in `shared/src` (PRD §6.2) |
-| `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold |
+| `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold, and the JSON export DTO strips owner/delete fields while pinning `schemaVersion: 1` |
 | `api/src/app.test.ts` | `GET /api/health` returns the shared `HealthResponse` shape at runtime; unknown routes return a JSON error body, never an HTML stack trace |
-| `api/src/repositories/receipts.test.ts` | Database rows map explicitly to canonical objects, timestamps normalize, canonical JSON/warnings are validated, generated projections are ignored, owner/deleted filters survive list paging, inclusive range bounds and exact counts are correct, and provider errors become stable internal categories |
+| `api/src/repositories/receipts.test.ts` | Database rows map explicitly to canonical objects, timestamps normalize, canonical JSON/warnings are validated, generated projections are ignored, owner/deleted filters survive list paging and export paging, inclusive range bounds and exact counts are correct, and provider errors become stable internal categories |
+| `api/src/export/receipts.test.ts` | CSV and JSON export serialization preserves stable columns, UTF-8 BOM, CRLF, RFC 4180 escaping, formula neutralization, exact money strings, compact VAT JSON and private owner/delete field omission |
 | `client/src/i18n/i18n.test.ts` | `hr` and `en` have identical key sets and no empty values (PRD §7.13) |
 | `client/src/i18n/warnings.test.ts` | Every `WARNING_CODES` entry has a non-empty `hr` and `en` message, and no orphan message exists. Also proves the canonical model imports from `client` under Vite's `bundler` resolution |
 | `client/src/i18n/receiptStatuses.test.ts` | Every `RECEIPT_STATUSES` entry has a non-empty `hr` and `en` history label, with no orphan status label |
@@ -109,14 +110,15 @@ Current coverage and what each test protects:
 | `client/src/auth/authErrors.test.ts` | Every mapped Supabase error code has a non-empty `hr` and `en` message; unknown and missing codes fall back to `auth.errors.generic` |
 | `client/src/auth/AuthProvider.test.tsx` | `loading` stays true until the first session read, so a signed-in user never sees a login flash on reload; the session follows `onAuthStateChange`; failures surface a translation key, never Supabase's English prose; the subscription unsubscribes on unmount |
 | `client/src/auth/ProtectedRoute.test.tsx` | Spinner while loading — neither outcome rendered early — redirect to `/login` when signed out, children when signed in |
-| `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none; paged list queries and body-less deletes use the shared authenticated wrapper |
+| `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none; paged list queries, body-less deletes and export downloads use the shared authenticated wrapper |
 | `client/src/capture/receiptFile.test.ts` | Client-only source classification accepts supported types and empty-MIME extension fallback, applies the 10 MB boundary, and keeps resolution/blur guidance advisory through deterministic pixel samples |
 | `client/src/routes/HomePage.test.tsx` | Native camera hint and always-visible picker fallback, preview/retake, advisory warnings, exact-file upload, translated upload errors and one in-flight submission |
 | `client/src/routes/ProcessingPage.test.tsx` | Immediate sequential polling, no overlap, review/confirmed routing, failed/error/timeout actions, retry window and unmount abort cleanup |
 | `client/src/review/reviewForm.test.ts` | Locale-formatted review input normalizes to canonical strings, preserves trailing zeroes and turns empty values into nulls. |
 | `client/src/routes/ReviewPage.test.tsx` | Pre-population, warning and low-confidence rendering, explicit save, non-blocking confirmation and failed-receipt redirection through the rendered UI. |
 | `client/src/history/receiptSummary.test.ts` | Guarded history total formatting preserves decimal precision and falls back safely for malformed currency codes; every receipt status maps to the correct destination. |
-| `client/src/routes/HistoryPage.test.tsx` | History summary, empty/error states, filter, paging, two-step delete, malformed-currency resilience and per-status destinations. |
+| `client/src/history/download.test.ts` | Export filenames are date-stable and downloaded blobs revoke their object URLs after the synthetic click |
+| `client/src/routes/HistoryPage.test.tsx` | History summary, empty/error states, filter, paging, two-step delete, malformed-currency resilience, per-status destinations and CSV/JSON export button wiring. |
 | `api/src/upload/source-file.test.ts` | Byte-sniffs the five accepted source types; rejects disguised executables, text and HEIC sequences; validates PDFs; preserves/caps filenames |
 | `api/src/upload/multipart.test.ts` | Multipart limits and malformed forms become stable, translatable upload error codes before a route can reach Storage |
 | `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
@@ -331,6 +333,16 @@ This is a grep, not a proof. The durable guarantee is that no endpoint consults 
 node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/routes/receipts.ts','utf8'); if(/originalExtraction/.test(s)) throw new Error('a receipt route writes original extraction; machine values must stay frozen'); console.log('ok');"
 ```
 
+### 6.15 Export route is registered before `/:id`
+
+Express matches routes in registration order. `GET /api/receipts/export` must appear before
+`GET /api/receipts/:id`, or `export` is parsed as an invalid UUID and the endpoint returns
+`400 invalid_request`.
+
+```
+node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/routes/receipts.ts','utf8'); const q=String.fromCharCode(34); const exportIndex=s.indexOf(q+'/export'+q); const idIndex=s.indexOf(q+'/:id'+q); if(exportIndex<0) throw new Error('missing /export route'); if(idIndex<0) throw new Error('missing /:id route'); if(exportIndex>idIndex) throw new Error('/export route is registered after /:id and will be shadowed'); console.log('ok');"
+```
+
 ---
 
 ## Phase 7: Supabase integration
@@ -401,8 +413,9 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 10 there are eight journeys: the shared contract, authentication, source-document
-lifecycle, mobile capture/processing, extraction/retry, QR/warnings, review/confirmation and history.
+**As of Task 11 there are nine journeys: the shared contract, authentication, source-document
+lifecycle, mobile capture/processing, extraction/retry, QR/warnings, review/confirmation, history and
+export.
 Everything below runs against real servers, not mocks.**
 
 ### 8.1 Start the stack
@@ -596,13 +609,24 @@ Croatian.
 
 ---
 
+### 8.12 Journey - CSV and JSON export
+
+Sign in, upload and confirm a real Croatian receipt, then open `/receipts` and download both CSV and
+JSON. Open the CSV in a spreadsheet and verify Croatian characters are intact, a seller name starting
+with `=`, `+`, `-` or `@` is neutralized, and a total of `100.50` remains exactly `100.50`. Verify the
+JSON response has `schemaVersion: 1`, contains no Azure property name, keeps nested VAT and optional
+items, and preserves exact money strings. Confirm a `review` receipt, a soft-deleted confirmed
+receipt and another user's confirmed receipt are absent from both formats. Repeat the visible export
+controls in Croatian at 375 px.
+
+---
+
 ## Phase 9: Journeys to add as the roadmap progresses
 
 Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
 
 | Task | Journey to add |
 |---|---|
-| 11 | CSV opens in a spreadsheet with Croatian characters intact; a seller name starting with `=`, `+`, `-` or `@` is neutralized. JSON contains no Azure property name. `100.50` exports as exactly `100.50`. |
 | 12 | Full journey on a real phone against the deployed environment; Playwright critical-path suite passes. |
 
 ---
