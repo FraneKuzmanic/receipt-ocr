@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20
 **Plan:** `.agents/plans/csv-json-export.md`
-**Commit:** Pending human review
+**Commit:** `000fc76`
 
 ## What was built
 
