@@ -18,6 +18,10 @@ import {
 } from "@receipt/shared";
 import { supabase } from "../lib/supabase";
 
+// Empty by default so a relative path keeps working under Vite's dev proxy. Only needed when the
+// client and API are deployed as separate origins, which have no such proxy in production.
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+
 export class ApiError extends Error {
   readonly status: number;
   readonly code?: string;
@@ -44,7 +48,7 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
     headers.set("Authorization", `Bearer ${data.session.access_token}`);
   }
 
-  const response = await fetch(path, { ...init, headers });
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
 
   if (response.status === 401) {
     // The token is gone or no longer valid. Signing out fires onAuthStateChange, which clears
