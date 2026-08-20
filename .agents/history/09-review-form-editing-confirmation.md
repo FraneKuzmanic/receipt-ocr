@@ -113,6 +113,15 @@ inline, all tap targets ≥ 44 px.
 2. **Dead conditional** in `ReviewPage.confirm()` — both arms of an `if (caught instanceof ApiError
    && caught.status === 409)` set the same error. Collapsed to a bare `catch`, and the now-unused
    `ApiError` import was removed.
+3. **Three warning codes were computed, persisted and returned by the API but rendered nowhere.**
+   The form looked warnings up only on the field paths it happened to remember. `subtotal` and
+   `issueTime` had no lookup at all, and — the significant one — `vat_arithmetic_mismatch` is
+   emitted against the bare `vatBreakdown` path while the VAT fieldset read only indexed cells
+   (`vatBreakdown.0.rate`), so it could never match. A user could not see a VAT arithmetic
+   inconsistency, which is one of PRD §7.8's named checks. Fixed by reading the bare path at the
+   fieldset level and adding the two missing lookups. `ReviewPage.test.tsx` gained a test driving
+   every code the engine can emit through the form; it was confirmed to fail against the pre-fix
+   code with exactly the missing VAT message.
 
 ## Known gaps / follow-ups
 
@@ -126,10 +135,26 @@ inline, all tap targets ≥ 44 px.
 - **A `failed` receipt renders an empty review form.** `ReviewPage` redirects only on `processing`.
   Reachable by navigating directly to the review route; PATCH then correctly answers `409`. Worth a
   redirect to the processing/retry route.
-- **Azure latency nearly exceeded the poll window.** `26515835.jpg` took **57.7 s** against
-  `POLL_TIMEOUT_MS = 60_000`, so the UI fell into its timeout state before the successful poll landed.
-  Degradation was graceful — an actionable "Check again" recovered it — but PRD §11.4's 2–5 s target
-  is far off for this source. Task 12 owns the latency measurement; the poll window may need raising.
+- **Azure latency: two 60 s limits collide with a measured 65 s worst case.** Measured directly
+  against the live resource over the seven supplied sources, two rounds each (14 runs):
+
+  | | ms |
+  | --- | ---: |
+  | min | 7,339 |
+  | median | 7,425 |
+  | p90 | 8,131 |
+  | max | 65,063 |
+
+  **14 of 14 runs exceed PRD §11.4's 2–5 s target**, and the typical case is a tight cluster around
+  7.4 s — remarkably consistent. The tail is the real problem: `26515835.jpg` took 65.1 s on one
+  round and 15.7 s on the next, so it is bimodal rather than size-driven (it is only 342 KB).
+
+  Both `EXTRACTION_TIMEOUT_MS` (default `60000`, not overridden in `.env`) and `POLL_TIMEOUT_MS`
+  (`60_000`) sit at exactly 60 s. A 65 s extraction is therefore aborted server-side *and* abandoned
+  client-side, so a class of receipt fails every time. The browser run of that same file took 57.7 s
+  — under the wire by 2.3 s. Degradation is graceful (actionable "Check again", no freeze), so this
+  is not a Task 09 gate, but the two constants need raising and PRD §11.4's target needs revisiting
+  with real numbers. Task 12 owns that decision; these measurements are its starting baseline.
 - **Test coverage is thinner than planned** (see Deviations). Invalid-input blocking, Croatian
   locale entry and VAT/item row add-remove are currently protected only by manual verification.
 - Pre-existing dead i18n keys `home.apiStatus` / `home.apiOnline` / `home.apiOffline` remain unused
