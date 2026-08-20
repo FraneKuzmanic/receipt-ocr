@@ -125,7 +125,13 @@ Each is owned by a specific task and must be resolved there, not earlier:
   **Resolved:** Azure Document Intelligence's free `barcodes` feature runs server-side in the existing
   `prebuilt-invoice` call; the parser accepts fiscal JIR/ZKI URLs plus an observed bare JIR UUID and
   never fetches the URL. See [history](history/08-qr-decoding-validation-warnings-engine.md).
-- **Hosting provider for the deployed PoC** → Task 12.
+- ~~**Hosting provider for the deployed PoC** → Task 12.~~ **Resolved ahead of Task 12 planning:**
+  Render's free tier — a Node web service for the API, a static site for the client — deployed from
+  a single `render.yaml` Blueprint. The repository's `origin` remains Azure DevOps; Render only
+  connects to GitHub, so a second remote mirrors just this folder's history to a standalone GitHub
+  repository via `git subtree split`, and deploys require pushing there rather than to `origin`. See
+  README "Deployment" for the exact mechanism, the cross-origin `VITE_API_BASE_URL`/`WEB_ORIGIN`
+  wiring the split forced, and the free-tier cold-start limitation.
 - **Password reset** → **deferred with no owning task.** PRD §7.1 and Task 04 both qualify it with
   "if readily available from the provider", and it is not: it needs custom SMTP, an email template,
   a redirect allow-list entry, `detectSessionInUrl: true` and a set-new-password screen. Add a task
@@ -176,7 +182,10 @@ Tasks 06 (capture UI) and 07 (extraction) both depend only on 05 and can be done
 order. Everything else is sequential.
 
 \* Task 06 passed automated and desktop-browser validation. Its mandatory real-phone camera journey
-is deliberately deferred until the prototype is hosted; see its history for the exact scope.
+was deliberately deferred until the prototype was hosted. Now that it is, an initial real-device
+check succeeded (Android, Huawei P20 Pro: sign in, capture, extraction, pre-populated review), but
+this was a spot check, not the full journey 8.7 checklist — camera-denial fallback, retake,
+rotation, one-handed 44 px controls, and an iOS device all remain open, owned by Task 12.
 
 ---
 

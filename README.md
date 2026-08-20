@@ -140,6 +140,54 @@ foreach ($p in 3001,5173,5174,5175,5176) { $c = Get-NetTCPConnection -LocalPort 
 Note that this only catches processes holding a port. A `tsx watch` that lost its port still lingers;
 find those with `Get-Process node`.
 
+## Deployment
+
+A PoC instance runs on [Render](https://render.com)'s free tier: `receipt-ocr-api` (a Node web
+service running the Express API) and `receipt-ocr-client` (a static site serving the Vite build).
+Both are created and configured from the single `render.yaml` Blueprint committed at the
+repository root, so recreating the deployment from scratch is one "New Blueprint" action.
+
+### Why a GitHub mirror exists
+
+This repository's `origin` remote is Azure DevOps, but Render's automatic build-on-push only
+connects to GitHub or GitLab. A second remote, `github`, points at a **separate, PoC-only** GitHub
+repository containing just this folder's history, extracted with `git subtree split` so the
+monorepo's other prototypes and branches never leave Azure DevOps. Pushing to `origin` — the
+normal day-to-day workflow — does **not** update the deployed app; only a push to the `github`
+mirror does.
+
+To redeploy after committing on this branch, from the parent monorepo's repository root:
+
+```powershell
+git subtree split --prefix=prototypes/receipt-ocr -b receipt-ocr-standalone
+git push github receipt-ocr-standalone:main
+git branch -D receipt-ocr-standalone
+```
+
+Render auto-deploys both services on a push to that mirror's `main` branch.
+
+### Cross-origin wiring
+
+The client and API are deployed as separate origins, which has two consequences the local dev
+setup does not need:
+
+- `VITE_API_BASE_URL` (client, baked in at **build** time) must be the API service's real URL, or
+  every request silently lands on the client's own static site instead of the API — see
+  `client/src/api/client.ts`. Because the client's SPA rewrite (`/* → /index.html`) matches any
+  path, a wrong or missing value fails with a `200` and an HTML body rather than an obvious error.
+- `WEB_ORIGIN` (API) must be the client service's real URL, or the browser's CORS check rejects
+  every request.
+
+Both are plain, non-secret values set directly in `render.yaml`; every other required variable
+(Supabase, Azure) is entered as a real secret through Render's dashboard, never committed.
+
+### Known limitations
+
+- Render's free web service sleeps after roughly 15 minutes of inactivity; the next request pays a
+  30–50 second cold start. Worth a warm-up request before a timed demo.
+- Nothing beyond the Blueprint is currently automated: no CI, no preview environments, no
+  automatic rollback.
+
 ## Scripts
 
 All scripts run from the repository root.
