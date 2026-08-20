@@ -38,8 +38,9 @@ services:
       - key: AZURE_DOCUMENT_INTELLIGENCE_KEY
         sync: false
 
-  - type: static
+  - type: web
     name: receipt-ocr-client
+    runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: client/dist
     envVars:
