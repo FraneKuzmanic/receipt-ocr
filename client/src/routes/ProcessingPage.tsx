@@ -5,7 +5,7 @@ import { ApiError, getReceipt, retryReceipt } from "../api/client";
 import { Spinner } from "../components/Spinner";
 
 export const POLL_INTERVAL_MS = 2_000;
-export const POLL_TIMEOUT_MS = 60_000;
+export const POLL_TIMEOUT_MS = 100_000;
 
 type ProcessingState = "polling" | "failed" | "request_error" | "timeout";
 
@@ -89,7 +89,7 @@ export function ProcessingPage() {
     return (
       <section
         aria-live="polite"
-        className="mx-auto flex max-w-lg flex-col items-center gap-3 py-12 text-center"
+        className="mx-auto flex max-w-lg flex-col items-center gap-3 px-4 py-12 text-center"
       >
         <Spinner />
         <h1 className="text-2xl font-semibold">{t("processing.title")}</h1>
@@ -106,7 +106,10 @@ export function ProcessingPage() {
         : t("processing.requestError");
 
   return (
-    <section aria-live="polite" className="mx-auto flex max-w-lg flex-col gap-4 py-12 text-center">
+    <section
+      aria-live="polite"
+      className="mx-auto flex max-w-lg flex-col gap-4 px-4 py-12 text-center"
+    >
       <h1 className="text-2xl font-semibold">{message}</h1>
       {state === "failed" ? (
         <button

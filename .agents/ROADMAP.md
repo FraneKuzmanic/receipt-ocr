@@ -2,9 +2,13 @@
 
 **Source of truth for scope:** [`PRD.md`](../PRD.md) (v3, 8 Aug 2026)
 **Behavioral rules:** [`CLAUDE.md`](../CLAUDE.md)
-**Status:** Task 11 complete and validated — Task 12 is next. Real-phone browser validation remains deferred until a hosted deployment is available.
+**Status:** All 11 roadmap tasks are complete, validated and deployed. The structured task-by-task
+process ends here; further testing, iteration and hardening happen directly, driven by the user
+against the deployed prototype, rather than through another numbered roadmap task. Iterations since
+then are listed in §3 under "Iterations outside the numbered task list" — the most recent is
+**12, the UI shell and navigation rebuild**.
 
-This roadmap divides the PRD into 12 sequential tasks. Each task is one full
+This roadmap divided the PRD into 11 sequential tasks. Each task was one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
 session. Validation, documentation, history and roadmap maintenance are mandatory automatic stages
 inside `/execute`. The roadmap is the durable memory between sessions; the per-task history files
@@ -125,7 +129,7 @@ Each is owned by a specific task and must be resolved there, not earlier:
   **Resolved:** Azure Document Intelligence's free `barcodes` feature runs server-side in the existing
   `prebuilt-invoice` call; the parser accepts fiscal JIR/ZKI URLs plus an observed bare JIR UUID and
   never fetches the URL. See [history](history/08-qr-decoding-validation-warnings-engine.md).
-- ~~**Hosting provider for the deployed PoC** → Task 12.~~ **Resolved ahead of Task 12 planning:**
+- ~~**Hosting provider for the deployed PoC** → deferred.~~ **Resolved ahead of schedule:**
   Render's free tier — a Node web service for the API, a static site for the client — deployed from
   a single `render.yaml` Blueprint. The repository's `origin` remains Azure DevOps; Render only
   connects to GitHub, so a second remote mirrors just this folder's history to a standalone GitHub
@@ -169,13 +173,39 @@ Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ✅* Done with a docu
 | 09  | Review form, editing & confirmation              | 3         | ✅     | [plan](plans/review-form-editing-confirmation.md) | [history](history/09-review-form-editing-confirmation.md) |
 | 10  | History, detail view & soft delete               | 3         | ✅     | [plan](plans/history-detail-view-soft-delete.md) | [history](history/10-history-detail-view-soft-delete.md) |
 | 11  | CSV & JSON export                                | 3         | ✅     | [plan](plans/csv-json-export.md)                 | [history](history/11-csv-json-export.md) |
-| 12  | PoC evaluation, hardening & documentation        | 4         | ⬜     | —                                                 | —       |
+
+PRD §12 Phase 4 (PoC evaluation, hardening & documentation) was originally planned as a Task 12 here.
+It has been deliberately dropped from the roadmap: the user now tests the deployed prototype and
+iterates on gaps directly, rather than through another numbered, planned-and-executed task.
+
+### Iterations outside the numbered task list
+
+Work from here is user-directed iteration against the deployed prototype. It still follows §5 and
+still gets a plan and a history file, numbered in the same sequence for continuity.
+
+| #   | Iteration                            | Plan                                              | History |
+| --- | ------------------------------------ | ------------------------------------------------- | ------- |
+| 12  | UI shell, navigation & home-page polish | [plan](plans/ui-shell-navigation-polish.md)    | [history](history/12-ui-shell-navigation-polish.md) |
+
+**Amendment from iteration 12 — mobile navigation is a bottom tab bar, not a hamburger drawer.**
+The plan recorded a hamburger drawer as a settled decision; it was built, then replaced at the user's
+direction after review. Nielsen Norman Group's testing shows hidden navigation roughly halves
+discoverability and cuts task completion by ~21%, their guidance is to keep navigation visible at four
+or fewer destinations (this app has two), and tap accuracy is far higher in the bottom thumb zone than
+at the top of the screen. Do not reintroduce a drawer; `AppLayout.test.tsx` asserts that no
+hidden-menu trigger and no `role="dialog"` exist in the shell.
+
+**Amendment from iteration 12 — `inert` correctness cannot be proven in jsdom.** The drawer built for
+this iteration marked the app root `inert` while open, but the entire React tree renders inside
+`#root`, so the drawer marked itself inert and opened unfocusable and unclickable. jsdom does not
+implement `inert` semantics, so the unit test passed against a dead drawer. Any future modal must be
+portalled outside the inert subtree and verified in a real browser.
 
 **Dependency graph** — the chain is mostly linear, with two places where work can be split:
 
 ```text
 01 → 02 → 03 → 04 → 05 ─┬─ 06 ──┐
-                        └─ 07 → 08 → 09 → 10 → 11 → 12
+                        └─ 07 → 08 → 09 → 10 → 11
 ```
 
 Tasks 06 (capture UI) and 07 (extraction) both depend only on 05 and can be done in either
@@ -185,7 +215,8 @@ order. Everything else is sequential.
 was deliberately deferred until the prototype was hosted. Now that it is, an initial real-device
 check succeeded (Android, Huawei P20 Pro: sign in, capture, extraction, pre-populated review), but
 this was a spot check, not the full journey 8.7 checklist — camera-denial fallback, retake,
-rotation, one-handed 44 px controls, and an iOS device all remain open, owned by Task 12.
+rotation, one-handed 44 px controls, and an iOS device all remain open, with no owning task. The
+user will cover these directly against the deployed prototype.
 
 ---
 
@@ -477,7 +508,7 @@ the roadmap.
       buyer, and missing fiscal identifiers.
 - [ ] No Azure field name appears in the API response, the database canonical column, or the UI.
 - [ ] A simulated Azure 429/500 produces `failed` with a working retry that succeeds.
-- [ ] Processing latency is recorded for each run — the baseline Task 12 reports on.
+- [ ] Processing latency is recorded for each run, as a baseline for later evaluation.
 - [ ] The model/confidence decision and its evidence are written into the history file.
 
 **PRD references:** §4.7, §6.2, §6.3, §7.6, §7.7, §10.6, §12 Phase 2, §14 risks 1–2.
@@ -637,52 +668,9 @@ useful to a downstream system that does not exist yet.
 
 ---
 
-### Task 12 — PoC evaluation, hardening & documentation
-
-**Goal:** Turn a working application into a credible PoC result: measured extraction quality,
-measured latency, explicit known limitations, and a decision-ready write-up.
-
-**Depends on:** 11.
-
-**Scope**
-
-- Assemble a representative test set: genuine phone photos (not only clean PDFs), Croatian and
-  English receipts, and hard cases — glare, moderate blur, imperfect framing, faded thermal
-  print, missing QR (PRD §12 Phase 4).
-- Measure and record, per PRD §11.3:
-  - exact normalized match rate for the five critical fields before any user correction
-  - percentage of receipts needing no critical-field correction
-  - critical-field edits per receipt
-  - which fields are corrected most often
-  - median and worst-case processing latency against the 2–5 s UX target
-- Security pass: ownership tests across every endpoint, private storage verified, no secret in
-  the frontend bundle, no full receipt content or signed URL in logs (PRD §9.4).
-- A small Playwright suite for the critical journeys: register → login → capture → review →
-  confirm → history → export; and camera-denied → upload fallback.
-- Mobile browser QA on at least one real iOS and one real Android device.
-- Error-state polish: every failure path has a plain-language, translated, actionable message.
-- Documentation: README setup from a clean clone, architecture notes, API reference, export
-  schema, and an honest **known OCR weaknesses and follow-ups** document feeding PRD §13.
-- Deploy the PoC: managed hosting, HTTPS, secrets via environment variables.
-
-**Definition of done**
-
-- [ ] The full flow works end-to-end on a real phone against the deployed environment.
-- [ ] Quality and latency measurements are written up with the sample size stated.
-- [ ] Known limitations are explicit — no overclaiming that OCR or review guarantees correctness
-      (PRD §11.3).
-- [ ] Playwright critical-path suite passes.
-- [ ] `/validate` passes across the whole repo.
-- [ ] A fresh clone can be set up from the README alone.
-- [ ] The write-up is sufficient to decide whether to continue toward a production iteration.
-
-**PRD references:** §9.4, §11.3, §11.4, §12 Phase 4, §13, §14.
-
----
-
 ## 5. Standing rules for every task
 
-These come from `CLAUDE.md` and the PRD, and apply to all twelve tasks:
+These come from `CLAUDE.md` and the PRD, and applied to all eleven tasks:
 
 1. **Plan before code.** State assumptions; if two readings are possible, surface both rather
    than silently choosing one.

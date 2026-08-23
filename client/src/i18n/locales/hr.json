@@ -5,7 +5,13 @@
     "loading": "Učitavanje",
     "language": "Jezik",
     "navCapture": "Skeniranje",
-    "navHistory": "Računi"
+    "navHistory": "Računi",
+    "openMenu": "Otvori izbornik",
+    "closeMenu": "Zatvori izbornik",
+    "mainNav": "Glavna navigacija",
+    "accountMenu": "Korisnički izbornik",
+    "signedInAs": "Prijavljeni ste kao",
+    "noEmail": "Nema adrese e-pošte"
   },
   "home": {
     "title": "Digitalizacija računa",
@@ -110,6 +116,7 @@
     "exportJson": "Preuzmi JSON",
     "exporting": "Priprema",
     "exportHint": "Samo potvrđeni računi.",
+    "emptyTitle": "Još nema računa",
     "empty": "Još nemate spremljenih računa.",
     "emptyAction": "Skenirajte svoj prvi račun",
     "filterLabel": "Status",

@@ -1,3 +1,4 @@
+import { ReceiptText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -9,7 +10,7 @@ import {
 } from "@receipt/shared";
 import { deleteReceipt, exportReceipts, getReceipts } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
-import { Spinner } from "../components/Spinner";
+import { Skeleton } from "../components/Skeleton";
 import { exportFilename, saveBlob } from "../history/download";
 import { formatReceiptTotal, receiptRoute } from "../history/receiptSummary";
 
@@ -81,7 +82,7 @@ export function HistoryPage() {
   const totalPages = data === null ? 1 : Math.max(1, Math.ceil(data.total / data.limit));
 
   return (
-    <section className="mx-auto flex max-w-lg flex-col gap-5">
+    <section className="mx-auto flex max-w-lg flex-col gap-5 px-4 py-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold">{t("history.title")}</h1>
         {data === null ? null : (
@@ -99,7 +100,7 @@ export function HistoryPage() {
             type="button"
             onClick={() => void download("csv")}
             disabled={exporting.has("csv")}
-            className="min-h-11 rounded-lg bg-slate-900 px-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="min-h-11 rounded-lg bg-accent px-3 text-sm font-semibold text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-slate-400"
           >
             {exporting.has("csv") ? t("history.exporting") : t("history.exportCsv")}
           </button>
@@ -136,7 +137,22 @@ export function HistoryPage() {
         </select>
       </div>
 
-      {data === null && !failed ? <Spinner /> : null}
+      {data === null && !failed ? (
+        <div role="status" aria-label={t("common.loading")} className="flex flex-col gap-3">
+          {[0, 1, 2].map((row) => (
+            <div key={row} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="mt-2 h-3 w-1/3" />
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+              <Skeleton className="mt-3 h-3 w-1/2" />
+            </div>
+          ))}
+        </div>
+      ) : null}
       {failed ? (
         <ErrorMessage
           message={t("history.errors.load")}
@@ -147,11 +163,18 @@ export function HistoryPage() {
       {exportFailed ? <ErrorMessage message={t("history.errors.export")} /> : null}
 
       {data !== null && data.items.length === 0 ? (
-        <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-slate-700">{t("history.empty")}</p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-10 text-center">
+          <span
+            aria-hidden="true"
+            className="grid size-12 place-items-center rounded-full bg-slate-100"
+          >
+            <ReceiptText className="size-6 text-slate-400" />
+          </span>
+          <h2 className="text-lg font-semibold text-slate-900">{t("history.emptyTitle")}</h2>
+          <p className="max-w-prose text-sm text-slate-600">{t("history.empty")}</p>
           <Link
             to="/"
-            className="flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-4 font-semibold text-white hover:bg-slate-700"
+            className="mt-1 flex min-h-11 items-center rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-hover"
           >
             {t("history.emptyAction")}
           </Link>

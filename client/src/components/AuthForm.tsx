@@ -52,7 +52,7 @@ export function AuthForm({
   }
 
   return (
-    <section className="mx-auto flex max-w-sm flex-col gap-4">
+    <section className="mx-auto flex max-w-sm flex-col gap-4 px-4 py-6">
       <h1 className="text-2xl font-semibold">{t(titleKey)}</h1>
 
       <form className="flex flex-col gap-4" onSubmit={(event) => void handleSubmit(event)}>

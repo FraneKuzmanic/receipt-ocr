@@ -8,10 +8,11 @@ OCR output is treated as a draft, never as authoritative accounting data — the
 final record. See [`PRD.md`](PRD.md) for the full product specification and
 [`.agents/ROADMAP.md`](.agents/ROADMAP.md) for the implementation plan.
 
-> **Status:** Task 11 is complete. Authenticated users can photograph or choose a receipt, follow
-> asynchronous Azure extraction, then review, correct, confirm, revisit, soft-delete and export
-> confirmed receipts as CSV or JSON. Real-phone camera validation remains deferred until the
-> prototype is hosted.
+> **Status:** All 11 roadmap tasks are complete and the prototype is deployed. Authenticated users can
+> photograph or choose a receipt, follow asynchronous Azure extraction, then review, correct,
+> confirm, revisit, soft-delete and export confirmed receipts as CSV or JSON. Further testing and
+> iteration now happens directly against the deployed prototype rather than through another planned
+> task.
 
 ## Prerequisites
 
@@ -309,7 +310,7 @@ HEIC/HEIF previews depend on native browser support. If the selected image canno
 asks the user to choose a JPEG, PNG or PDF instead; it does not convert the original file in the
 browser.
 
-After a successful upload, the client polls the receipt every **2 seconds** for up to **60 seconds**.
+After a successful upload, the client polls the receipt every **2 seconds** for up to **100 seconds**.
 It moves a `review` receipt to the review-ready destination, exposes a retry action for a failed
 extraction, and exposes check-again plus upload-another actions for network errors or a timeout.
 
@@ -482,7 +483,7 @@ logic is duplicated in the fetch layer.
   `supabase/config.toml`, pushed with `supabase config push`). It has to be: Supabase's built-in SMTP
   for new projects is heavily rate-limited, so a confirmation email would never arrive and no test
   account could ever sign in. Email addresses are therefore unverified — acceptable for a PoC with no
-  email flow at all, and one for Task 12 to record.
+  email flow at all, and worth recording if this PoC continues toward production.
 - **Password reset is deferred.** PRD §7.1 qualifies it with "if readily available from the
   provider", and it is not: it needs custom SMTP, an email template, a redirect allow-list entry,
   `detectSessionInUrl: true` and a set-new-password screen.
@@ -505,6 +506,45 @@ and a form silently drift apart.
 
 Cross-workspace imports always use the package name (`@receipt/shared`), never a relative path into
 another workspace. That is what keeps the folders renameable without touching a single import.
+
+## Application shell
+
+`client/src/components/AppLayout.tsx` wraps every route and is responsive in two parts.
+
+- **Header** — one sticky row, 56 px on mobile and 64 px from `lg` (1024 px). It carries the accent
+  mark and the app name at top left, and the language switcher plus the account control at the right,
+  at every breakpoint. The language switcher stays in the header rather than folding into a menu, so a
+  user who lands in the wrong language always has a visible escape hatch.
+- **Navigation** — the destinations live in `client/src/components/NavItems.tsx` and are defined once,
+  which is what stops the two navigations drifting apart. On mobile
+  `client/src/components/BottomNav.tsx` renders them as a **fixed bottom tab bar**; from `lg` a
+  persistent 240 px sidebar takes over and the tab bar is hidden. Only one is ever displayed, so only
+  one `navigation` landmark is exposed to assistive technology at a time. Both use React Router's
+  `NavLink`, which supplies the active styling and emits `aria-current="page"` on its own; the index
+  route carries `end` so it does not match every path.
+- **Account** — `client/src/components/AccountMenu.tsx` is a disclosure, not an ARIA menu: it holds a
+  static identity block and one action, so `role="menu"` would oblige a roving-tabindex arrow-key
+  implementation and make screen readers announce the email as a menu item. Initials come from
+  `client/src/auth/userIdentity.ts`, derived from the email local part because sign-up collects no
+  name.
+
+A bottom tab bar replaced an earlier hamburger drawer. Nielsen Norman Group's testing found hidden
+navigation roughly halves discoverability and lowers task completion by about 21%, and their guidance
+is to keep navigation visible at four or fewer destinations — this app has two. Tap accuracy is also
+far higher in the bottom thumb zone than at the top of the screen, where the drawer's trigger sat.
+
+Colour lives in `client/src/index.css`: a `@theme` block defines `--color-accent` (`#1d4ed8`, about
+7:1 on white) plus hover, soft and ring variants, which Tailwind turns into `bg-accent`,
+`text-accent`, `bg-accent-soft` and `outline-accent-ring`. Neutrals stay as `slate-*` utilities at the
+call site. One global `:focus-visible` rule gives the whole app a single focus policy; it uses
+`outline` rather than a ring because an outline follows `border-radius`, takes no part in layout and
+is not clipped by `overflow: hidden`. The app is deliberately light-only — there is no dark mode.
+
+`client/src/components/Skeleton.tsx` provides the loading placeholders used by the history list and
+the review form. Each block is `aria-hidden`, with the announcement on a single `role="status"`
+container, so a screen reader hears one "Loading" rather than a stream of boxes. The processing screen
+deliberately keeps its spinner: polling for OCR is an indeterminate multi-second wait, and a skeleton
+there would imply content is imminent.
 
 ## Domain model
 
@@ -535,7 +575,7 @@ passed in. That turns "money is never a JS float" from a convention into a runti
 is genuinely ambiguous: `"1.234"` and `"1,234"` could each be 1234 or 1.234. Both resolve to
 **1234**, because a thousands group is far more common on a receipt than a three-decimal price. This
 is a deliberate, lossy judgement call and it will occasionally be wrong — a weight in kilograms is
-the realistic case. Task 12's evaluation should watch for it in real receipts.
+the realistic case. Watch for it during real-receipt testing.
 
 ### Dates and times
 
@@ -713,7 +753,7 @@ first.
 | `AZURE_DOCUMENT_INTELLIGENCE_KEY`      | —                       | **Required at startup**, server-only |
 | `AZURE_DI_MODEL_ID`                    | `prebuilt-invoice`       | Azure model id           |
 | `AZURE_DI_LOCALE`                      | `hr-HR`                  | Azure locale hint        |
-| `EXTRACTION_TIMEOUT_MS`                | `60000`                  | Azure extraction timeout in milliseconds |
+| `EXTRACTION_TIMEOUT_MS`                | `90000`                  | Azure extraction timeout in milliseconds |
 | `SUPABASE_URL`                         | —                       | **Required at startup**  |
 | `SUPABASE_PUBLISHABLE_KEY`             | —                       | **Required at startup**; safe in a browser |
 | `SUPABASE_SECRET_KEY`                  | —                       | Task 03, **server-only** — bypasses RLS |
