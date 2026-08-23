@@ -23,10 +23,8 @@ export function LanguageSwitcher() {
             onClick={() => {
               select(language);
             }}
-            className={`min-h-11 min-w-11 rounded-lg px-3 text-sm font-semibold uppercase transition-colors ${
-              active
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-300"
+            className={`grid min-h-11 min-w-11 place-items-center rounded-lg text-xs font-semibold uppercase transition-colors ${
+              active ? "bg-accent-soft text-accent" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
             {language}

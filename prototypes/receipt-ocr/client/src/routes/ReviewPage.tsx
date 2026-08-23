@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router";
 import type { ReceiptDetailResponse } from "@receipt/shared";
 import { confirmReceipt, getReceipt, updateReceipt } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
-import { Spinner } from "../components/Spinner";
+import { Skeleton } from "../components/Skeleton";
 import { SourceDocumentPanel } from "../review/SourceDocumentPanel";
 import { toFormValues, toPatch, type ReviewFormValues } from "../review/reviewForm";
 
@@ -69,7 +69,22 @@ export function ReviewPage() {
     return (
       <ErrorMessage message={t("review.errors.load")} onRetry={() => window.location.reload()} />
     );
-  if (receipt === null) return <Spinner />;
+  if (receipt === null)
+    return (
+      <div
+        role="status"
+        aria-label={t("common.loading")}
+        className="mx-auto flex max-w-lg flex-col gap-5 px-4 py-6"
+      >
+        <Skeleton className="h-7 w-48" />
+        {[0, 1, 2, 3].map((row) => (
+          <div key={row} className="flex flex-col gap-1">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+        ))}
+      </div>
+    );
 
   return <ReviewForm receipt={receipt} receiptId={id} onReceipt={setReceipt} />;
 }
@@ -146,7 +161,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
   }
 
   return (
-    <section className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
+    <section className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
       <form onSubmit={handleSubmit(save)} className="flex max-w-lg flex-col gap-5">
         <div>
           <h1 className="text-2xl font-semibold">{t("review.title")}</h1>

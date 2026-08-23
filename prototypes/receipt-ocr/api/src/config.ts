@@ -100,7 +100,7 @@ const parsed: Config = {
   EXTRACTION_TIMEOUT_MS: readCount(
     "EXTRACTION_TIMEOUT_MS",
     process.env["EXTRACTION_TIMEOUT_MS"],
-    60000,
+    90000,
   ),
   MAX_UPLOAD_BYTES: readCount("MAX_UPLOAD_BYTES", process.env["MAX_UPLOAD_BYTES"], 10485760),
   MAX_PDF_PAGES: readCount("MAX_PDF_PAGES", process.env["MAX_PDF_PAGES"], 10),

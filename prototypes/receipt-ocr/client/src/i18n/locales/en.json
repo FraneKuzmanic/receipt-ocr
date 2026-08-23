@@ -5,7 +5,13 @@
     "loading": "Loading",
     "language": "Language",
     "navCapture": "Scan",
-    "navHistory": "Receipts"
+    "navHistory": "Receipts",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainNav": "Main navigation",
+    "accountMenu": "User menu",
+    "signedInAs": "Signed in as",
+    "noEmail": "No email address"
   },
   "home": {
     "title": "Receipt digitization",
@@ -110,6 +116,7 @@
     "exportJson": "Download JSON",
     "exporting": "Preparing",
     "exportHint": "Confirmed receipts only.",
+    "emptyTitle": "No receipts yet",
     "empty": "You have not saved any receipts yet.",
     "emptyAction": "Scan your first receipt",
     "filterLabel": "Status",

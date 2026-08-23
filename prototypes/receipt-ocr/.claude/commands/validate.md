@@ -104,6 +104,8 @@ Current coverage and what each test protects:
 | `client/src/i18n/warnings.test.ts` | Every `WARNING_CODES` entry has a non-empty `hr` and `en` message, and no orphan message exists. Also proves the canonical model imports from `client` under Vite's `bundler` resolution |
 | `client/src/i18n/receiptStatuses.test.ts` | Every `RECEIPT_STATUSES` entry has a non-empty `hr` and `en` history label, with no orphan status label |
 | `client/src/components/LanguageSwitcher.test.tsx` | Switching language changes rendered copy and persists to `localStorage` |
+| `client/src/auth/userIdentity.test.ts` | Avatar initials derive from an email local part across separator, digit, single-token, non-ASCII and unusable inputs, and never throw |
+| `client/src/components/AppLayout.test.tsx` | The shell: a signed-out visitor gets no navigation; both the bottom tab bar and the desktop sidebar render with a `navigation` landmark and **no hidden-menu trigger or dialog**; exactly one item per navigation carries `aria-current="page"` on each route (the `end`-prop regression); the account disclosure opens, shows the signed-in email, signs out, and closes on `Escape` and on an outside pointer |
 | `api/src/auth/authenticator.test.ts` | Claims are accepted only when `role` is `authenticated` and `sub` is a UUID; an `anon` or `service_role` token is refused; every rejection returns `null` rather than throwing |
 | `api/src/middleware/require-auth.test.ts` | Missing, non-`Bearer` and empty-token headers all fail `401 unauthorized`; a verification outage becomes a 500, never a silent 401; a success passes the proven `userId`; `authenticated()` used without `requireAuth` fails loudly instead of answering 401 |
 | `api/src/app.test.ts` (extended) | The whole `/api/receipts` prefix answers 401 without a token — **including a path with no route defined**, which is what proves the guard sits on the prefix rather than on individual routes |
@@ -619,15 +621,41 @@ items, and preserves exact money strings. Confirm a `review` receipt, a soft-del
 receipt and another user's confirmed receipt are absent from both formats. Repeat the visible export
 controls in Croatian at 375 px.
 
+### 8.13 Journey - the application shell
+
+Sign in, then verify the navigation shell at both breakpoints and in both languages.
+
+At **375 px**: the primary navigation is a **fixed bottom tab bar** carrying both destinations, always
+visible — there is no hamburger, no drawer and no `role="dialog"` anywhere in the shell. Each tab
+measures at least 44 px in both dimensions and sits in the bottom thumb zone. The desktop sidebar is
+`display: none`. `document.documentElement.scrollWidth` does not exceed the viewport width in
+Croatian or English, on `/` and `/receipts`. The header is a single 56 px row with the accent mark
+and app name at top left, and the app name is **not truncated** in either language. Scroll the
+history list to its end and confirm the last row is not trapped behind the tab bar.
+
+At **1440 px**: the sidebar is permanently visible at 240 px, the bottom tab bar is `display: none`,
+and the header measures 64 px.
+
+At both widths: exactly **one** link per rendered navigation carries `aria-current="page"`, and it
+matches the current route on both `/` and `/receipts`. The account control shows initials derived
+from the signed-in email, opens a panel exposing that email and a sign-out action, uses
+`aria-expanded`/`aria-controls`, carries **no `role="menu"`**, and closes on `Escape` with focus
+restored to its trigger. Tab through the header and confirm every control paints a visible
+`2px solid` accent outline. On the capture screen, focus each of the two file inputs and confirm the
+ring is painted on the **visible label** — the inputs are `sr-only`, so a ring on the input itself is
+invisible and is a WCAG 2.4.7 failure. Finally, select a tall portrait photo and confirm the capture
+card **grows and the page scrolls** rather than the image being clipped off the top.
+
 ---
 
 ## Phase 9: Journeys to add as the roadmap progresses
 
-Phase 8 must grow with the product. When a task below ships, add its journey and delete its row here.
+Phase 8 must grow with the product. When a future task ships a new user-facing flow, add its journey
+here and delete its row once it lands in Phase 8.
 
 | Task | Journey to add |
 |---|---|
-| 12 | Full journey on a real phone against the deployed environment; Playwright critical-path suite passes. |
+| — | none pending. The remaining real-phone checklist (§8.7) and any Playwright suite are no longer owned by a planned roadmap task; the user is covering them directly against the deployed prototype. |
 
 ---
 
@@ -649,7 +677,7 @@ task**. The user should never need to request this as a separate step:
 - new env vars → they are covered automatically by 6.1, 6.1b and 6.6
 
 There is one case where running the generator is worth it: when a task introduces **new tooling** it
-could discover — Supabase and migrations in Task 03, Playwright and deployment in Task 12. Even then:
+could discover — Supabase and migrations in Task 03 is the precedent. Even then:
 
 1. generate to a scratch path, never over this file
 2. diff it against this file

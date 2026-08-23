@@ -1,12 +1,16 @@
+import { ReceiptText } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet } from "react-router";
 import { useAuth } from "../auth/useAuth";
+import { AccountMenu } from "./AccountMenu";
+import { BottomNav } from "./BottomNav";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { NavItems } from "./NavItems";
 
 export function AppLayout() {
   const { t, i18n } = useTranslation();
-  const { session, signOut } = useAuth();
+  const { session } = useAuth();
 
   // Carried over from Task 02: index.html hardcoded lang="hr" and a Croatian title, so a fresh
   // load in English still advertised Croatian to the browser and to assistive technology.
@@ -15,44 +19,51 @@ export function AppLayout() {
     document.title = t("common.appName");
   }, [i18n.resolvedLanguage, t]);
 
+  // The login and register routes render inside this layout but outside ProtectedRoute, so this
+  // component genuinely renders with a null session and must offer no navigation to a visitor.
+  const signedIn = session !== null;
+
   return (
-    <div className="min-h-dvh bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
-          <span className="text-base font-semibold">{t("common.appName")}</span>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            {session === null ? null : (
-              <button
-                type="button"
-                onClick={() => void signOut()}
-                className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-              >
-                {t("auth.signOut")}
-              </button>
-            )}
-          </div>
+    <div className="flex min-h-dvh flex-col bg-slate-50 text-slate-900">
+      <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-1 border-b border-slate-200 bg-white px-2 lg:h-16 lg:gap-2 lg:px-4">
+        <Link to="/" className="flex min-w-0 items-center gap-2 rounded-lg">
+          <span
+            aria-hidden="true"
+            className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent text-white"
+          >
+            <ReceiptText className="size-5" />
+          </span>
+          {/* One line at every width: the name wraps to two rows on a 375px screen otherwise,
+              which makes the single-row header taller than the 56px it is specified at. */}
+          <span className="truncate text-sm font-semibold whitespace-nowrap lg:text-base">
+            {t("common.appName")}
+          </span>
+        </Link>
+
+        <div className="ml-auto flex items-center gap-1">
+          <LanguageSwitcher />
+          {signedIn ? <AccountMenu /> : null}
         </div>
-        {session === null ? null : (
-          <div className="mx-auto flex max-w-3xl gap-2 px-4 pb-3">
-            <Link
-              to="/"
-              className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              {t("common.navCapture")}
-            </Link>
-            <Link
-              to="/receipts"
-              className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              {t("common.navHistory")}
-            </Link>
-          </div>
-        )}
       </header>
-      <main className="mx-auto max-w-3xl px-4 py-6">
-        <Outlet />
-      </main>
+
+      <div className="flex min-h-0 flex-1">
+        {signedIn ? (
+          <nav
+            aria-label={t("common.mainNav")}
+            className="hidden w-60 shrink-0 border-r border-slate-200 bg-white p-3 lg:block"
+          >
+            <ul className="flex flex-col gap-1">
+              <NavItems />
+            </ul>
+          </nav>
+        ) : null}
+        {/* pb clears the fixed bottom bar so the last row of a list is never trapped behind it. */}
+        <main className={`min-w-0 flex-1 ${signedIn ? "pb-16 lg:pb-0" : ""}`}>
+          <Outlet />
+        </main>
+      </div>
+
+      {signedIn ? <BottomNav /> : null}
     </div>
   );
 }
