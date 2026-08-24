@@ -45,6 +45,14 @@ function imageFile(name = "receipt.jpg") {
   return new File(["receipt"], name, { type: "image/jpeg" });
 }
 
+/** jsdom implements no matchMedia, so the pointer type has to be supplied explicitly. */
+function stubPointer(coarse: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: coarse, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+  );
+}
+
 const mockedAnalyze = vi.mocked(analyzeReceiptImage);
 const mockedCreate = vi.mocked(createReceipt);
 
@@ -129,6 +137,56 @@ describe("HomePage", () => {
     expect(screen.getByTestId("location")).toHaveTextContent(
       "/receipts/00000000-0000-4000-8000-000000000001/processing",
     );
+  });
+
+  it("keeps the upload busy state on the button and blocks retake while it runs", async () => {
+    let resolveUpload:
+      ((value: { id: string; status: "processing"; createdAt: string }) => void) | undefined;
+    mockedCreate.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveUpload = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/scan receipt/i), { target: { files: [imageFile()] } });
+    await user.click(await screen.findByRole("button", { name: "Use photo" }));
+
+    const uploading = screen.getByRole("button", { name: "Loading…" });
+    expect(uploading).toHaveAttribute("aria-disabled", "true");
+    expect(uploading).not.toBeDisabled();
+    // The panel is not replaced: the preview the user just approved stays on screen.
+    expect(screen.getByAltText("Selected receipt preview")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Retake" }));
+    expect(screen.getByAltText("Selected receipt preview")).toBeInTheDocument();
+    expect(mockedCreate).toHaveBeenCalledTimes(1);
+
+    resolveUpload?.({
+      id: "00000000-0000-4000-8000-000000000001",
+      status: "processing",
+      createdAt: "2026-08-18T10:00:00.000Z",
+    });
+  });
+
+  it("drops the camera action when the pointer is not touch-first", () => {
+    stubPointer(false);
+    renderPage();
+
+    expect(screen.queryByLabelText("Scan receipt")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Choose file")).toHaveAttribute(
+      "accept",
+      expect.stringContaining("application/pdf"),
+    );
+  });
+
+  it("keeps both actions on a touch-first pointer", () => {
+    stubPointer(true);
+    renderPage();
+
+    expect(screen.getByLabelText("Scan receipt")).toHaveAttribute("capture", "environment");
+    expect(screen.getByLabelText("Choose file")).toBeInTheDocument();
   });
 
   it("keeps the preview and translates server or generic upload errors", async () => {

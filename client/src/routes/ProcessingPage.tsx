@@ -89,7 +89,7 @@ export function ProcessingPage() {
     return (
       <section
         aria-live="polite"
-        className="mx-auto flex max-w-lg flex-col items-center gap-3 px-4 py-12 text-center"
+        className="mx-auto flex min-h-[calc(100svh-3.5rem-4rem)] max-w-lg flex-col items-center justify-center gap-3 px-4 py-12 text-center lg:min-h-[calc(100svh-4rem)]"
       >
         <Spinner />
         <h1 className="text-2xl font-semibold">{t("processing.title")}</h1>
@@ -108,14 +108,15 @@ export function ProcessingPage() {
   return (
     <section
       aria-live="polite"
-      className="mx-auto flex max-w-lg flex-col gap-4 px-4 py-12 text-center"
+      className="mx-auto flex min-h-[calc(100svh-3.5rem-4rem)] max-w-lg flex-col items-center justify-center gap-4 px-4 py-12 text-center lg:min-h-[calc(100svh-4rem)]"
     >
       <h1 className="text-2xl font-semibold">{message}</h1>
+      <p className="text-slate-600">{t("processing.errorDescription")}</p>
       {state === "failed" ? (
         <button
           type="button"
           onClick={() => void retry()}
-          className="min-h-11 rounded-lg bg-slate-900 px-4 font-semibold text-white hover:bg-slate-700"
+          className="min-h-11 rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-hover"
         >
           {t("processing.retry")}
         </button>
@@ -123,7 +124,7 @@ export function ProcessingPage() {
         <button
           type="button"
           onClick={() => setAttempt((value) => value + 1)}
-          className="min-h-11 rounded-lg bg-slate-900 px-4 font-semibold text-white hover:bg-slate-700"
+          className="min-h-11 rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-hover"
         >
           {t("processing.checkAgain")}
         </button>

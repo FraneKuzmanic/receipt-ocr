@@ -44,6 +44,7 @@ describe("AppLayout", () => {
 
     expect(screen.queryAllByRole("navigation")).toHaveLength(0);
     expect(screen.queryByRole("button", { name: "User menu" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("renders both a bottom tab bar and a desktop sidebar, and no hidden-menu trigger", () => {

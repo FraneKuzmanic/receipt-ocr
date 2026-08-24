@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@keyframes toast-fade {
+  from {
+    opacity: 0;
+  }
+}
+
 @theme {
   --color-accent: #1d4ed8; /* blue-700 — ≈7:1 on white, AAA for normal text */
   --color-accent-hover: #1e40af; /* blue-800 */
@@ -31,5 +37,18 @@
   :focus-visible {
     outline: 2px solid var(--color-accent-ring);
     outline-offset: 2px;
+  }
+
+  button:not(:disabled):not([aria-disabled="true"]),
+  label:has(> input[type="file"]),
+  select,
+  summary,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  button[aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }

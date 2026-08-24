@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { confirmReceipt, getReceipt, getReceiptSource, updateReceipt } from "../api/client";
 import "../i18n";
 import { ReviewPage } from "./ReviewPage";
+import { ToastProvider } from "../components/Toast";
 
 vi.mock("../api/client", () => ({
   getReceipt: vi.fn(),
@@ -36,7 +37,14 @@ function renderPage() {
   return render(
     <MemoryRouter initialEntries={[`/receipts/${receipt.id}/review`]}>
       <Routes>
-        <Route path="/receipts/:id/review" element={<ReviewPage />} />
+        <Route
+          path="/receipts/:id/review"
+          element={
+            <ToastProvider>
+              <ReviewPage />
+            </ToastProvider>
+          }
+        />
       </Routes>
     </MemoryRouter>,
   );
@@ -92,6 +100,7 @@ describe("ReviewPage", () => {
     expect(
       screen.queryByText("This field is empty. Check the receipt and fill it in."),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Changes saved");
   });
 
   // Three codes were computed, persisted and returned by the API but rendered nowhere, because the
@@ -120,16 +129,14 @@ describe("ReviewPage", () => {
       await screen.findByText("The VAT amounts do not add up to the total."),
     ).toBeInTheDocument();
     expect(
-      screen.getAllByText("This date could not be read. Check it against the receipt."),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText("This amount could not be read. Check it against the receipt."),
-    ).toHaveLength(2);
-    expect(
-      screen.getByText("The total differs from the amount in the receipt's QR code."),
+      screen.getByText(
+        "This date could not be read. Check it against the receipt. The date or time differs from the receipt's QR code.",
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("The date or time differs from the receipt's QR code."),
+      screen.getByText(
+        "This amount could not be read. Check it against the receipt. The total differs from the amount in the receipt's QR code.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -142,7 +149,34 @@ describe("ReviewPage", () => {
     await user.click(confirm);
 
     await waitFor(() => expect(mockedConfirmReceipt).toHaveBeenCalledWith(receipt.id));
-    expect(screen.getByText("Receipt confirmed")).toBeInTheDocument();
+    expect(screen.getByText("Receipt confirmed", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Receipt confirmed");
+  });
+
+  // Amber is one signal with one meaning. It is painted for a low-confidence reading *and* for a
+  // warning such as an empty critical field, because marking only the former left warned fields
+  // wearing an amber explanation under a plain slate input.
+  it("marks every field needing attention identically, without marking any invalid", async () => {
+    mockedGetReceipt.mockResolvedValue({
+      ...receipt,
+      buyerName: "Buyer",
+      lowConfidenceFields: ["documentNumber", "buyerName", "total"],
+    });
+    const { container } = renderPage();
+
+    await screen.findByDisplayValue("381/1/2");
+    // Three low-confidence readings plus the warned, empty `sellerName`.
+    const amberFields = container.querySelectorAll("input.border-amber-500");
+    expect(amberFields).toHaveLength(4);
+    for (const field of amberFields) {
+      expect(field).toHaveAttribute("aria-describedby");
+      expect(field).not.toHaveAttribute("aria-invalid");
+    }
+    // The warned field explains itself with its own warning, never the generic hint as well.
+    expect(screen.getAllByText("This value may need extra checking.")).toHaveLength(3);
+    expect(
+      screen.getByText("This field is empty. Check the receipt and fill it in."),
+    ).toBeInTheDocument();
   });
 
   it("redirects a failed receipt to the processing route", async () => {

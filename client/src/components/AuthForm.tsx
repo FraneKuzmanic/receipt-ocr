@@ -94,7 +94,7 @@ export function AuthForm({
         <button
           type="submit"
           disabled={submitting}
-          className="min-h-11 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-400"
+          className="min-h-11 rounded-lg bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-hover disabled:bg-slate-400"
         >
           {submitting ? t("auth.submitting") : t(titleKey)}
         </button>

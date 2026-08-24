@@ -1,4 +1,11 @@
-import { useEffect, useState } from "react";
+import { TriangleAlert } from "lucide-react";
+import {
+  cloneElement,
+  useEffect,
+  useState,
+  type InputHTMLAttributes,
+  type ReactElement,
+} from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
@@ -6,6 +13,7 @@ import type { ReceiptDetailResponse } from "@receipt/shared";
 import { confirmReceipt, getReceipt, updateReceipt } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Skeleton } from "../components/Skeleton";
+import { useToast } from "../components/Toast";
 import { SourceDocumentPanel } from "../review/SourceDocumentPanel";
 import { toFormValues, toPatch, type ReviewFormValues } from "../review/reviewForm";
 
@@ -39,6 +47,48 @@ function timeValidation(value: string) {
 
 function currencyValidation(value: string) {
   return value.trim() === "" || value.trim().length === 3 || "review.errors.currency";
+}
+
+interface ReviewFieldProps {
+  field: string;
+  label: string;
+  lowConfidenceFields: readonly string[];
+  warnings: ReceiptDetailResponse["warnings"];
+  input: ReactElement<InputHTMLAttributes<HTMLInputElement>>;
+}
+
+function ReviewField({ field, label, lowConfidenceFields, warnings, input }: ReviewFieldProps) {
+  const { t } = useTranslation();
+  const fieldWarnings = warnings.filter((warning) => warning.field === field);
+  const lowConfidence = lowConfidenceFields.includes(field);
+  const hasHint = lowConfidence || fieldWarnings.length > 0;
+  const hintId = `review-hint-${field.replaceAll(".", "-")}`;
+
+  return (
+    <label className="flex flex-col gap-1">
+      <span>{label}</span>
+      {/* Amber means "this needs your attention", whichever signal raised it — a low-confidence
+          reading or a warning such as an empty critical field. Marking only low-confidence values
+          left warned fields with an amber explanation under a plain input, which reads as two
+          unrelated conventions. */}
+      {cloneElement(input, {
+        className: `min-h-11 w-full rounded-lg border px-3 ${
+          hasHint ? "border-amber-500 bg-amber-50" : "border-slate-300 bg-white"
+        }`,
+        ...(hasHint ? { "aria-describedby": hintId } : {}),
+      })}
+      {hasHint ? (
+        <span id={hintId} className="flex items-start gap-1 text-sm text-amber-900">
+          <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          <span>
+            {fieldWarnings.length > 0
+              ? fieldWarnings.map((warning) => t(`warnings.${warning.code}`)).join(" ")
+              : t("review.lowConfidence")}
+          </span>
+        </span>
+      ) : null}
+    </label>
+  );
 }
 
 export function ReviewPage() {
@@ -97,6 +147,7 @@ interface ReviewFormProps {
 
 function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
   const { t } = useTranslation();
+  const { show } = useToast();
   const [saving, setSaving] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,12 +157,6 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
   const vat = useFieldArray({ control, name: "vatBreakdown" });
   const items = useFieldArray({ control, name: "items" });
 
-  const fieldClass = (field: string) =>
-    `min-h-11 w-full rounded-lg border px-3 ${
-      receipt.lowConfidenceFields.includes(field)
-        ? "border-amber-500 bg-amber-50"
-        : "border-slate-300 bg-white"
-    }`;
   const messages = (field: string) =>
     receipt.warnings
       .filter((warning) => warning.field === field)
@@ -140,6 +185,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
       const next = await updateReceipt(receiptId, toPatch(values));
       onReceipt(next);
       reset(toFormValues(next));
+      show(t("review.saved"));
     } catch {
       setError(t("review.errors.save"));
     } finally {
@@ -153,6 +199,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
     try {
       const next = await confirmReceipt(receiptId);
       onReceipt({ ...receipt, ...next });
+      show(t("review.confirmed"));
     } catch {
       setError(t("review.errors.confirm"));
     } finally {
@@ -183,87 +230,89 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
         <fieldset className="flex flex-col gap-3">
           <legend className="font-semibold">{t("review.seller")}</legend>
           {sellerFields.map((field) => (
-            <label key={field} className="flex flex-col gap-1">
-              <span>{t(`review.fields.${field}`)}</span>
-              <input className={fieldClass(field)} {...register(field)} />
-              {receipt.lowConfidenceFields.includes(field) ? (
-                <span className="text-sm text-amber-900">{t("review.lowConfidence")}</span>
-              ) : null}
-              {messages(field)}
-            </label>
+            <ReviewField
+              key={field}
+              field={field}
+              label={t(`review.fields.${field}`)}
+              lowConfidenceFields={receipt.lowConfidenceFields}
+              warnings={receipt.warnings}
+              input={<input {...register(field)} />}
+            />
           ))}
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
           <legend className="font-semibold">{t("review.buyer")}</legend>
           {buyerFields.map((field) => (
-            <label key={field} className="flex flex-col gap-1">
-              <span>{t(`review.fields.${field}`)}</span>
-              <input className={fieldClass(field)} {...register(field)} />
-            </label>
+            <ReviewField
+              key={field}
+              field={field}
+              label={t(`review.fields.${field}`)}
+              lowConfidenceFields={receipt.lowConfidenceFields}
+              warnings={receipt.warnings}
+              input={<input {...register(field)} />}
+            />
           ))}
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
           <legend className="font-semibold">{t("review.receipt")}</legend>
-          <label className="flex flex-col gap-1">
-            <span>{t("review.fields.documentNumber")}</span>
-            <input className={fieldClass("documentNumber")} {...register("documentNumber")} />
-            {receipt.lowConfidenceFields.includes("documentNumber") ? (
-              <span className="text-sm text-amber-900">{t("review.lowConfidence")}</span>
-            ) : null}
-            {messages("documentNumber")}
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>{t("review.fields.issueDate")}</span>
-            <input
-              className={fieldClass("issueDate")}
-              {...register("issueDate", { validate: dateValidation })}
-            />
-            {formError(formState.errors.issueDate?.message)}
-            {messages("issueDate")}
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>{t("review.fields.issueTime")}</span>
-            <input
-              className={fieldClass("issueTime")}
-              {...register("issueTime", { validate: timeValidation })}
-            />
-            {formError(formState.errors.issueTime?.message)}
-            {messages("issueTime")}
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>{t("review.fields.subtotal")}</span>
-            <input
-              className={fieldClass("subtotal")}
-              {...register("subtotal", { validate: amountValidation })}
-            />
-            {formError(formState.errors.subtotal?.message)}
-            {messages("subtotal")}
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>{t("review.fields.total")}</span>
-            <input
-              className={fieldClass("total")}
-              {...register("total", { validate: amountValidation })}
-            />
-            {formError(formState.errors.total?.message)}
-            {messages("total")}
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>{t("review.fields.currency")}</span>
-            <input
-              className={fieldClass("currency")}
-              {...register("currency", { validate: currencyValidation })}
-            />
-            {formError(formState.errors.currency?.message)}
-            {messages("currency")}
-          </label>
+          <ReviewField
+            field="documentNumber"
+            label={t("review.fields.documentNumber")}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            input={<input {...register("documentNumber")} />}
+          />
+          <ReviewField
+            field="issueDate"
+            label={t("review.fields.issueDate")}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            input={<input {...register("issueDate", { validate: dateValidation })} />}
+          />
+          {formError(formState.errors.issueDate?.message)}
+          <ReviewField
+            field="issueTime"
+            label={t("review.fields.issueTime")}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            input={<input {...register("issueTime", { validate: timeValidation })} />}
+          />
+          {formError(formState.errors.issueTime?.message)}
+          <ReviewField
+            field="subtotal"
+            label={t("review.fields.subtotal")}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            input={<input {...register("subtotal", { validate: amountValidation })} />}
+          />
+          {formError(formState.errors.subtotal?.message)}
+          <ReviewField
+            field="total"
+            label={t("review.fields.total")}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            input={<input {...register("total", { validate: amountValidation })} />}
+          />
+          {formError(formState.errors.total?.message)}
+          <ReviewField
+            field="currency"
+            label={t("review.fields.currency")}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            input={<input {...register("currency", { validate: currencyValidation })} />}
+          />
+          {formError(formState.errors.currency?.message)}
           {receiptTextFields.map((field) => (
-            <label key={field} className="flex flex-col gap-1">
-              <span>{t(`review.fields.${field}`)}</span>
-              <input className={fieldClass(field)} {...register(field)} />
-            </label>
+            <ReviewField
+              key={field}
+              field={field}
+              label={t(`review.fields.${field}`)}
+              lowConfidenceFields={receipt.lowConfidenceFields}
+              warnings={receipt.warnings}
+              input={<input {...register(field)} />}
+            />
           ))}
         </fieldset>
 
@@ -276,14 +325,18 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
           {vat.fields.map((field, index) => (
             <div key={field.id} className="grid gap-2 rounded border border-slate-200 p-3">
               {(["rate", "taxableBase", "vatAmount"] as const).map((name) => (
-                <label key={name} className="flex flex-col gap-1">
-                  <span>{t(`review.fields.${name}`)}</span>
-                  <input
-                    className={fieldClass(`vatBreakdown.${index}.${name}`)}
-                    {...register(`vatBreakdown.${index}.${name}`, { validate: amountValidation })}
-                  />
-                  {messages(`vatBreakdown.${index}.${name}`)}
-                </label>
+                <ReviewField
+                  key={name}
+                  field={`vatBreakdown.${index}.${name}`}
+                  label={t(`review.fields.${name}`)}
+                  lowConfidenceFields={receipt.lowConfidenceFields}
+                  warnings={receipt.warnings}
+                  input={
+                    <input
+                      {...register(`vatBreakdown.${index}.${name}`, { validate: amountValidation })}
+                    />
+                  }
+                />
               ))}
               <button
                 type="button"
@@ -307,21 +360,26 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
           <legend className="font-semibold">{t("review.items")}</legend>
           {items.fields.map((field, index) => (
             <div key={field.id} className="grid gap-2 rounded border border-slate-200 p-3">
-              <label className="flex flex-col gap-1">
-                <span>{t("review.fields.description")}</span>
-                <input
-                  className={fieldClass(`items.${index}.description`)}
-                  {...register(`items.${index}.description`)}
-                />
-              </label>
+              <ReviewField
+                field={`items.${index}.description`}
+                label={t("review.fields.description")}
+                lowConfidenceFields={receipt.lowConfidenceFields}
+                warnings={receipt.warnings}
+                input={<input {...register(`items.${index}.description`)} />}
+              />
               {(["quantity", "unitPrice", "total"] as const).map((name) => (
-                <label key={name} className="flex flex-col gap-1">
-                  <span>{t(`review.fields.${name}`)}</span>
-                  <input
-                    className={fieldClass(`items.${index}.${name}`)}
-                    {...register(`items.${index}.${name}`, { validate: amountValidation })}
-                  />
-                </label>
+                <ReviewField
+                  key={name}
+                  field={`items.${index}.${name}`}
+                  label={t(`review.fields.${name}`)}
+                  lowConfidenceFields={receipt.lowConfidenceFields}
+                  warnings={receipt.warnings}
+                  input={
+                    <input
+                      {...register(`items.${index}.${name}`, { validate: amountValidation })}
+                    />
+                  }
+                />
               ))}
               <button
                 type="button"
@@ -351,7 +409,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className="min-h-11 rounded-lg bg-slate-900 px-4 font-semibold text-white disabled:bg-slate-400"
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 disabled:bg-slate-100"
         >
           {saving ? t("review.saving") : t("review.save")}
         </button>
@@ -359,7 +417,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
           type="button"
           disabled={confirming || formState.isDirty}
           onClick={() => void confirm()}
-          className="min-h-11 rounded-lg border border-slate-300 px-4 font-semibold disabled:bg-slate-100"
+          className="min-h-11 rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-hover disabled:bg-slate-400"
         >
           {confirming ? t("review.confirming") : t("review.confirm")}
         </button>

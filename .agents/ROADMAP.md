@@ -186,6 +186,24 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | #   | Iteration                            | Plan                                              | History |
 | --- | ------------------------------------ | ------------------------------------------------- | ------- |
 | 12  | UI shell, navigation & home-page polish | [plan](plans/ui-shell-navigation-polish.md)    | [history](history/12-ui-shell-navigation-polish.md) |
+| 13  | UI feedback, capture layout & clarity polish | [plan](plans/ui-feedback-and-capture-polish.md) | [history](history/13-ui-feedback-and-capture-polish.md) |
+| 14  | Busy-state, capture-loading & desktop-picker corrections | _none — user asked for a direct fix_ | [history](history/14-busy-state-and-desktop-picker-fixes.md) |
+
+**Amendment from iteration 14 — a sized element must not depend on its parent being a flex box, and
+jsdom cannot tell you that it does.** Iteration 13's busy buttons nested the spinner glyph inside a
+plain `<span>` wrapper. A bare sized `<span>` is `display: inline`, where `width`/`height` do not
+apply, so the glyph measured `4x25` instead of `16x16` and shipped as a visibly broken placeholder —
+while every unit test passed, because jsdom computes no layout. This is the same failure shape as
+iteration 12's `inert` drawer. `/validate` 6.16 now guards the specific case; the general rule is
+that layout-dependent rendering is only ever proven in a real browser.
+
+**Amendment from iteration 14 — the desktop capture screen has one picker, not two.** `<input
+capture>` is a mobile-only hint that desktop browsers parse and ignore, so "Scan receipt" and
+"Choose file" opened the identical dialog there and offered a choice that did not exist. The camera
+action is now rendered only for a `(pointer: coarse)` primary pointer. A `getUserMedia` webcam flow
+was considered and rejected: it needs a video surface, canvas grab and permission/device states, and
+a fixed-focus laptop webcam aimed obliquely at a desk is the input PRD §7.4 asks the product to avoid
+rather than manufacture. Revisit only if desktop capture becomes a real user need.
 
 **Amendment from iteration 12 — mobile navigation is a bottom tab bar, not a hamburger drawer.**
 The plan recorded a hamburger drawer as a settled decision; it was built, then replaced at the user's

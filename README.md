@@ -295,10 +295,28 @@ until its expiry. The original object is deliberately retained for auditability.
 
 ### Mobile capture and processing
 
-The protected home page is the receipt capture flow. **Scan receipt** asks supporting phones to prefer
-the rear camera through the native `capture="environment"` hint; it is a preference, not a camera
-guarantee. **Choose file** remains visible at all times for an existing JPEG, PNG, HEIC, HEIF or PDF,
-including after a camera cancellation or denial.
+The protected home page is the receipt capture flow, and it offers a different number of actions per
+device. `client/src/capture/useCameraCapture.ts` reads `(pointer: coarse)`, the media feature that
+describes a touch-first primary pointer:
+
+- **Touch-first pointer (phones, tablets).** **Scan receipt** is the primary action and asks
+  supporting phones to prefer the rear camera through the native `capture="environment"` hint; it is
+  a preference, not a camera guarantee. **Choose file** stays visible beside it at all times for an
+  existing JPEG, PNG, HEIC, HEIF or PDF, including after a camera cancellation or denial.
+- **Fine pointer (desktop).** Only **Choose file** is rendered, promoted to the primary style.
+  Desktop browsers parse `capture` and then ignore it, so a second button there opened the identical
+  file dialog and offered a choice that did not exist.
+
+`(pointer: coarse)` rather than `navigator.maxTouchPoints` is deliberate: it describes the *primary*
+pointer, so a touchscreen laptop driven by a trackpad correctly reports `fine` and keeps the single
+desktop button, while a phone reports `coarse`. When `matchMedia` is unavailable the hook keeps both
+actions, because offering a spare button is harmless where withholding capture on a real phone is
+not. The query is re-read on change, so a detachable tablet switches layout without a reload.
+
+Driving a webcam with `getUserMedia` was considered and rejected for the PoC: it needs a live video
+surface, a canvas grab, permission and device-selection states, and a laptop webcam is a poor
+receipt scanner — typically fixed-focus and at an oblique angle to a document lying on a desk, which
+is the input PRD §7.4 asks the product to avoid rather than manufacture.
 
 The selected image or PDF is previewed before upload. The browser checks the advertised type or, only
 when it is absent, the filename extension, and it rejects files over 10 MB early. These checks are
@@ -309,6 +327,14 @@ or a 256-pixel sample blur score below **80** show a warning but can still be up
 HEIC/HEIF previews depend on native browser support. If the selected image cannot be decoded, the app
 asks the user to choose a JPEG, PNG or PDF instead; it does not convert the original file in the
 browser.
+
+While the source uploads, the busy state stays **on the button that was pressed**: it shows a spinner
+and reads `Loading…`, the approved preview stays on screen behind it, and both the upload and retake
+buttons take `aria-disabled` with a handler guard so a mid-flight retake cannot discard the file
+being sent. `aria-disabled` rather than the native attribute keeps the buttons in the tab order and
+stops focus being silently moved out from under the user. Replacing the whole panel with a separate
+loading screen was tried first and removed: it threw away the preview and duplicated the message the
+processing route shows a moment later.
 
 After a successful upload, the client polls the receipt every **2 seconds** for up to **100 seconds**.
 It moves a `review` receipt to the review-ready destination, exposes a retry action for a failed
@@ -322,6 +348,16 @@ locale-formatted dates and amounts are normalized only when the user chooses Sav
 while a value is half typed. React Hook Form performs that interaction validation directly; the
 canonical Zod schema remains the server-boundary contract and is intentionally not used as a form
 resolver.
+
+Every field that needs attention is marked the same way, by one `ReviewField` component: an amber
+border and background, a warning icon, a visible explanation, and `aria-describedby` linking the two.
+Two different signals raise it — a low-confidence reading, or a warning such as an empty critical
+field — but they share one appearance, because painting amber for only the first left warned fields
+wearing an amber explanation beneath an ordinary slate input, which reads as two unrelated
+conventions. A field with a specific warning shows that warning; a field that is merely low-confidence
+shows the generic "may need extra checking" hint, never both. `aria-invalid` is deliberately never
+used here: an uncertain-but-plausible OCR value is not a validation failure, and claiming otherwise
+would collide with the form's real errors.
 
 The detail response exposes lowConfidenceFields, a provider-neutral list of canonical field names.
 Inputs keep canonical strings after a save but accept Croatian and English locale formatting on entry.
@@ -339,6 +375,14 @@ the issue date, seller, document number, total and status, offers a four-status 
 server results, and opens `review`/`confirmed` receipts in the existing editable review screen with
 their source document. `processing` and `failed` rows open the processing route, which owns polling
 and retry.
+
+The two export buttons and the delete confirmation each carry a permanent leading icon — a download
+glyph, a trash glyph — that is **replaced in place** by the spinner while the action runs. The label
+never changes, so a voice-control user who said "click Download CSV" keeps their target and nothing
+reflows; the icon and the spinner occupy the same 16 px box, so the button width is identical busy
+and idle. An earlier attempt reserved an empty box for the spinner instead, which left a visible hole
+in every idle button. Busy buttons take `aria-disabled` with a handler guard rather than the native
+attribute, and a visually-hidden `role="status"` carries the announcement.
 
 History sorts by `created_at desc`, not `issue_date`: creation time is non-null and backed by the
 active-receipt partial index, while OCR issue dates can be absent. The API defaults each page to 20
@@ -540,6 +584,15 @@ call site. One global `:focus-visible` rule gives the whole app a single focus p
 `outline` rather than a ring because an outline follows `border-radius`, takes no part in layout and
 is not clipped by `overflow: hidden`. The app is deliberately light-only — there is no dark mode.
 
+`client/src/components/Spinner.tsx` renders either a labelled standalone indicator or, with
+`label={false}`, the bare glyph for use inside a button whose text already says what is happening.
+Two details in it are load-bearing. The glyph is `inline-block`, because `width`/`height` do not
+apply to an inline box: without it the glyph sized correctly only where its parent happened to be a
+flex container and collapsed to a 4 px sliver everywhere else — measured, not theorised. Its border
+is drawn in `currentColor`, so the same component is visible on the white-on-accent primary buttons
+and on the slate-on-white outlined ones with no variant prop. `className` overrides the size so the
+glyph can match whichever icon it replaces.
+
 `client/src/components/Skeleton.tsx` provides the loading placeholders used by the history list and
 the review form. Each block is `aria-hidden`, with the announcement on a single `role="status"`
 container, so a screen reader hears one "Loading" rather than a stream of boxes. The processing screen
@@ -615,7 +668,16 @@ The API currently produces six informational checks: `missing_critical_field` (`
 `documentNumber`, `issueDate`, `total`, `currency`); `unparseable_date`/`unparseable_amount` when
 source text existed but could not normalize; `vat_arithmetic_mismatch` on a complete `vatBreakdown`;
 `qr_total_mismatch` on `total`; and `qr_datetime_mismatch` on `issueDate`. Incomplete VAT or QR data
-emits nothing rather than guessing. `document_quality` intentionally remains unproduced because Azure
+emits nothing rather than guessing.
+
+**Only those five fields warn when they are empty, and that asymmetry is deliberate.** PRD §6.5 and
+Appendix A name seller name, document number, issue date, total and currency as the critical review
+fields; everything else — buyer details, seller and buyer OIB, issue time, subtotal, payment method,
+JIR, ZKI and line items — is secondary or optional and is legitimately absent from many real
+receipts. Warning on those would train the user to ignore warnings, and PRD §7.7's "missing stays
+missing" means a blank secondary field is a correct outcome, not a defect. So a receipt whose
+currency Azure could not determine shows one warning on `currency` while its empty buyer fields stay
+silent. That is the design working, not a bug. `document_quality` intentionally remains unproduced because Azure
 confidence data is not a reliable quality signal; see
 `.agents/history/08-qr-decoding-validation-warnings-engine.md` for the evidence.
 

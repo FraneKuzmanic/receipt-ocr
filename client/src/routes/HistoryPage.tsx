@@ -1,4 +1,4 @@
-import { ReceiptText } from "lucide-react";
+import { Download, ReceiptText, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -11,6 +11,7 @@ import {
 import { deleteReceipt, exportReceipts, getReceipts } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Skeleton } from "../components/Skeleton";
+import { Spinner } from "../components/Spinner";
 import { exportFilename, saveBlob } from "../history/download";
 import { formatReceiptTotal, receiptRoute } from "../history/receiptSummary";
 
@@ -49,6 +50,7 @@ export function HistoryPage() {
   }, [page, reloadToken, status]);
 
   async function remove(id: string) {
+    if (deletingId !== null) return;
     setDeletingId(id);
     setDeleteFailed(false);
     try {
@@ -63,6 +65,7 @@ export function HistoryPage() {
   }
 
   async function download(format: ExportFormat) {
+    if (exporting.has(format)) return;
     setExporting((current) => new Set(current).add(format));
     setExportFailed(false);
     try {
@@ -80,13 +83,19 @@ export function HistoryPage() {
   }
 
   const totalPages = data === null ? 1 : Math.max(1, Math.ceil(data.total / data.limit));
+  const busyMessage =
+    deletingId !== null
+      ? t("history.deletingStatus")
+      : exporting.size > 0
+        ? t("history.exportingStatus")
+        : null;
 
   return (
     <section className="mx-auto flex max-w-lg flex-col gap-5 px-4 py-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold">{t("history.title")}</h1>
         {data === null ? null : (
-          <p className="text-sm text-slate-600">{t("history.count", { count: data.total })}</p>
+          <p className="text-sm text-slate-600">{t(`history.count`, { count: data.total })}</p>
         )}
       </div>
 
@@ -99,21 +108,36 @@ export function HistoryPage() {
           <button
             type="button"
             onClick={() => void download("csv")}
-            disabled={exporting.has("csv")}
-            className="min-h-11 rounded-lg bg-accent px-3 text-sm font-semibold text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-slate-400"
+            aria-disabled={exporting.has("csv")}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-3 text-sm font-semibold text-white hover:bg-accent-hover aria-disabled:bg-slate-400"
           >
-            {exporting.has("csv") ? t("history.exporting") : t("history.exportCsv")}
+            {/* The idle icon and the spinner occupy the same box, so the busy state neither
+                reflows the button nor leaves a hole in it while idle. The label never changes. */}
+            {exporting.has("csv") ? (
+              <Spinner label={false} />
+            ) : (
+              <Download aria-hidden="true" className="size-4" />
+            )}
+            {t("history.exportCsv")}
           </button>
           <button
             type="button"
             onClick={() => void download("json")}
-            disabled={exporting.has("json")}
-            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400"
+            aria-disabled={exporting.has("json")}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 aria-disabled:text-slate-400"
           >
-            {exporting.has("json") ? t("history.exporting") : t("history.exportJson")}
+            {exporting.has("json") ? (
+              <Spinner label={false} />
+            ) : (
+              <Download aria-hidden="true" className="size-4" />
+            )}
+            {t("history.exportJson")}
           </button>
         </div>
       </div>
+      <p role="status" className="sr-only">
+        {busyMessage}
+      </p>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="receipt-status" className="text-sm font-medium text-slate-700">
@@ -222,18 +246,23 @@ export function HistoryPage() {
                       <button
                         type="button"
                         onClick={() => void remove(receipt.id)}
-                        disabled={deletingId === receipt.id}
-                        className="min-h-11 rounded-lg bg-red-700 px-3 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-red-400"
+                        aria-disabled={deletingId === receipt.id}
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-700 px-3 text-sm font-semibold text-white hover:bg-red-800 aria-disabled:bg-red-400"
                       >
-                        {deletingId === receipt.id
-                          ? t("history.deleting")
-                          : t("history.confirmDelete")}
+                        {deletingId === receipt.id ? (
+                          <Spinner label={false} />
+                        ) : (
+                          <Trash2 aria-hidden="true" className="size-4" />
+                        )}
+                        {t("history.confirmDelete")}
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPendingDelete(null)}
-                        disabled={deletingId === receipt.id}
-                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          if (deletingId === null) setPendingDelete(null);
+                        }}
+                        aria-disabled={deletingId === receipt.id}
+                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 aria-disabled:text-slate-400"
                       >
                         {t("history.cancelDelete")}
                       </button>

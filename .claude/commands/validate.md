@@ -106,6 +106,7 @@ Current coverage and what each test protects:
 | `client/src/components/LanguageSwitcher.test.tsx` | Switching language changes rendered copy and persists to `localStorage` |
 | `client/src/auth/userIdentity.test.ts` | Avatar initials derive from an email local part across separator, digit, single-token, non-ASCII and unusable inputs, and never throw |
 | `client/src/components/AppLayout.test.tsx` | The shell: a signed-out visitor gets no navigation; both the bottom tab bar and the desktop sidebar render with a `navigation` landmark and **no hidden-menu trigger or dialog**; exactly one item per navigation carries `aria-current="page"` on each route (the `end`-prop regression); the account disclosure opens, shows the signed-in email, signs out, and closes on `Escape` and on an outside pointer |
+| `client/src/components/Toast.test.tsx` | The always-mounted status region, no-focus toast behavior, manual/Escape dismissal and six-second expiry |
 | `api/src/auth/authenticator.test.ts` | Claims are accepted only when `role` is `authenticated` and `sub` is a UUID; an `anon` or `service_role` token is refused; every rejection returns `null` rather than throwing |
 | `api/src/middleware/require-auth.test.ts` | Missing, non-`Bearer` and empty-token headers all fail `401 unauthorized`; a verification outage becomes a 500, never a silent 401; a success passes the proven `userId`; `authenticated()` used without `requireAuth` fails loudly instead of answering 401 |
 | `api/src/app.test.ts` (extended) | The whole `/api/receipts` prefix answers 401 without a token — **including a path with no route defined**, which is what proves the guard sits on the prefix rather than on individual routes |
@@ -114,13 +115,14 @@ Current coverage and what each test protects:
 | `client/src/auth/ProtectedRoute.test.tsx` | Spinner while loading — neither outcome rendered early — redirect to `/login` when signed out, children when signed in |
 | `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none; paged list queries, body-less deletes and export downloads use the shared authenticated wrapper |
 | `client/src/capture/receiptFile.test.ts` | Client-only source classification accepts supported types and empty-MIME extension fallback, applies the 10 MB boundary, and keeps resolution/blur guidance advisory through deterministic pixel samples |
-| `client/src/routes/HomePage.test.tsx` | Native camera hint and always-visible picker fallback, preview/retake, advisory warnings, exact-file upload, translated upload errors and one in-flight submission |
+| `client/src/routes/HomePage.test.tsx` | Native camera hint and always-visible picker fallback, preview/retake, advisory warnings, exact-file upload, translated upload errors; the on-button `Loading…` state that keeps the preview and blocks retake mid-upload; and the pointer-driven picker split — a coarse pointer keeps both actions, a fine pointer drops the camera one |
+| `client/src/routes/ReviewPage.test.tsx` (amber) | Amber marks **every** field needing attention — low-confidence readings *and* warned fields such as an empty critical field — each with `aria-describedby` and none with `aria-invalid`, and a warned field never shows the generic hint as well as its own warning |
 | `client/src/routes/ProcessingPage.test.tsx` | Immediate sequential polling, no overlap, review/confirmed routing, failed/error/timeout actions, retry window and unmount abort cleanup |
 | `client/src/review/reviewForm.test.ts` | Locale-formatted review input normalizes to canonical strings, preserves trailing zeroes and turns empty values into nulls. |
-| `client/src/routes/ReviewPage.test.tsx` | Pre-population, warning and low-confidence rendering, explicit save, non-blocking confirmation and failed-receipt redirection through the rendered UI. |
+| `client/src/routes/ReviewPage.test.tsx` | Pre-population, warning and low-confidence rendering with descriptions, save/confirm toasts, non-blocking confirmation and failed-receipt redirection through the rendered UI. |
 | `client/src/history/receiptSummary.test.ts` | Guarded history total formatting preserves decimal precision and falls back safely for malformed currency codes; every receipt status maps to the correct destination. |
 | `client/src/history/download.test.ts` | Export filenames are date-stable and downloaded blobs revoke their object URLs after the synthetic click |
-| `client/src/routes/HistoryPage.test.tsx` | History summary, empty/error states, filter, paging, two-step delete, malformed-currency resilience, per-status destinations and CSV/JSON export button wiring. |
+| `client/src/routes/HistoryPage.test.tsx` | History summary and CLDR plurals, empty/error states, filter, paging, two-step delete, stable busy labels, malformed-currency resilience, per-status destinations and CSV/JSON export button wiring. |
 | `api/src/upload/source-file.test.ts` | Byte-sniffs the five accepted source types; rejects disguised executables, text and HEIC sequences; validates PDFs; preserves/caps filenames |
 | `api/src/upload/multipart.test.ts` | Multipart limits and malformed forms become stable, translatable upload error codes before a route can reach Storage |
 | `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
@@ -344,6 +346,21 @@ Express matches routes in registration order. `GET /api/receipts/export` must ap
 ```
 node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/routes/receipts.ts','utf8'); const q=String.fromCharCode(34); const exportIndex=s.indexOf(q+'/export'+q); const idIndex=s.indexOf(q+'/:id'+q); if(exportIndex<0) throw new Error('missing /export route'); if(idIndex<0) throw new Error('missing /:id route'); if(exportIndex>idIndex) throw new Error('/export route is registered after /:id and will be shadowed'); console.log('ok');"
 ```
+
+### 6.16 The spinner glyph keeps an explicit display
+
+A sized `<span>` is `display: inline`, and `width`/`height` do not apply to inline boxes. The spinner
+glyph therefore sized correctly only where its parent happened to be a flex container, and collapsed
+to a 4 px sliver inside the plain wrapper the history buttons used — measured in a real browser at
+`4x25` against the intended `16x16`. **jsdom computes no layout, so every unit test passed while the
+buttons shipped a visibly broken placeholder.** This is the cheap guard.
+
+```
+node -e "const fs=require('fs'); const s=fs.readFileSync('client/src/components/Spinner.tsx','utf8'); if(!/inline-block/.test(s)) throw new Error('Spinner glyph lost its explicit display; a bare sized span is display:inline and collapses outside a flex parent'); console.log('ok');"
+```
+
+The wider lesson, which no grep covers: anything whose size depends on the parent being a flex
+container must be looked at in a real browser, not asserted in jsdom.
 
 ---
 
@@ -635,6 +652,13 @@ history list to its end and confirm the last row is not trapped behind the tab b
 
 At **1440 px**: the sidebar is permanently visible at 240 px, the bottom tab bar is `display: none`,
 and the header measures 64 px.
+
+On the capture screen at **1440 px** confirm there is exactly **one** file picker, reading
+`Choose file` and painted in the primary accent style — the camera action must be absent, because
+`matchMedia("(pointer: coarse)")` is false there. Playwright's device emulation does **not** flip
+that media feature, so a touch device descriptor is not a way to check the two-button branch; assert
+the branch through the unit tests, or temporarily invert the query constant while looking at a real
+browser, and never conclude from the emulator that a phone would hide the camera.
 
 At both widths: exactly **one** link per rendered navigation carries `aria-current="page"`, and it
 matches the current route on both `/` and `/receipts`. The account control shows initials derived
