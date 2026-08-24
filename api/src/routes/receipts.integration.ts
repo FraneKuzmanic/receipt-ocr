@@ -427,6 +427,7 @@ describe("receipt source lifecycle against the hosted project", () => {
       documentNumber: "381/1/4",
       status: "review",
       lowConfidenceFields: ["documentNumber"],
+      editedFields: ["documentNumber"],
     });
 
     const afterPatch = await admin

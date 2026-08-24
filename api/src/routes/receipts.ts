@@ -5,6 +5,7 @@ import {
   exportFormatSchema,
   listReceiptsQuerySchema,
   updateReceiptRequestSchema,
+  type CanonicalReceiptFields,
 } from "@receipt/shared";
 import { HttpError } from "../middleware/error-handler.js";
 import { authenticated } from "../middleware/require-auth.js";
@@ -92,7 +93,11 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
       const state = await repository.findReviewState(id.data);
       if (state === null) throw new HttpError(404, "not_found");
 
-      res.json({ ...receipt, lowConfidenceFields: lowConfidenceFields(state.extractionMetadata) });
+      res.json({
+        ...receipt,
+        lowConfidenceFields: lowConfidenceFields(state.extractionMetadata),
+        editedFields: editedFields(receipt, state.originalExtraction),
+      });
     }),
   );
 
@@ -123,7 +128,11 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
       });
       if (receipt === null) throw new HttpError(404, "not_found");
 
-      res.json({ ...receipt, lowConfidenceFields: lowConfidenceFields(state.extractionMetadata) });
+      res.json({
+        ...receipt,
+        lowConfidenceFields: lowConfidenceFields(state.extractionMetadata),
+        editedFields: editedFields(receipt, state.originalExtraction),
+      });
     }),
   );
 
@@ -301,6 +310,37 @@ export function lowConfidenceFields(metadata: unknown): string[] {
     const confidence = (value as Record<string, unknown>)["confidence"];
     return typeof confidence === "number" && confidence < LOW_CONFIDENCE_THRESHOLD ? [field] : [];
   });
+}
+
+// Only the flat scalar fields. `vatBreakdown`/`items` are deliberately excluded: their row
+// indices can shift when the user adds or removes a row, which would make a per-index comparison
+// misleading rather than merely incomplete.
+const EDITABLE_SCALAR_FIELDS = [
+  "sellerName",
+  "sellerAddress",
+  "sellerOib",
+  "buyerName",
+  "buyerAddress",
+  "buyerOib",
+  "documentNumber",
+  "issueDate",
+  "issueTime",
+  "subtotal",
+  "total",
+  "currency",
+  "paymentMethod",
+  "jir",
+  "zki",
+] as const satisfies readonly (keyof CanonicalReceiptFields)[];
+
+export function editedFields(
+  current: CanonicalReceiptFields,
+  original: CanonicalReceiptFields | null,
+): string[] {
+  if (original === null) return [];
+  return EDITABLE_SCALAR_FIELDS.filter(
+    (field) => (current[field] ?? null) !== (original[field] ?? null),
+  );
 }
 
 function unreadableFields(metadata: unknown): string[] {

@@ -61,6 +61,7 @@ export interface ReceiptExtractionState {
 export interface ReceiptReviewState {
   readonly status: ReceiptStatus;
   readonly fields: CanonicalReceiptFields;
+  readonly originalExtraction: CanonicalReceiptFields | null;
   readonly qrExtraction: Json | null;
   readonly extractionMetadata: Json | null;
 }
@@ -184,7 +185,7 @@ export class ReceiptRepository {
   async findReviewState(id: string): Promise<ReceiptReviewState | null> {
     const { data, error } = await this.#client
       .from("receipts")
-      .select("status, canonical_data, qr_extraction, extraction_metadata")
+      .select("status, canonical_data, original_extraction, qr_extraction, extraction_metadata")
       .eq("id", uuidSchema.parse(id))
       .eq("user_id", this.#userId)
       .is("deleted_at", null)
@@ -197,6 +198,10 @@ export class ReceiptRepository {
       return {
         status: receiptStatusSchema.parse(data.status),
         fields: canonicalReceiptFieldsSchema.parse(data.canonical_data),
+        originalExtraction:
+          data.original_extraction === null
+            ? null
+            : canonicalReceiptFieldsSchema.parse(data.original_extraction),
         qrExtraction: data.qr_extraction,
         extractionMetadata: data.extraction_metadata,
       };

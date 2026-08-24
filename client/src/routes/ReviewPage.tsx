@@ -9,17 +9,12 @@ import {
 import { useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
-import type {
-  ReceiptDetailResponse,
-  SourceDocumentResponse,
-  SourceRegionsResponse,
-} from "@receipt/shared";
+import type { ReceiptDetailResponse, SourceRegionsResponse } from "@receipt/shared";
 import { confirmReceipt, getReceipt, getReceiptRegions, updateReceipt } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Skeleton } from "../components/Skeleton";
 import { useToast } from "../components/Toast";
 import { SourceDocumentPanel } from "../review/SourceDocumentPanel";
-import { ActiveRegionStrip } from "../review/ActiveRegionStrip";
 import { SECTION_COLOURS, type Section } from "../review/regionSections";
 import { toFormValues, toPatch, type ReviewFormValues } from "../review/reviewForm";
 
@@ -159,8 +154,6 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [regions, setRegions] = useState<SourceRegionsResponse | null>(null);
-  const [source, setSource] = useState<SourceDocumentResponse | null>(null);
-  const [overlaySafe, setOverlaySafe] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
   const { register, control, handleSubmit, reset, formState } = useForm<ReviewFormValues>({
     values: toFormValues(receipt),
@@ -182,6 +175,8 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
     setActiveField(field);
     document.getElementById(`review-field-${field.replaceAll(".", "-")}`)?.focus();
   }
+
+  const sourceValues = fieldValues(receipt);
 
   const messages = (field: string) =>
     receipt.warnings
@@ -235,14 +230,6 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
 
   return (
     <section className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
-      <ActiveRegionStrip
-        sourceUrl={source?.url ?? null}
-        contentType={source?.contentType ?? null}
-        regions={regions}
-        activeField={activeField}
-        overlaySafe={overlaySafe}
-        onSelect={selectRegion}
-      />
       <form
         onSubmit={handleSubmit(save)}
         onFocusCapture={(event) => {
@@ -280,9 +267,11 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
             receiptId={receiptId}
             regions={regions}
             activeField={activeField}
+            interaction="popover"
+            fieldValues={sourceValues}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            editedFields={receipt.editedFields}
             onSelect={selectRegion}
-            onSourceLoad={setSource}
-            onOverlaySafetyChange={setOverlaySafe}
           />
         </details>
 
@@ -486,13 +475,36 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
           receiptId={receiptId}
           regions={regions}
           activeField={activeField}
+          interaction="focus"
+          fieldValues={sourceValues}
+          lowConfidenceFields={receipt.lowConfidenceFields}
+          editedFields={receipt.editedFields}
           onSelect={selectRegion}
-          onSourceLoad={setSource}
-          onOverlaySafetyChange={setOverlaySafe}
         />
       </aside>
     </section>
   );
+}
+
+/**
+ * Flattens the receipt to canonical dotted paths (`total`, `vatBreakdown.0.rate`, `items.2.total`)
+ * so the mobile popover can show what a region's field currently holds. Reads the saved receipt
+ * rather than the live form, which keeps it out of react-hook-form's render path.
+ */
+function fieldValues(receipt: ReceiptDetailResponse): Record<string, string> {
+  const out: Record<string, string> = {};
+  const walk = (value: unknown, prefix: string) => {
+    if (value === null || value === undefined) return;
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => walk(entry, `${prefix}${index}.`));
+    } else if (typeof value === "object") {
+      for (const [key, entry] of Object.entries(value)) walk(entry, `${prefix}${key}.`);
+    } else {
+      out[prefix.slice(0, -1)] = String(value);
+    }
+  };
+  walk(receipt, "");
+  return out;
 }
 
 function SectionLegend({ section, label }: { section: Section; label: string }) {

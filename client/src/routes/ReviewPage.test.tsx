@@ -31,6 +31,7 @@ const receipt = {
   currency: "EUR",
   warnings: [{ code: "missing_critical_field" as const, field: "sellerName" }],
   lowConfidenceFields: ["documentNumber"],
+  editedFields: [] as string[],
   createdAt: "2026-08-19T10:00:00.000Z",
   updatedAt: "2026-08-19T10:00:00.000Z",
 };

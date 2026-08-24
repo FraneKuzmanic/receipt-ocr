@@ -31,6 +31,14 @@ export type CreateReceiptResponse = z.infer<typeof createReceiptResponseSchema>;
 /** The review surface exposes canonical low-confidence field names, never provider metadata. */
 export const receiptDetailResponseSchema = canonicalReceiptSchema.extend({
   lowConfidenceFields: z.array(z.string()),
+  /**
+   * Scalar canonical fields whose current value differs from the original machine extraction —
+   * the same provenance distinction PRD §6.4 requires be kept internally, surfaced so the review
+   * UI can mark a source-image outline as "this was corrected" rather than implying it still
+   * matches the receipt. Never includes `vatBreakdown`/`items`: row indices can shift when the
+   * user adds or removes a row, which would make a per-index comparison misleading.
+   */
+  editedFields: z.array(z.string()),
 });
 
 export type ReceiptDetailResponse = z.infer<typeof receiptDetailResponseSchema>;

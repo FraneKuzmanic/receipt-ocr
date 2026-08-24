@@ -117,6 +117,7 @@ describe("the API client", () => {
       status: "processing",
       warnings: [],
       lowConfidenceFields: [],
+      editedFields: [],
       createdAt: "2026-08-18T10:00:00.000Z",
       updatedAt: "2026-08-18T10:00:00.000Z",
     };
