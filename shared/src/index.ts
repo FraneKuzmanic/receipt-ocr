@@ -56,6 +56,8 @@ export {
   listReceiptsQuerySchema,
   listReceiptsResponseSchema,
   sourceDocumentResponseSchema,
+  sourceRegionSchema,
+  sourceRegionsResponseSchema,
   updateReceiptRequestSchema,
   type ApiErrorResponse,
   type ConfirmReceiptResponse,
@@ -67,5 +69,7 @@ export {
   type ListReceiptsQuery,
   type ListReceiptsResponse,
   type SourceDocumentResponse,
+  type SourceRegion,
+  type SourceRegionsResponse,
   type UpdateReceiptRequest,
 } from "./api.js";

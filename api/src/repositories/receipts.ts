@@ -65,6 +65,10 @@ export interface ReceiptReviewState {
   readonly extractionMetadata: Json | null;
 }
 
+export interface ReceiptProviderResult {
+  readonly rawProviderResult: Json | null;
+}
+
 export interface ListReceiptsOptions {
   readonly page: number;
   readonly limit: number;
@@ -199,6 +203,19 @@ export class ReceiptRepository {
     } catch (caught) {
       throw new ReceiptRepositoryError("invalid_data", caught);
     }
+  }
+
+  async findProviderResultById(id: string): Promise<ReceiptProviderResult | null> {
+    const { data, error } = await this.#client
+      .from("receipts")
+      .select("raw_provider_result")
+      .eq("id", uuidSchema.parse(id))
+      .eq("user_id", this.#userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) throw new ReceiptRepositoryError("query_failed", error);
+    return data === null ? null : { rawProviderResult: data.raw_provider_result };
   }
 
   /** PRD §10.2 — the authenticated user's non-deleted receipts, newest first. */

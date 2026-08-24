@@ -10,6 +10,7 @@ import type {
   AnalyzeResultOutput,
   DocumentFieldOutput,
 } from "@azure-rest/ai-document-intelligence";
+import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
 import type { ExtractionFieldMetadata } from "./types.js";
 
 type Fields = Record<string, DocumentFieldOutput>;
@@ -21,17 +22,15 @@ export interface MappedAnalyzeResult {
   readonly documentConfidence: number | null;
 }
 
-const TEXT_FIELD_ALIASES = {
-  sellerAddress: ["VendorAddress", "MerchantAddress"],
-  sellerOib: ["VendorTaxId"],
-  buyerName: ["CustomerName"],
-  buyerAddress: ["CustomerAddress"],
-  buyerOib: ["CustomerTaxId"],
-  documentNumber: ["InvoiceId"],
-  paymentMethod: ["PaymentTerm"],
-} as const;
-
-type TextField = keyof typeof TEXT_FIELD_ALIASES | "sellerName";
+type TextField =
+  | "sellerName"
+  | "sellerAddress"
+  | "sellerOib"
+  | "buyerName"
+  | "buyerAddress"
+  | "buyerOib"
+  | "documentNumber"
+  | "paymentMethod";
 
 export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnalyzeResult {
   const document = analyzeResult.documents?.[0];
@@ -40,35 +39,31 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
   const fieldMetadata: Record<string, ExtractionFieldMetadata> = {};
   const unreadableFields: string[] = [];
 
-  assignText(
-    fields,
-    fieldMetadata,
-    "sellerName",
-    first(sourceFields, ["VendorAddressRecipient", "VendorName", "MerchantName"]),
-  );
-  for (const canonical of Object.keys(TEXT_FIELD_ALIASES) as Array<
-    keyof typeof TEXT_FIELD_ALIASES
-  >) {
-    assignText(
-      fields,
-      fieldMetadata,
-      canonical,
-      first(sourceFields, TEXT_FIELD_ALIASES[canonical]),
-    );
+  assignText(fields, fieldMetadata, "sellerName", first(sourceFields, FIELD_ALIASES.sellerName));
+  for (const canonical of [
+    "sellerAddress",
+    "sellerOib",
+    "buyerName",
+    "buyerAddress",
+    "buyerOib",
+    "documentNumber",
+    "paymentMethod",
+  ] as const) {
+    assignText(fields, fieldMetadata, canonical, first(sourceFields, FIELD_ALIASES[canonical]));
   }
   assignAmount(
     fields,
     fieldMetadata,
     unreadableFields,
     "subtotal",
-    first(sourceFields, ["SubTotal", "Subtotal"]),
+    first(sourceFields, FIELD_ALIASES.subtotal),
   );
   assignAmount(
     fields,
     fieldMetadata,
     unreadableFields,
     "total",
-    first(sourceFields, ["InvoiceTotal", "Total"]),
+    first(sourceFields, FIELD_ALIASES.total),
   );
 
   assignDate(
@@ -76,33 +71,35 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
     fieldMetadata,
     unreadableFields,
     "issueDate",
-    first(sourceFields, ["InvoiceDate", "TransactionDate"]),
+    first(sourceFields, FIELD_ALIASES.issueDate),
   );
   assignTime(
     fields,
     fieldMetadata,
     unreadableFields,
     "issueTime",
-    first(sourceFields, ["TransactionTime"]),
+    first(sourceFields, FIELD_ALIASES.issueTime),
   );
 
-  const totalField = first(sourceFields, ["InvoiceTotal", "Total"]);
+  const totalField = first(sourceFields, FIELD_ALIASES.currency);
   const currency = totalField?.valueCurrency;
   if (currency?.currencySymbol && currency.currencyCode) {
     fields.currency = currency.currencyCode;
     fieldMetadata.currency = metadata(totalField);
   }
 
-  const vatBreakdown = mapVatBreakdown(first(sourceFields, ["TaxDetails", "TotalTax"]));
+  const vatField = first(sourceFields, FIELD_ALIASES.vatBreakdown);
+  const vatBreakdown = mapVatBreakdown(vatField);
   if (vatBreakdown !== null) {
     fields.vatBreakdown = vatBreakdown;
-    fieldMetadata.vatBreakdown = metadata(first(sourceFields, ["TaxDetails", "TotalTax"]));
+    fieldMetadata.vatBreakdown = metadata(vatField);
   }
 
-  const items = mapItems(first(sourceFields, ["Items"]));
+  const itemsField = first(sourceFields, FIELD_ALIASES.items);
+  const items = mapItems(itemsField);
   if (items !== null) {
     fields.items = items;
-    fieldMetadata.items = metadata(first(sourceFields, ["Items"]));
+    fieldMetadata.items = metadata(itemsField);
   }
 
   return {
@@ -185,11 +182,9 @@ function mapVatBreakdown(field: DocumentFieldOutput | undefined): VatBreakdown[]
     return field.valueArray.map((entry) => {
       const values = entry.valueObject ?? {};
       return {
-        rate: parseAmount(first(values, ["TaxRate", "Rate"])?.content),
-        taxableBase: parseAmount(
-          first(values, ["NetAmount", "TaxableAmount", "TaxableBase"])?.content,
-        ),
-        vatAmount: parseAmount(first(values, ["Amount", "TaxAmount"])?.content),
+        rate: parseAmount(first(values, VAT_CELL_ALIASES.rate)?.content),
+        taxableBase: parseAmount(first(values, VAT_CELL_ALIASES.taxableBase)?.content),
+        vatAmount: parseAmount(first(values, VAT_CELL_ALIASES.vatAmount)?.content),
       };
     });
   }
@@ -202,10 +197,10 @@ function mapItems(field: DocumentFieldOutput | undefined): ReceiptItem[] | null 
   return field.valueArray.map((entry) => {
     const values = entry.valueObject ?? {};
     return {
-      description: first(values, ["Description"])?.content ?? null,
-      quantity: parseAmount(first(values, ["Quantity"])?.content),
-      unitPrice: parseAmount(first(values, ["UnitPrice", "Price"])?.content),
-      total: parseAmount(first(values, ["Amount", "TotalPrice"])?.content),
+      description: first(values, ITEM_CELL_ALIASES.description)?.content ?? null,
+      quantity: parseAmount(first(values, ITEM_CELL_ALIASES.quantity)?.content),
+      unitPrice: parseAmount(first(values, ITEM_CELL_ALIASES.unitPrice)?.content),
+      total: parseAmount(first(values, ITEM_CELL_ALIASES.total)?.content),
     };
   });
 }

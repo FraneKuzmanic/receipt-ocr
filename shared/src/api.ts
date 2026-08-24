@@ -47,6 +47,29 @@ export const sourceDocumentResponseSchema = z
 
 export type SourceDocumentResponse = z.infer<typeof sourceDocumentResponseSchema>;
 
+/** Where on the source document a canonical value was read from. */
+export const sourceRegionSchema = z
+  .object({
+    fields: z.array(z.string()).min(1),
+    page: z.number().int().min(1),
+    corners: z.array(z.object({ x: z.number(), y: z.number() }).strict()).length(4),
+    origin: z.enum(["model", "text"]),
+  })
+  .strict();
+
+export type SourceRegion = z.infer<typeof sourceRegionSchema>;
+
+export const sourceRegionsResponseSchema = z
+  .object({
+    pages: z.array(
+      z.object({ page: z.number().int().min(1), aspectRatio: z.number().positive() }).strict(),
+    ),
+    regions: z.array(sourceRegionSchema),
+  })
+  .strict();
+
+export type SourceRegionsResponse = z.infer<typeof sourceRegionsResponseSchema>;
+
 /**
  * PRD §10.2 — `GET /api/receipts`
  *

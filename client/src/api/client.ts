@@ -6,6 +6,7 @@ import {
   listReceiptsResponseSchema,
   receiptDetailResponseSchema,
   sourceDocumentResponseSchema,
+  sourceRegionsResponseSchema,
   type ConfirmReceiptResponse,
   type CreateReceiptResponse,
   type ExportFormat,
@@ -14,6 +15,7 @@ import {
   type ReceiptDetailResponse,
   type ReceiptStatus,
   type SourceDocumentResponse,
+  type SourceRegionsResponse,
   type UpdateReceiptRequest,
 } from "@receipt/shared";
 import { supabase } from "../lib/supabase";
@@ -132,6 +134,11 @@ export async function deleteReceipt(id: string): Promise<void> {
 export async function getReceiptSource(id: string): Promise<SourceDocumentResponse> {
   const response = await request(`/api/receipts/${encodeURIComponent(id)}/source`);
   return sourceDocumentResponseSchema.parse(await response.json());
+}
+
+export async function getReceiptRegions(id: string): Promise<SourceRegionsResponse> {
+  const response = await request(`/api/receipts/${encodeURIComponent(id)}/regions`);
+  return sourceRegionsResponseSchema.parse(await response.json());
 }
 
 export async function exportReceipts(format: ExportFormat): Promise<Blob> {

@@ -232,6 +232,7 @@ only a per-project run catches a stale project name.
 | `POST` | `/api/receipts` | Yes | `201 {"id", "status", "createdAt"}` after one multipart `file` part |
 | `POST` | `/api/receipts/:id/retry` | Yes | `202 {"id", "status"}` for retryable `failed` or stranded `processing` receipts; otherwise `409 retry_not_allowed` |
 | `GET` | `/api/receipts/:id/source` | Yes | `200 {"url", "contentType", "originalFilename", "expiresAt"}`, `404` if not yours or deleted |
+| `GET` | `/api/receipts/:id/regions` | Yes | `200 {"pages","regions"}` source-location projection, `404` if not yours or deleted |
 | `DELETE` | `/api/receipts/:id` | Yes | `204`, then the receipt and source endpoint return `404` |
 | `GET` | `/api/receipts/export` | Yes | `200` CSV or JSON for confirmed, non-deleted receipts; requires `format=csv\|json` |
 
@@ -368,6 +369,14 @@ available with warnings outstanding.
 The original-source URL expires after 300 seconds. The source panel reloads it once after a failed
 image request and also offers a manual reload; it never displays or logs the signed URL.
 
+For image receipts, the review source panel draws provider-neutral, normalized quadrilateral
+outlines over fields that were read from the document. Colours match the form section; focusing a
+field raises its outline and clicking an outline focuses the field. The API returns page-relative
+fractions, so the browser does not receive provider coordinates or need to measure the image. The
+overlay is suppressed when the browser's rendered image ratio disagrees with the extracted page ratio
+(for example, after an EXIF orientation mismatch). PDF receipts retain their existing viewer with a
+translated notice because a browser PDF object cannot accept an overlay.
+
 ### History and soft delete
 
 The signed-in header exposes **Receipts**, a mobile card list rather than a desktop table. It displays
@@ -464,6 +473,11 @@ model was retained only in the comparison harness because it does not expose a d
 Every request enables Azure's free `barcodes` feature. It adds QR data without changing the mapped
 field values; Azure's inline `:barcode:`/layout markers are stripped before Croatian text fallbacks run
 so a marker can never become a canonical value.
+
+The retained raw response also supports a read-only source-region projection for review. The mapper
+shares the extraction alias table, recomputes Croatian fallback spans against the original content,
+and normalizes source geometry at read time. This makes highlighting work for previously analysed
+receipts without reprocessing, a migration or a provider call.
 
 Azure field names stay inside the provider adapter. The result is mapped to the application's canonical
 receipt fields, stored once as both `original_extraction` and `canonical_data`, and the raw provider
