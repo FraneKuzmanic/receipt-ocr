@@ -20,7 +20,13 @@ describe("SourceOverlay", () => {
   it("renders accessible decoration and selects the canonical field", () => {
     const onSelect = vi.fn();
     const { container } = render(
-      <SourceOverlay regions={regions} page={1} activeField="total" onSelect={onSelect} />,
+      <SourceOverlay
+        regions={regions}
+        page={1}
+        activeField="total"
+        editedFields={[]}
+        onSelect={onSelect}
+      />,
     );
 
     const overlay = container.querySelector("svg");
@@ -39,10 +45,40 @@ describe("SourceOverlay", () => {
     // driving a real browser, not by this test alone: `fireEvent.click` dispatches directly on the
     // element and does not perform real hit-testing, so it cannot fail this on its own.
     const { container } = render(
-      <SourceOverlay regions={regions} page={1} activeField={null} onSelect={vi.fn()} />,
+      <SourceOverlay
+        regions={regions}
+        page={1}
+        activeField={null}
+        editedFields={[]}
+        onSelect={vi.fn()}
+      />,
     );
     const outline = container.querySelector("polygon");
     expect(outline).not.toHaveAttribute("fill", "none");
     expect(outline).toHaveStyle({ pointerEvents: "all" });
+  });
+
+  it("dashes a region's outline once its value has been edited since extraction", () => {
+    const { container, rerender } = render(
+      <SourceOverlay
+        regions={regions}
+        page={1}
+        activeField={null}
+        editedFields={[]}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(container.querySelector("polygon")).not.toHaveAttribute("stroke-dasharray");
+
+    rerender(
+      <SourceOverlay
+        regions={regions}
+        page={1}
+        activeField={null}
+        editedFields={["total"]}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(container.querySelector("polygon")).toHaveAttribute("stroke-dasharray", "5,3");
   });
 });
