@@ -73,6 +73,15 @@ Push back strongly when Im wrong. Actively challenge weak reasoning. If I push b
 
 Learn from your mistakes. Don't just patch bugs and forget. Turn failures into global rules that build institutional knowledge into the AI layer.
 
+## 7. Git Remotes
+
+This repo has two remotes: `github` (personal GitHub) and `origin` (Azure DevOps). Never push to `origin` (Azure DevOps) unless explicitly asked.
+
+After creating a commit on request, do both:
+
+1. `git push github <branch>` — pushes the working branch (`prototype/receipt-ocr`) as-is.
+2. `git subtree push --prefix=prototypes/receipt-ocr github main` (run from the monorepo root, `doc-ai-lib`) — syncs the `prototypes/receipt-ocr` folder into the `github` repo's `main` branch. GitHub's `main` is what Render watches, so this step triggers the CI/CD redeploy. Note the folder prefix drops when pushed: `github`'s `main` is rooted at what is locally `prototypes/receipt-ocr/`, so `git subtree push`, not a plain branch push, is required to reconcile the paths.
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

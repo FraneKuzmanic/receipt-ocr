@@ -78,13 +78,6 @@ export function SourceDocumentPanel({ receiptId }: SourceDocumentPanelProps) {
         >
           {t("review.openSource")}
         </a>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="inline-flex min-h-11 items-center underline"
-        >
-          {t("review.reloadSource")}
-        </button>
       </div>
     </section>
   );

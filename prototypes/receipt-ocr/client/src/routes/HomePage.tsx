@@ -11,6 +11,7 @@ import {
   analyzeReceiptImage,
   classifyReceiptFile,
 } from "../capture/receiptFile";
+import { useCameraCapture } from "../capture/useCameraCapture";
 import { Spinner } from "../components/Spinner";
 import { uploadErrorCodeSchema } from "@receipt/shared";
 
@@ -21,6 +22,11 @@ interface SelectedReceipt {
   warnings: QualityWarning[];
 }
 
+const primaryPicker =
+  "flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-lg bg-accent px-4 text-base font-semibold text-white hover:bg-accent-hover focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent-ring";
+const secondaryPicker =
+  "flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent-ring";
+
 function sizeInMegabytes(size: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(size / 1024 / 1024);
 }
@@ -28,6 +34,7 @@ function sizeInMegabytes(size: number): string {
 export function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const cameraCapture = useCameraCapture();
   const cameraInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const previewUrl = useRef<string | undefined>(undefined);
@@ -114,102 +121,137 @@ export function HomePage() {
     // min-h rather than h, plus justify-center: because the height is a *minimum*, a tall preview
     // with warnings and an error simply grows the container instead of being centred and clipped
     // off the top of the screen. The subtractions are the header and the mobile tab bar.
-    <div className="flex min-h-[calc(100dvh-3.5rem-4rem)] flex-col justify-center px-4 py-8 lg:min-h-[calc(100dvh-4rem)]">
-      <section className="mx-auto flex w-full max-w-md flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold">{t("capture.title")}</h1>
-          <p className="max-w-prose text-slate-600">{t("capture.guidance")}</p>
-        </div>
-
-        {selected ? (
-          <div className="flex flex-col gap-4" aria-live="polite">
-            {selected.kind === "image" && selected.previewUrl ? (
-              <img
-                src={selected.previewUrl}
-                alt={t("capture.imagePreview")}
-                className="max-h-[60dvh] w-full rounded-xl border border-slate-200 bg-white object-contain"
-              />
-            ) : (
-              <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white p-5 text-center">
-                <FileText aria-hidden="true" className="size-10 text-slate-600" />
-                <p className="break-all font-medium">{selected.file.name}</p>
-                <p className="text-sm text-slate-600">{t("capture.documentPreview")}</p>
-              </div>
-            )}
-
-            <p className="text-sm text-slate-600">
-              {selected.file.name} ·{" "}
-              {t("capture.fileSize", { size: sizeInMegabytes(selected.file.size) })}
-            </p>
-            {selected.warnings.map((warning) => (
-              <p
-                key={warning}
-                className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-950"
-              >
-                {warning === "low_resolution"
-                  ? t("capture.lowResolution")
-                  : t("capture.possibleBlur")}
-              </p>
-            ))}
-
-            <button
-              type="button"
-              onClick={() => void upload()}
-              disabled={uploading}
-              className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-slate-400"
-            >
-              {uploading ? <Spinner /> : <FileUp aria-hidden="true" className="size-5" />}
-              {uploading ? t("capture.uploading") : chooseLabel}
-            </button>
-            <button
-              type="button"
-              onClick={clearSelection}
-              disabled={uploading}
-              className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed"
-            >
-              <RotateCcw aria-hidden="true" className="size-5" />
-              {selected.kind === "image" ? t("capture.retake") : t("capture.chooseAnother")}
-            </button>
+    <div className="flex min-h-[calc(100svh-3.5rem-4rem)] flex-col justify-center px-4 py-8 lg:min-h-[calc(100svh-4rem)]">
+      <section className="mx-auto grid w-full max-w-xl gap-10 lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-16">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold">{t("capture.title")}</h1>
+            <p className="max-w-prose text-slate-600">{t("capture.guidance")}</p>
           </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {/* focus-within, not focus: the focusable input is sr-only and invisible, so a ring
+
+          {selected ? (
+            <div className="flex flex-col gap-4" aria-live="polite">
+              {selected.kind === "image" && selected.previewUrl ? (
+                <img
+                  src={selected.previewUrl}
+                  alt={t("capture.imagePreview")}
+                  className="max-h-[60dvh] w-full rounded-xl border border-slate-200 bg-white object-contain"
+                />
+              ) : (
+                <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white p-5 text-center">
+                  <FileText aria-hidden="true" className="size-10 text-slate-600" />
+                  <p className="break-all font-medium">{selected.file.name}</p>
+                  <p className="text-sm text-slate-600">{t("capture.documentPreview")}</p>
+                </div>
+              )}
+
+              <p className="text-sm text-slate-600">
+                {selected.file.name} ·{" "}
+                {t("capture.fileSize", { size: sizeInMegabytes(selected.file.size) })}
+              </p>
+              {selected.warnings.map((warning) => (
+                <p
+                  key={warning}
+                  className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-950"
+                >
+                  {warning === "low_resolution"
+                    ? t("capture.lowResolution")
+                    : t("capture.possibleBlur")}
+                </p>
+              ))}
+
+              {/* The busy state stays on the button the user pressed rather than replacing the
+                  whole panel: the preview they just approved remains visible behind it. */}
+              <button
+                type="button"
+                onClick={() => void upload()}
+                aria-disabled={uploading}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-hover aria-disabled:bg-slate-400"
+              >
+                {uploading ? (
+                  <Spinner label={false} className="size-5" />
+                ) : (
+                  <FileUp aria-hidden="true" className="size-5" />
+                )}
+                {uploading ? t("capture.uploading") : chooseLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!uploading) clearSelection();
+                }}
+                aria-disabled={uploading}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 aria-disabled:text-slate-400"
+              >
+                <RotateCcw aria-hidden="true" className="size-5" />
+                {selected.kind === "image" ? t("capture.retake") : t("capture.chooseAnother")}
+              </button>
+              {/* "Loading…" on the button is a changed accessible name, which screen readers
+                  re-announce unreliably; this is the dependable channel. */}
+              <p role="status" className="sr-only">
+                {uploading ? t("processing.title") : ""}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {/* focus-within, not focus: the focusable input is sr-only and invisible, so a ring
               painted on it lands nowhere. The label is the element the user is looking at.
               Without this the two capture controls are a live WCAG 2.4.7 failure. */}
-            <label className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-lg bg-accent px-4 text-base font-semibold text-white hover:bg-accent-hover focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent-ring">
-              <Camera aria-hidden="true" className="size-5" />
-              {t("capture.scanReceipt")}
-              <input
-                ref={cameraInput}
-                type="file"
-                accept={CAMERA_ACCEPT}
-                capture="environment"
-                className="sr-only"
-                disabled={checking}
-                onChange={(event) => void selectFile(event.currentTarget.files?.[0])}
-              />
-            </label>
-            <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent-ring">
-              <FileUp aria-hidden="true" className="size-5" />
-              {t("capture.chooseFile")}
-              <input
-                ref={fileInput}
-                type="file"
-                accept={FILE_ACCEPT}
-                className="sr-only"
-                disabled={checking}
-                onChange={(event) => void selectFile(event.currentTarget.files?.[0])}
-              />
-            </label>
-            {checking ? <Spinner /> : null}
-          </div>
-        )}
+              {cameraCapture ? (
+                <label className={primaryPicker}>
+                  <Camera aria-hidden="true" className="size-5" />
+                  {t("capture.scanReceipt")}
+                  <input
+                    ref={cameraInput}
+                    type="file"
+                    accept={CAMERA_ACCEPT}
+                    capture="environment"
+                    className="sr-only"
+                    disabled={checking}
+                    onChange={(event) => void selectFile(event.currentTarget.files?.[0])}
+                  />
+                </label>
+              ) : null}
+              {/* Without a camera-capable pointer this is the only picker, and it is promoted to
+                  the primary action — two buttons that open the same dialog is not a choice. */}
+              <label className={cameraCapture ? secondaryPicker : primaryPicker}>
+                <FileUp aria-hidden="true" className="size-5" />
+                {t("capture.chooseFile")}
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept={FILE_ACCEPT}
+                  className="sr-only"
+                  disabled={checking}
+                  onChange={(event) => void selectFile(event.currentTarget.files?.[0])}
+                />
+              </label>
+              {checking ? <Spinner /> : null}
+            </div>
+          )}
 
-        {error ? (
-          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-900">
-            {error}
-          </p>
-        ) : null}
+          {error ? (
+            <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-900">
+              {error}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-4 lg:border-l lg:border-slate-200 lg:pl-10">
+          <h2 className="text-lg font-semibold">{t("home.stepsTitle")}</h2>
+          <ol className="flex flex-col gap-4 text-slate-700">
+            {(["step1", "step2", "step3"] as const).map((step, index) => (
+              <li key={step} className="flex items-start gap-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+                  {index + 1}
+                </span>
+                <span className="pt-0.5">
+                  {t(step === "step1" && !cameraCapture ? "home.step1NoCamera" : `home.${step}`)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
     </div>
   );

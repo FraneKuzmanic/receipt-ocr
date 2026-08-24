@@ -5,7 +5,7 @@ import type { CanonicalReceipt } from "@receipt/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteReceipt, exportReceipts, getReceipts } from "../api/client";
 import { exportFilename, saveBlob } from "../history/download";
-import "../i18n";
+import i18n from "../i18n";
 import { HistoryPage } from "./HistoryPage";
 
 vi.mock("../api/client", () => ({
@@ -55,7 +55,8 @@ function renderPage() {
   );
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await i18n.changeLanguage("en");
   vi.clearAllMocks();
   mockedGetReceipts.mockResolvedValue(page());
   mockedDeleteReceipt.mockResolvedValue();
@@ -159,6 +160,36 @@ describe("HistoryPage", () => {
     await waitFor(() => expect(mockedExportReceipts).toHaveBeenCalledWith("json"));
     expect(mockedExportFilename).toHaveBeenCalledWith("json", expect.any(Date));
     expect(mockedSaveBlob).toHaveBeenCalledWith(blob, "receipts-2026-08-20.json");
+  });
+
+  it("keeps export labels stable and the other export available while busy", async () => {
+    let resolveExport: ((value: Blob) => void) | undefined;
+    mockedExportReceipts.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveExport = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Download CSV" }));
+
+    const csv = screen.getByRole("button", { name: "Download CSV" });
+    expect(csv).toHaveAttribute("aria-disabled", "true");
+    expect(csv).not.toBeDisabled();
+    expect(csv).toHaveTextContent("Download CSV");
+    expect(screen.getByRole("button", { name: "Download JSON" })).toBeEnabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Preparing export");
+
+    resolveExport?.(new Blob(["csv"]));
+  });
+
+  it("uses Croatian singular receipt count", async () => {
+    await i18n.changeLanguage("hr");
+    renderPage();
+
+    expect(await screen.findByText("1 račun")).toBeInTheDocument();
   });
 
   it("renders an export failure without disabling the other format", async () => {
