@@ -63,6 +63,7 @@
   },
   "review": {
     "title": "Review receipt",
+    "backToReceipts": "Back to receipts",
     "seller": "Seller",
     "buyer": "Buyer",
     "receipt": "Receipt details",

@@ -1,4 +1,4 @@
-import { TriangleAlert } from "lucide-react";
+import { ChevronLeft, TriangleAlert } from "lucide-react";
 import {
   cloneElement,
   useEffect,
@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import type { ReceiptDetailResponse } from "@receipt/shared";
 import { confirmReceipt, getReceipt, updateReceipt } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -211,6 +211,13 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
     <section className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
       <form onSubmit={handleSubmit(save)} className="flex max-w-lg flex-col gap-5">
         <div>
+          <Link
+            to="/receipts"
+            className="mb-2 inline-flex w-fit items-center gap-1 text-sm font-semibold text-slate-600 hover:text-slate-900"
+          >
+            <ChevronLeft aria-hidden="true" className="size-4" />
+            {t("review.backToReceipts")}
+          </Link>
           <h1 className="text-2xl font-semibold">{t("review.title")}</h1>
           {receipt.status === "confirmed" ? (
             <p className="text-green-700">{t("review.confirmed")}</p>
