@@ -63,6 +63,7 @@
   },
   "review": {
     "title": "Pregledajte račun",
+    "backToReceipts": "Natrag na račune",
     "seller": "Prodavatelj",
     "buyer": "Kupac",
     "receipt": "Podaci o računu",
