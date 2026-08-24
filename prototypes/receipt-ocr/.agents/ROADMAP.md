@@ -188,6 +188,7 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 12  | UI shell, navigation & home-page polish | [plan](plans/ui-shell-navigation-polish.md)    | [history](history/12-ui-shell-navigation-polish.md) |
 | 13  | UI feedback, capture layout & clarity polish | [plan](plans/ui-feedback-and-capture-polish.md) | [history](history/13-ui-feedback-and-capture-polish.md) |
 | 14  | Busy-state, capture-loading & desktop-picker corrections | _none — user asked for a direct fix_ | [history](history/14-busy-state-and-desktop-picker-fixes.md) |
+| 15  | Source-document field highlighting | [plan](plans/source-field-highlighting.md) | [history](history/15-source-field-highlighting.md) |
 
 **Amendment from iteration 14 — a sized element must not depend on its parent being a flex box, and
 jsdom cannot tell you that it does.** Iteration 13's busy buttons nested the spinner glyph inside a

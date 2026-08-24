@@ -14,6 +14,16 @@ continuing — never work around a failure or comment out a check.
 > only journeys that actually exist today. Each task that ships a user-facing flow must add its
 > journey to Phase 8 — an empty journey list for a shipped feature is a validation failure.
 
+> **Cost note:** the full sweep below is run once, at the end of a task, before commit — it is not a
+> loop to repeat after every small fix. Run each command once; after fixing something small, re-run
+> only the specific check that fix could plausibly affect (e.g. `npx vitest run --project client
+> ActiveRegionStrip` after editing that file, not the whole suite). Never re-run a command that
+> already passed and that nothing has changed since — a documentation-only edit needs no re-run of
+> anything. When reviewing someone else's already-reported-passing work, read their report and verify
+> only what's actually in question, rather than redoing everything they already ran. This file's
+> length and this session's own habit of matching it (a 90k-token, 30-minute validation pass on one
+> feature) are exactly what this note exists to prevent.
+
 ---
 
 ## Phase 0: Clean install
@@ -135,6 +145,10 @@ Current coverage and what each test protects:
 | `api/src/providers/document-extraction/azure.test.ts` (Task 08) | Barcode feature propagation, QR extraction and marker-safe text fallbacks preserve normal field extraction when a QR is absent |
 | `api/src/validation/warnings.test.ts` | Pure, stable-order warning rules cover critical gaps, unreadable values, exact VAT arithmetic, QR total/date/time mismatches and the not-enough-information path; corrected values clear warnings without OCR rerunning |
 | `api/src/services/receipt-extraction.test.ts` (Task 08) | Background extraction persists QR data and computed warnings together; no QR persists as `null` |
+| `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 15) | The read-time source-region projection: `total`/`currency` share one region, VAT and item cells are individually indexed, page coordinates normalize to `[0,1]` for both pixel (image) and inch (PDF) units, a fixture with a `:barcode:` marker still resolves fallback fields to the correct word span, and a fixture with no analysable pages yields an empty response rather than throwing |
+| `client/src/review/regionSections.test.ts` (Iteration 15) | Canonical field paths map to the correct form section, including nested `vatBreakdown.N.*`/`items.N.*` prefixes; an unrecognized path returns `null` rather than throwing |
+| `client/src/review/SourceOverlay.test.tsx` (Iteration 15) | The overlay is `aria-hidden`; clicking a region calls back with its first field; **an inactive region's whole area is clickable, not just its stroke** — `fill` is never `"none"` and `pointer-events` is explicitly `"all"`, guarding a real bug found only by driving a browser (`fireEvent.click` in jsdom dispatches directly on the element and cannot catch a hit-testing gap) |
+| `client/src/review/ActiveRegionStrip.test.tsx` (Iteration 15) | The mobile crop strip renders only with a matching active field, a known region and a non-PDF, safe source; `cropTransform`'s output, reproduced through the same `scale ∘ translate` composition the browser applies, centers the region's centroid in the **strip's own viewport**, not the full receipt image — the previous formula centered the whole image regardless of which field was active, verified wrong only by measuring a real rendered page |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
 keys are computed from a Supabase error code, so Phase 6.5's literal-`t("…")` scan cannot follow
@@ -362,6 +376,22 @@ node -e "const fs=require('fs'); const s=fs.readFileSync('client/src/components/
 The wider lesson, which no grep covers: anything whose size depends on the parent being a flex
 container must be looked at in a real browser, not asserted in jsdom.
 
+### 6.17 The source-regions projection never leaks Azure vocabulary
+
+`shared/src/receipt.test.ts` already bans this vocabulary inside `shared/src`, where it would matter
+most (PRD §6.2). The regions endpoint's *response body* is the other place it could leak — the
+projection module itself (`api/src/providers/document-extraction/source-regions.ts`) legitimately
+imports Azure SDK types, so the guard there has to check the JSON it emits, not the file's source.
+
+```
+node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/providers/document-extraction/source-regions.ts','utf8'); if(!/sourceRegionsResponseSchema\.parse/.test(s)) throw new Error('mapSourceRegions no longer validates its own output against the shared schema'); console.log('ok');"
+```
+
+This is a proxy, not a full body scan: it confirms the projection is still forced through the strict
+Zod schema before it ever reaches an HTTP response, which is what makes an accidental Azure field
+name a parse failure rather than a silent leak. `source-regions.test.ts` covers the positive case —
+that real fixtures parse cleanly and expose only `fields`, `page`, `corners` and `origin`.
+
 ---
 
 ## Phase 7: Supabase integration
@@ -432,9 +462,9 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Task 11 there are nine journeys: the shared contract, authentication, source-document
-lifecycle, mobile capture/processing, extraction/retry, QR/warnings, review/confirmation, history and
-export.
+**As of Iteration 15 there are eleven journeys: the shared contract, authentication, source-document
+lifecycle, mobile capture/processing, extraction/retry, QR/warnings, review/confirmation, history,
+export, the application shell and source-document field highlighting.
 Everything below runs against real servers, not mocks.**
 
 ### 8.1 Start the stack
@@ -669,6 +699,38 @@ restored to its trigger. Tab through the header and confirm every control paints
 ring is painted on the **visible label** — the inputs are `sr-only`, so a ring on the input itself is
 invisible and is a WCAG 2.4.7 failure. Finally, select a tall portrait photo and confirm the capture
 card **grows and the page scrolls** rather than the image being clipped off the top.
+
+### 8.14 Journey - source-document field highlighting
+
+Upload a real image receipt and open its review page. At **1440 px**, confirm the source panel draws
+a coloured, unfilled quadrilateral over every field the form shows a value for, that `total` and
+`currency` share exactly one outline, and that the image is not visually distorted regardless of how
+tall the receipt is (a receipt around 1:2.7 width:height is a good stress case — check `img`'s
+rendered aspect ratio against `naturalWidth/naturalHeight` directly, since a subtle CSS regression
+here reads as "slightly squished," not as an obvious break). Focus a form field and confirm its
+outline becomes the visibly emphasized one; click an inactive outline **away from its border, in the
+middle of its area** and confirm it focuses the matching input — clicking only the 1-2 px stroke line
+is not a real check, because a `fill="none"` region would pass that and still be unusable.
+
+At **390 px**, focus a field and confirm a fixed strip appears below the header showing that field's
+location, zoomed to a legible size, and that **nothing else on the page moves** — compare
+`document.documentElement.scrollHeight` immediately before and after the strip appears; it must be
+identical. Focus a field near the top of the receipt and one near the bottom and confirm the strip
+recenters correctly for both — a transform that always centers the same point regardless of which
+field is active is a real failure mode here and will not be obvious from a single screenshot.
+
+Upload a PDF receipt and confirm its existing viewer is unchanged, that a translated
+"not available for PDF" note appears, and that nothing errors.
+
+Repeat the outline/strip checks in Croatian. Confirm `GET /api/receipts/:id/regions` is not called
+for another user's receipt (cross-user 404 is proven in `receipts.integration.ts`, not by hand here).
+
+**None of this is safely assertable from jsdom.** Region-click hit-testing depends on the browser's
+real paint-based pointer-event resolution, the distortion check depends on real image layout, and the
+mobile-strip centering depends on real measured pixel geometry — three separate real bugs were found
+only by driving an actual browser during this journey's first run, none caught by 372 passing unit
+tests. See the Iteration 15 history file for what those were and why the unit tests could not see
+them.
 
 ---
 

@@ -2,13 +2,20 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { confirmReceipt, getReceipt, getReceiptSource, updateReceipt } from "../api/client";
+import {
+  confirmReceipt,
+  getReceipt,
+  getReceiptRegions,
+  getReceiptSource,
+  updateReceipt,
+} from "../api/client";
 import "../i18n";
 import { ReviewPage } from "./ReviewPage";
 import { ToastProvider } from "../components/Toast";
 
 vi.mock("../api/client", () => ({
   getReceipt: vi.fn(),
+  getReceiptRegions: vi.fn(),
   getReceiptSource: vi.fn(),
   updateReceipt: vi.fn(),
   confirmReceipt: vi.fn(),
@@ -29,6 +36,7 @@ const receipt = {
 };
 
 const mockedGetReceipt = vi.mocked(getReceipt);
+const mockedGetReceiptRegions = vi.mocked(getReceiptRegions);
 const mockedGetReceiptSource = vi.mocked(getReceiptSource);
 const mockedUpdateReceipt = vi.mocked(updateReceipt);
 const mockedConfirmReceipt = vi.mocked(confirmReceipt);
@@ -57,6 +65,7 @@ function Location() {
 beforeEach(() => {
   vi.clearAllMocks();
   mockedGetReceipt.mockResolvedValue(receipt);
+  mockedGetReceiptRegions.mockResolvedValue({ pages: [], regions: [] });
   mockedGetReceiptSource.mockResolvedValue({
     url: "https://example.test/source.jpg",
     contentType: "image/jpeg",

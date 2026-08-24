@@ -15,6 +15,7 @@ import {
   findZki,
 } from "./croatian.js";
 import { mapAnalyzeResult } from "./azure-fields.js";
+import { stripContentMarkers, type StrippedContent } from "./content-markers.js";
 import { parseFiscalQr, type FiscalQrData } from "./fiscal-qr.js";
 import { ExtractionError, type DocumentExtractionProvider, type ExtractionInput } from "./types.js";
 
@@ -129,10 +130,6 @@ async function analyzeWithAzure(
   return { analyzeResult: operation.analyzeResult, raw: operation };
 }
 
-function stripContentMarkers(content: string): string {
-  return content.replace(/:(?:barcode|formula|selected|unselected):/g, "");
-}
-
 function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | null {
   let firstQr: FiscalQrData | null = null;
 
@@ -152,20 +149,20 @@ function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | nul
 function applyTextFallbacks(
   fields: Record<string, unknown>,
   metadata: Record<string, { confidence: number | null; source: "model" | "text" }>,
-  content: string,
+  content: StrippedContent,
 ): void {
   const fallbacks = {
-    sellerOib: findOib(content),
-    jir: findJir(content),
-    zki: findZki(content),
-    issueDate: findIssueDate(content),
-    issueTime: findIssueTime(content),
-    documentNumber: findDocumentNumber(content),
+    sellerOib: findOib(content.text),
+    jir: findJir(content.text),
+    zki: findZki(content.text),
+    issueDate: findIssueDate(content.text),
+    issueTime: findIssueTime(content.text),
+    documentNumber: findDocumentNumber(content.text),
   };
 
   for (const [name, value] of Object.entries(fallbacks)) {
     if (value === null || fields[name] !== undefined) continue;
-    fields[name] = value;
+    fields[name] = value.value;
     metadata[name] = { confidence: null, source: "text" };
   }
 }

@@ -80,6 +80,7 @@
     "sourceTitle": "Izvorni račun",
     "sourceAlt": "Izvorni dokument računa",
     "openSource": "Otvorite u novoj kartici",
+    "highlightsUnavailablePdf": "Isticanje polja nije dostupno za PDF račune.",
     "lowConfidence": "Ovu vrijednost dodatno provjerite.",
     "addVat": "Dodajte redak PDV-a",
     "addItem": "Dodajte stavku",

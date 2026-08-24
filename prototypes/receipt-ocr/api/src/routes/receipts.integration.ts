@@ -396,6 +396,27 @@ describe("receipt source lifecycle against the hosted project", () => {
     expect(data?.extraction_metadata).toMatchObject({ latencyMs: 1 });
   });
 
+  it("scopes the source-regions projection to the owner and rejects a deleted receipt", async () => {
+    // The mock provider's `raw` carries no `analyzeResult`, so this also proves the projection
+    // degrades to an empty response for a stored result with no analysable shape, rather than
+    // erroring, which is the same path a pre-existing or failed receipt takes in production.
+    const owner = await request(app)
+      .get(`/api/receipts/${reviewReceiptId}/regions`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(owner.status).toBe(200);
+    expect(owner.body).toEqual({ pages: [], regions: [] });
+
+    const crossUser = await request(app)
+      .get(`/api/receipts/${reviewReceiptId}/regions`)
+      .set("Authorization", `Bearer ${tokenB}`);
+    expect(crossUser.status).toBe(404);
+
+    const deleted = await request(app)
+      .get(`/api/receipts/${uploadedReceiptId}/regions`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(deleted.status).toBe(404);
+  });
+
   it("edits and confirms a review receipt without changing its machine extraction", async () => {
     const patch = await request(app)
       .patch(`/api/receipts/${reviewReceiptId}`)

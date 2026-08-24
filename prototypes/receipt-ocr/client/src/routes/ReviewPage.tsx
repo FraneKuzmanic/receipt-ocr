@@ -9,12 +9,18 @@ import {
 import { useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
-import type { ReceiptDetailResponse } from "@receipt/shared";
-import { confirmReceipt, getReceipt, updateReceipt } from "../api/client";
+import type {
+  ReceiptDetailResponse,
+  SourceDocumentResponse,
+  SourceRegionsResponse,
+} from "@receipt/shared";
+import { confirmReceipt, getReceipt, getReceiptRegions, updateReceipt } from "../api/client";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Skeleton } from "../components/Skeleton";
 import { useToast } from "../components/Toast";
 import { SourceDocumentPanel } from "../review/SourceDocumentPanel";
+import { ActiveRegionStrip } from "../review/ActiveRegionStrip";
+import { SECTION_COLOURS, type Section } from "../review/regionSections";
 import { toFormValues, toPatch, type ReviewFormValues } from "../review/reviewForm";
 
 const sellerFields = ["sellerName", "sellerAddress", "sellerOib"] as const;
@@ -72,6 +78,7 @@ function ReviewField({ field, label, lowConfidenceFields, warnings, input }: Rev
           left warned fields with an amber explanation under a plain input, which reads as two
           unrelated conventions. */}
       {cloneElement(input, {
+        id: `review-field-${field.replaceAll(".", "-")}`,
         className: `min-h-11 w-full rounded-lg border px-3 ${
           hasHint ? "border-amber-500 bg-amber-50" : "border-slate-300 bg-white"
         }`,
@@ -151,11 +158,30 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
   const [saving, setSaving] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [regions, setRegions] = useState<SourceRegionsResponse | null>(null);
+  const [source, setSource] = useState<SourceDocumentResponse | null>(null);
+  const [overlaySafe, setOverlaySafe] = useState(false);
+  const [activeField, setActiveField] = useState<string | null>(null);
   const { register, control, handleSubmit, reset, formState } = useForm<ReviewFormValues>({
     values: toFormValues(receipt),
   });
   const vat = useFieldArray({ control, name: "vatBreakdown" });
   const items = useFieldArray({ control, name: "items" });
+
+  useEffect(() => {
+    let active = true;
+    void getReceiptRegions(receiptId)
+      .then((next) => active && setRegions(next))
+      .catch(() => active && setRegions(null));
+    return () => {
+      active = false;
+    };
+  }, [receiptId]);
+
+  function selectRegion(field: string) {
+    setActiveField(field);
+    document.getElementById(`review-field-${field.replaceAll(".", "-")}`)?.focus();
+  }
 
   const messages = (field: string) =>
     receipt.warnings
@@ -209,7 +235,26 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
 
   return (
     <section className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
-      <form onSubmit={handleSubmit(save)} className="flex max-w-lg flex-col gap-5">
+      <ActiveRegionStrip
+        sourceUrl={source?.url ?? null}
+        contentType={source?.contentType ?? null}
+        regions={regions}
+        activeField={activeField}
+        overlaySafe={overlaySafe}
+        onSelect={selectRegion}
+      />
+      <form
+        onSubmit={handleSubmit(save)}
+        onFocusCapture={(event) => {
+          const field = (event.target as HTMLElement).id.replace("review-field-", "");
+          if (field !== "") setActiveField(field.replaceAll("-", "."));
+        }}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+            setActiveField(null);
+        }}
+        className="flex max-w-lg flex-col gap-5"
+      >
         <div>
           <Link
             to="/receipts"
@@ -231,11 +276,18 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
           <summary className="min-h-11 cursor-pointer py-2 font-semibold">
             {t("review.showSource")}
           </summary>
-          <SourceDocumentPanel receiptId={receiptId} />
+          <SourceDocumentPanel
+            receiptId={receiptId}
+            regions={regions}
+            activeField={activeField}
+            onSelect={selectRegion}
+            onSourceLoad={setSource}
+            onOverlaySafetyChange={setOverlaySafe}
+          />
         </details>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="font-semibold">{t("review.seller")}</legend>
+          <SectionLegend section="seller" label={t("review.seller")} />
           {sellerFields.map((field) => (
             <ReviewField
               key={field}
@@ -249,7 +301,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="font-semibold">{t("review.buyer")}</legend>
+          <SectionLegend section="buyer" label={t("review.buyer")} />
           {buyerFields.map((field) => (
             <ReviewField
               key={field}
@@ -263,7 +315,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="font-semibold">{t("review.receipt")}</legend>
+          <SectionLegend section="receipt" label={t("review.receipt")} />
           <ReviewField
             field="documentNumber"
             label={t("review.fields.documentNumber")}
@@ -324,7 +376,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="font-semibold">{t("review.vat")}</legend>
+          <SectionLegend section="vat" label={t("review.vat")} />
           {/* `vat_arithmetic_mismatch` concerns the breakdown as a whole, so the engine emits it
               against the bare `vatBreakdown` path rather than an indexed cell. It has to be read
               here; the per-cell lookups below can never match it. */}
@@ -364,7 +416,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="font-semibold">{t("review.items")}</legend>
+          <SectionLegend section="items" label={t("review.items")} />
           {items.fields.map((field, index) => (
             <div key={field.id} className="grid gap-2 rounded border border-slate-200 p-3">
               <ReviewField
@@ -430,8 +482,24 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
         </button>
       </form>
       <aside className="sticky top-4 hidden h-fit lg:block">
-        <SourceDocumentPanel receiptId={receiptId} />
+        <SourceDocumentPanel
+          receiptId={receiptId}
+          regions={regions}
+          activeField={activeField}
+          onSelect={selectRegion}
+          onSourceLoad={setSource}
+          onOverlaySafetyChange={setOverlaySafe}
+        />
       </aside>
     </section>
+  );
+}
+
+function SectionLegend({ section, label }: { section: Section; label: string }) {
+  return (
+    <legend className="flex items-center gap-2 font-semibold">
+      <span className="size-2 rounded-full" style={{ backgroundColor: SECTION_COLOURS[section] }} />
+      {label}
+    </legend>
   );
 }

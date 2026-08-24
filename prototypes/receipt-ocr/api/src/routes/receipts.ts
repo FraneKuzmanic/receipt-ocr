@@ -27,6 +27,10 @@ import {
   type DocumentExtractionProvider,
 } from "../providers/document-extraction/types.js";
 import { parseFiscalQr } from "../providers/document-extraction/fiscal-qr.js";
+import {
+  mapSourceRegions,
+  storedAnalyzeResult,
+} from "../providers/document-extraction/source-regions.js";
 
 const idSchema = z.uuid();
 
@@ -238,6 +242,25 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
         originalFilename: source.originalFilename,
         expiresAt: new Date(Date.now() + SOURCE_URL_TTL_SECONDS * 1000).toISOString(),
       });
+    }),
+  );
+
+  router.get(
+    "/:id/regions",
+    authenticated(async (req, res, auth) => {
+      const id = idSchema.safeParse(req.params["id"]);
+      if (!id.success) throw new HttpError(400, "invalid_request");
+
+      const providerResult = await new ReceiptRepository(
+        auth.client,
+        auth.userId,
+      ).findProviderResultById(id.data);
+      if (providerResult === null) throw new HttpError(404, "not_found");
+
+      const analyzeResult = storedAnalyzeResult(providerResult.rawProviderResult);
+      res.json(
+        analyzeResult === null ? { pages: [], regions: [] } : mapSourceRegions(analyzeResult),
+      );
     }),
   );
 
