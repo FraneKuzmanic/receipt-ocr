@@ -1,6 +1,7 @@
 import type {
   AnalyzeResultOutput,
   DocumentFieldOutput,
+  DocumentTableCellOutput,
 } from "@azure-rest/ai-document-intelligence";
 import {
   sourceRegionsResponseSchema,
@@ -18,6 +19,7 @@ import {
   findZki,
 } from "./croatian.js";
 import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
+import { findVatTable, mapVatTableRows } from "./vat-tables.js";
 
 type Fields = Record<string, DocumentFieldOutput>;
 
@@ -55,8 +57,9 @@ export function mapSourceRegions(analyzeResult: AnalyzeResultOutput): SourceRegi
 
   addVatRegions(
     regions,
+    analyzeResult,
     first(sourceFields, FIELD_ALIASES.vatBreakdown),
-    mapped.fields.vatBreakdown,
+    mapped,
     dimensions,
   );
   addItemRegions(
@@ -117,7 +120,7 @@ function pageDimensions(analyzeResult: AnalyzeResultOutput) {
 
 function addFieldRegion(
   regions: SourceRegion[],
-  field: DocumentFieldOutput | undefined,
+  field: DocumentFieldOutput | DocumentTableCellOutput | undefined,
   path: string,
   dimensions: ReturnType<typeof pageDimensions>,
 ): void {
@@ -128,11 +131,24 @@ function addFieldRegion(
 
 function addVatRegions(
   regions: SourceRegion[],
+  analyzeResult: AnalyzeResultOutput,
   field: DocumentFieldOutput | undefined,
-  values: ReturnType<typeof mapAnalyzeResult>["fields"]["vatBreakdown"],
+  mapped: ReturnType<typeof mapAnalyzeResult>,
   dimensions: ReturnType<typeof pageDimensions>,
 ): void {
+  const values = mapped.fields.vatBreakdown;
   if (values === undefined || values === null) return;
+  if (mapped.vatSource === "table") {
+    const table = findVatTable(analyzeResult);
+    if (table === null) return;
+    for (const [index, row] of mapVatTableRows(table).entries()) {
+      for (const name of ["rate", "taxableBase", "vatAmount"] as const) {
+        if (row.values[name] === null) continue;
+        addFieldRegion(regions, row.cells[name], `vatBreakdown.${index}.${name}`, dimensions);
+      }
+    }
+    return;
+  }
   if (!field?.valueArray) {
     if (values[0]?.vatAmount !== null && values[0]?.vatAmount !== undefined) {
       addFieldRegion(regions, field, "vatBreakdown.0.vatAmount", dimensions);

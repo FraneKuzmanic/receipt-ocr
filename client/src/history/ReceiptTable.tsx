@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import type { CanonicalReceipt, ExportFormat } from "@receipt/shared";
 import { ReceiptActions } from "./ReceiptActions";
 import { formatReceiptTotal, receiptRoute } from "./receiptSummary";
@@ -23,6 +23,7 @@ interface ReceiptTableProps {
  */
 export function ReceiptTable({ items, downloadingId, onDownload, onDelete }: ReceiptTableProps) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
@@ -54,13 +55,15 @@ export function ReceiptTable({ items, downloadingId, onDownload, onDelete }: Rec
           {items.map((receipt) => (
             <tr
               key={receipt.id}
-              className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+              onClick={(event) => {
+                if (isInteractiveTarget(event.target)) return;
+                void navigate(receiptRoute(receipt));
+              }}
+              className="cursor-pointer border-b border-slate-100 last:border-0 hover:bg-slate-50"
             >
               <td className="truncate px-4 py-3 text-slate-600">
                 {receipt.issueDate ?? t("history.noDate")}
               </td>
-              {/* The seller cell is the row header and the only link: a fully clickable row would
-                  swallow the action menu's clicks and gives a keyboard user nothing to target. */}
               <th scope="row" className="truncate px-4 py-3 text-left font-medium">
                 <Link
                   to={receiptRoute(receipt)}
@@ -100,4 +103,8 @@ export function ReceiptTable({ items, downloadingId, onDownload, onDelete }: Rec
       </table>
     </div>
   );
+}
+
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest("a, button") !== null;
 }

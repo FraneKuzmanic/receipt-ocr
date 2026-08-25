@@ -58,6 +58,11 @@
     "description": "This can take a moment.",
     "errorDescription": "Try again to keep checking this receipt, or upload another one.",
     "failed": "This receipt could not be prepared.",
+    "failure": {
+      "unreadable_document": "This receipt could not be read. Take a clearer photo or upload another file.",
+      "provider_rejected": "The receipt service could not process this file. Upload another receipt.",
+      "provider_unavailable": "The receipt service is unavailable right now. Try again shortly."
+    },
     "requestError": "We could not check this receipt right now.",
     "timeout": "This is taking longer than expected.",
     "checkAgain": "Check again",
@@ -210,7 +215,8 @@
     "vat_arithmetic_mismatch": "The VAT amounts do not add up to the total.",
     "qr_total_mismatch": "The total differs from the amount in the receipt's QR code.",
     "qr_datetime_mismatch": "The date or time differs from the receipt's QR code.",
-    "document_quality": "The image is hard to read. Check the values carefully."
+    "document_quality": "The image is hard to read. Check the values carefully.",
+    "vat_present_but_unread": "This receipt shows VAT information we could not read. Check the VAT section against the receipt."
   },
   "upload": {
     "file_required": "Attach one receipt image or PDF.",

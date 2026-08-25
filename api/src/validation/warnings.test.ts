@@ -108,6 +108,24 @@ describe("VAT arithmetic warnings", () => {
   });
 });
 
+describe("unread VAT warnings", () => {
+  it("warns exactly once only when source text has a recap and no VAT row was mapped", () => {
+    const unread = computeWarnings({ fields: completeFields, vatTextPresent: true });
+    const mapped = computeWarnings({
+      fields: {
+        ...completeFields,
+        vatBreakdown: [{ rate: "25", taxableBase: "10.40", vatAmount: "2.60" }],
+      },
+      vatTextPresent: true,
+    });
+
+    expect(warningsByCode(unread, "vat_present_but_unread")).toEqual([
+      { code: "vat_present_but_unread", field: "vatBreakdown" },
+    ]);
+    expect(warningsByCode(mapped, "vat_present_but_unread")).toEqual([]);
+  });
+});
+
 describe("QR total warnings", () => {
   it("emits exactly one mismatch and clears it when the value is corrected", () => {
     const mismatch = computeWarnings({

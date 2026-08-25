@@ -11,7 +11,10 @@ import type {
   DocumentFieldOutput,
 } from "@azure-rest/ai-document-intelligence";
 import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
-import type { ExtractionFieldMetadata } from "./types.js";
+import { resolveCurrency } from "./currency.js";
+import { parseReceiptAmount } from "./receipt-amount.js";
+import { findVatTable, mapVatTable } from "./vat-tables.js";
+import { LOW_CONFIDENCE_THRESHOLD, type ExtractionFieldMetadata } from "./types.js";
 
 type Fields = Record<string, DocumentFieldOutput>;
 
@@ -20,6 +23,7 @@ export interface MappedAnalyzeResult {
   readonly fieldMetadata: Record<string, ExtractionFieldMetadata>;
   readonly unreadableFields: string[];
   readonly documentConfidence: number | null;
+  readonly vatSource: "model" | "table" | "total" | null;
 }
 
 type TextField =
@@ -82,17 +86,42 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
   );
 
   const totalField = first(sourceFields, FIELD_ALIASES.currency);
-  const currency = totalField?.valueCurrency;
-  if (currency?.currencySymbol && currency.currencyCode) {
-    fields.currency = currency.currencyCode;
-    fieldMetadata.currency = metadata(totalField);
+  const currency = resolveCurrency({
+    content: analyzeResult.content,
+    field: totalField,
+    issueDate: fields.issueDate,
+  });
+  if (currency !== null) {
+    fields.currency = currency.code;
+    fieldMetadata.currency = {
+      confidence:
+        currency.source === "inferred"
+          ? LOW_CONFIDENCE_THRESHOLD - 0.2
+          : (totalField?.confidence ?? null),
+      source: currency.source,
+    };
   }
 
-  const vatField = first(sourceFields, FIELD_ALIASES.vatBreakdown);
-  const vatBreakdown = mapVatBreakdown(vatField);
-  if (vatBreakdown !== null) {
+  const taxDetails = sourceFields["TaxDetails"];
+  const totalTax = sourceFields["TotalTax"];
+  const modelVatBreakdown = mapVatBreakdown(taxDetails);
+  const vatTable = findVatTable(analyzeResult);
+  const tableVatBreakdown = vatTable === null ? [] : mapVatTable(vatTable);
+  const vatBreakdown =
+    modelVatBreakdown ??
+    (tableVatBreakdown.length > 0 ? tableVatBreakdown : null) ??
+    mapVatBreakdown(totalTax);
+  const vatSource =
+    modelVatBreakdown !== null
+      ? "model"
+      : tableVatBreakdown.length > 0
+        ? "table"
+        : vatBreakdown !== null
+          ? "total"
+          : null;
+  if (vatBreakdown !== null && vatBreakdown.length > 0) {
     fields.vatBreakdown = vatBreakdown;
-    fieldMetadata.vatBreakdown = metadata(vatField);
+    fieldMetadata.vatBreakdown = metadata(taxDetails ?? totalTax);
   }
 
   const itemsField = first(sourceFields, FIELD_ALIASES.items);
@@ -107,6 +136,7 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
     fieldMetadata,
     unreadableFields,
     documentConfidence: document?.confidence ?? null,
+    vatSource,
   };
 }
 
@@ -182,9 +212,9 @@ function mapVatBreakdown(field: DocumentFieldOutput | undefined): VatBreakdown[]
     return field.valueArray.map((entry) => {
       const values = entry.valueObject ?? {};
       return {
-        rate: parseAmount(first(values, VAT_CELL_ALIASES.rate)?.content),
-        taxableBase: parseAmount(first(values, VAT_CELL_ALIASES.taxableBase)?.content),
-        vatAmount: parseAmount(first(values, VAT_CELL_ALIASES.vatAmount)?.content),
+        rate: parseReceiptAmount(first(values, VAT_CELL_ALIASES.rate)?.content),
+        taxableBase: parseReceiptAmount(first(values, VAT_CELL_ALIASES.taxableBase)?.content),
+        vatAmount: parseReceiptAmount(first(values, VAT_CELL_ALIASES.vatAmount)?.content),
       };
     });
   }
@@ -198,9 +228,9 @@ function mapItems(field: DocumentFieldOutput | undefined): ReceiptItem[] | null 
     const values = entry.valueObject ?? {};
     return {
       description: first(values, ITEM_CELL_ALIASES.description)?.content ?? null,
-      quantity: parseAmount(first(values, ITEM_CELL_ALIASES.quantity)?.content),
-      unitPrice: parseAmount(first(values, ITEM_CELL_ALIASES.unitPrice)?.content),
-      total: parseAmount(first(values, ITEM_CELL_ALIASES.total)?.content),
+      quantity: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.quantity)?.content),
+      unitPrice: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.unitPrice)?.content),
+      total: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.total)?.content),
     };
   });
 }

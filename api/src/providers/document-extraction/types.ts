@@ -11,7 +11,7 @@ export interface ExtractionInput {
 
 export interface ExtractionFieldMetadata {
   readonly confidence: number | null;
-  readonly source: "model" | "text";
+  readonly source: "model" | "text" | "inferred";
 }
 
 export interface ExtractionMetadata {
@@ -23,6 +23,7 @@ export interface ExtractionMetadata {
   readonly documentConfidence: number | null;
   readonly fields: Record<string, ExtractionFieldMetadata>;
   readonly unreadableFields: string[];
+  readonly vatTextPresent?: boolean;
 }
 
 export interface ProviderExtractionResult {

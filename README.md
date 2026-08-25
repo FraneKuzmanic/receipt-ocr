@@ -515,7 +515,8 @@ field values; Azure's inline `:barcode:`/layout markers are stripped before Croa
 so a marker can never become a canonical value.
 
 The retained raw response also supports a read-only source-region projection for review. The mapper
-shares the extraction alias table, recomputes Croatian fallback spans against the original content,
+shares the extraction alias table, reads Croatian VAT recaps from the provider's table geometry when
+the structured VAT field is absent, recomputes Croatian fallback spans against the original content,
 and normalizes source geometry at read time. This makes highlighting work for previously analysed
 receipts without reprocessing, a migration or a provider call.
 
@@ -718,9 +719,10 @@ than a rule a route has to remember. **Do not flatten the two tiers into one sch
 path it concerns. `api/src/validation/warnings.ts` computes the rules after extraction and can be
 reused by Task 09 when an editable field changes; warnings are codes, not server-rendered prose.
 
-The API currently produces six informational checks: `missing_critical_field` (`sellerName`,
+The API currently produces seven informational checks: `missing_critical_field` (`sellerName`,
 `documentNumber`, `issueDate`, `total`, `currency`); `unparseable_date`/`unparseable_amount` when
 source text existed but could not normalize; `vat_arithmetic_mismatch` on a complete `vatBreakdown`;
+`vat_present_but_unread` when a non-exempt receipt shows a VAT recap that could not map to a VAT row;
 `qr_total_mismatch` on `total`; and `qr_datetime_mismatch` on `issueDate`. Incomplete VAT or QR data
 emits nothing rather than guessing.
 

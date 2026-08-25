@@ -11,6 +11,8 @@ export interface WarningInput {
   readonly qr?: FiscalQrData | null;
   /** Canonical field names whose source text was present but could not be normalized. */
   readonly unreadable?: readonly string[];
+  /** The extraction provider found a VAT recap in source text that did not map to a VAT row. */
+  readonly vatTextPresent?: boolean;
 }
 
 export const CRITICAL_FIELDS = [
@@ -40,6 +42,10 @@ export function computeWarnings(input: WarningInput): ReceiptWarning[] {
 
   if (hasVatMismatch(input.fields)) {
     warnings.push({ code: "vat_arithmetic_mismatch", field: "vatBreakdown" });
+  }
+
+  if (input.vatTextPresent === true && (input.fields.vatBreakdown?.length ?? 0) === 0) {
+    warnings.push({ code: "vat_present_but_unread", field: "vatBreakdown" });
   }
 
   if (

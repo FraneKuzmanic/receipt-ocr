@@ -138,12 +138,20 @@ Current coverage and what each test protects:
 | `client/src/i18n/uploadErrors.test.ts` | Every upload error code has a non-empty Croatian and English message, with no orphan message |
 | `api/src/providers/document-extraction/croatian.test.ts` | Croatian OIB, JIR, ZKI, issue date, issue time and document-number text fallbacks handle valid, absent and malformed receipt text |
 | `api/src/providers/document-extraction/azure-fields.test.ts` | Recorded Azure fixtures map to canonical fields offline; exact decimal strings come from text rather than provider floats |
+| `api/src/providers/document-extraction/receipt-amount.test.ts` (Iteration 18) | Receipt-specific OCR suffixes (`%`, a Croatian tax-class letter, `*`/`#`) normalize before the canonical money parser, while currency tokens and unreadable text retain their existing behavior |
+| `api/src/providers/document-extraction/currency.test.ts` (Iteration 18) | All seven recorded fixtures resolve currency from explicit receipt text, corroborated provider evidence, or Croatian date inference; labels and conversion expressions never turn a kuna receipt into EUR |
+| `api/src/providers/document-extraction/vat-tables.test.ts` (Iteration 18) | Header-driven VAT recap mapping handles sparse cells, optional label columns, summary rows and unrelated rows without changing canonical money formatting |
+| `api/src/providers/document-extraction/tax-signals.test.ts` (Iteration 18) | The unread-VAT signal requires structural recap evidence and remains silent for the recorded VAT-exempt receipts |
 | `api/src/providers/document-extraction/azure.test.ts` | Azure retryability classification, deterministic fallbacks isolated from the network, and — regression coverage for a real post-review bug — the request's abort signal is proven to reach the long-running poll, and a poll that outlives `EXTRACTION_TIMEOUT_MS` is proven to reject as a retryable failure rather than hang |
 | `api/src/services/receipt-extraction.test.ts` | Background extraction writes review/original data together and contains expected and unexpected failures |
 | `api/src/providers/document-extraction/fiscal-qr.test.ts` | Croatian fiscal QR URLs, a bare JIR UUID, case-insensitive parameters, ZKI, malformed payloads and separator-less `izn` parsing remain deterministic, local and non-throwing |
 | `api/src/providers/document-extraction/azure-fields.test.ts` (Task 08) | Unreadable source values are tracked as `unreadableFields` without persisting bad data; structured Azure values still take precedence when valid |
 | `api/src/providers/document-extraction/azure.test.ts` (Task 08) | Barcode feature propagation, QR extraction and marker-safe text fallbacks preserve normal field extraction when a QR is absent |
 | `api/src/validation/warnings.test.ts` | Pure, stable-order warning rules cover critical gaps, unreadable values, exact VAT arithmetic, QR total/date/time mismatches and the not-enough-information path; corrected values clear warnings without OCR rerunning |
+| `api/src/providers/document-extraction/azure-fields.test.ts` (Iteration 18) | Table VAT, inferred HRK currency and tax-class-suffixed line-item amounts reach the canonical mapper; structured `TaxDetails` retains precedence |
+| `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 18) | Table-sourced VAT cells project canonical review paths from their own geometry after skipped summary rows are removed |
+| `api/src/validation/warnings.test.ts` (Iteration 18) | `vat_present_but_unread` is informational, emitted once only when a structural VAT signal exists without a mapped VAT row, and clears after a VAT row is present |
+| `api/src/services/receipt-extraction.test.ts` (Iteration 18) | The VAT signal is persisted with extraction metadata and produces its warning alongside the normal review result |
 | `api/src/services/receipt-extraction.test.ts` (Task 08) | Background extraction persists QR data and computed warnings together; no QR persists as `null` |
 | `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 15) | The read-time source-region projection: `total`/`currency` share one region, VAT and item cells are individually indexed, page coordinates normalize to `[0,1]` for both pixel (image) and inch (PDF) units, a fixture with a `:barcode:` marker still resolves fallback fields to the correct word span, and a fixture with no analysable pages yields an empty response rather than throwing |
 | `client/src/review/regionSections.test.ts` (Iteration 15) | Canonical field paths map to the correct form section, including nested `vatBreakdown.N.*`/`items.N.*` prefixes; an unrecognized path returns `null` rather than throwing |
@@ -404,6 +412,15 @@ This is a proxy, not a full body scan: it confirms the projection is still force
 Zod schema before it ever reaches an HTTP response, which is what makes an accidental Azure field
 name a parse failure rather than a silent leak. `source-regions.test.ts` covers the positive case —
 that real fixtures parse cleanly and expose only `fields`, `page`, `corners` and `origin`.
+
+### 6.18 Receipt-noise parsing leaves the canonical money contract unchanged
+
+Iteration 18 normalizes OCR-only suffixes in the extraction adapter. The canonical parser must remain
+the shared decimal contract, so this task must not modify `shared/src/money.ts`.
+
+```
+git diff --quiet -- shared/src/money.ts || (echo 'shared/src/money.ts changed during receipt-noise parsing' && exit 1)
+```
 
 ---
 
@@ -776,6 +793,19 @@ Repeat the row menu and the delete dialog in Croatian and confirm no raw transla
 **Two of these are provable only in a browser** — the dropdown's clipping and the dialog's real
 modality both depend on layout and the top layer, neither of which jsdom implements at all. Its
 `showModal` is stubbed in `client/src/test/setup.ts` purely so the components mount.
+
+---
+
+### 8.16 Journey - extraction accuracy
+
+Upload a Croatian receipt with a VAT recap and confirm the review form contains its VAT rate, taxable
+base and VAT amount. Confirm the currency is populated; when it is inferred from a pre-2023 Croatian
+receipt, it must use the existing amber low-confidence treatment. At 1440 px, focus each VAT field and
+confirm its table-cell source outline appears. Upload a VAT-exempt receipt and confirm it shows no
+`vat_present_but_unread` warning. Repeat the visible copy in Croatian.
+
+The table-cell outlines require a real browser; jsdom cannot verify painted SVG geometry or pointer
+hit testing.
 
 ---
 

@@ -16,8 +16,14 @@ import {
 } from "./croatian.js";
 import { mapAnalyzeResult } from "./azure-fields.js";
 import { stripContentMarkers, type StrippedContent } from "./content-markers.js";
+import { hasUnreadVatSignal } from "./tax-signals.js";
 import { parseFiscalQr, type FiscalQrData } from "./fiscal-qr.js";
-import { ExtractionError, type DocumentExtractionProvider, type ExtractionInput } from "./types.js";
+import {
+  ExtractionError,
+  type DocumentExtractionProvider,
+  type ExtractionFieldMetadata,
+  type ExtractionInput,
+} from "./types.js";
 
 export const AZURE_API_VERSION = "2024-11-30";
 
@@ -82,6 +88,7 @@ export function createAzureProvider(
             documentConfidence: mapped.documentConfidence,
             fields: metadata,
             unreadableFields: mapped.unreadableFields,
+            vatTextPresent: hasUnreadVatSignal(response.analyzeResult.content),
           },
           qr: extractFiscalQr(response.analyzeResult),
           raw: response.raw,
@@ -148,7 +155,7 @@ function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | nul
 
 function applyTextFallbacks(
   fields: Record<string, unknown>,
-  metadata: Record<string, { confidence: number | null; source: "model" | "text" }>,
+  metadata: Record<string, ExtractionFieldMetadata>,
   content: StrippedContent,
 ): void {
   const fallbacks = {

@@ -5,8 +5,8 @@ import { z } from "zod";
  * Task 08's; this module exists so the model, the API and the UI can already agree on the
  * vocabulary.
  *
- * These seven are derived from the check list in ROADMAP Task 08, not invented. Adding an
- * eighth speculatively would be scaffolding for a rule nobody has written yet, and every
+ * These eight are derived from implemented warning rules. Adding a code speculatively would be
+ * scaffolding for a rule nobody has written yet, and every
  * code costs two translations.
  */
 export const WARNING_CODES = [
@@ -17,6 +17,7 @@ export const WARNING_CODES = [
   "qr_total_mismatch",
   "qr_datetime_mismatch",
   "document_quality",
+  "vat_present_but_unread",
 ] as const;
 
 export const warningCodeSchema = z.enum(WARNING_CODES);

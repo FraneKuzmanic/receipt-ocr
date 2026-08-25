@@ -154,6 +154,7 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
           fields,
           qr: storedQr(state.qrExtraction),
           unreadable: unreadableFields(state.extractionMetadata),
+          vatTextPresent: vatTextPresent(state.extractionMetadata),
         }),
       });
       if (receipt === null) throw new HttpError(404, "not_found");
@@ -379,6 +380,11 @@ function unreadableFields(metadata: unknown): string[] {
   return Array.isArray(values)
     ? values.filter((value): value is string => typeof value === "string")
     : [];
+}
+
+function vatTextPresent(metadata: unknown): boolean {
+  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return false;
+  return (metadata as Record<string, unknown>)["vatTextPresent"] === true;
 }
 
 function storedQr(value: unknown) {

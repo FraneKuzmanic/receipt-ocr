@@ -32,6 +32,7 @@ export async function extractReceipt(input: ExtractReceiptInput): Promise<void> 
       fields: result.fields,
       qr: result.qr,
       unreadable: result.metadata.unreadableFields,
+      vatTextPresent: result.metadata.vatTextPresent,
     });
     await repository.update(input.receiptId, {
       status: "review",
