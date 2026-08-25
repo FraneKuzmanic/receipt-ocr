@@ -58,6 +58,11 @@
     "description": "Ovo može potrajati trenutak.",
     "errorDescription": "Pokušajte ponovno provjeriti ovaj račun ili prenesite drugi.",
     "failed": "Nije moguće pripremiti ovaj račun.",
+    "failure": {
+      "unreadable_document": "Ovaj račun nije bilo moguće pročitati. Snimite jasniju fotografiju ili prenesite drugu datoteku.",
+      "provider_rejected": "Usluga za račune nije mogla obraditi ovu datoteku. Prenesite drugi račun.",
+      "provider_unavailable": "Usluga za račune trenutačno nije dostupna. Pokušajte ponovno uskoro."
+    },
     "requestError": "Trenutačno ne možemo provjeriti ovaj račun.",
     "timeout": "Ovo traje dulje nego što smo očekivali.",
     "checkAgain": "Provjerite ponovno",
@@ -211,7 +216,8 @@
     "vat_arithmetic_mismatch": "Iznosi PDV-a ne odgovaraju ukupnom iznosu.",
     "qr_total_mismatch": "Ukupan iznos razlikuje se od iznosa u QR kodu računa.",
     "qr_datetime_mismatch": "Datum ili vrijeme razlikuju se od QR koda računa.",
-    "document_quality": "Sliku je teško očitati. Pažljivo provjerite vrijednosti."
+    "document_quality": "Sliku je teško očitati. Pažljivo provjerite vrijednosti.",
+    "vat_present_but_unread": "Na računu postoji PDV koji nismo uspjeli pročitati. Provjerite odjeljak PDV-a prema računu."
   },
   "upload": {
     "file_required": "Priložite jednu sliku računa ili PDF.",

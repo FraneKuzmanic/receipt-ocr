@@ -86,6 +86,27 @@ describe("receipt extraction service", () => {
     );
   });
 
+  it("persists the VAT text signal and its non-blocking warning", async () => {
+    await extractReceipt(
+      input({
+        extract: async () => ({
+          ...providerResult,
+          metadata: { ...providerResult.metadata, vatTextPresent: true },
+        }),
+      }),
+    );
+
+    expect(update).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        extractionMetadata: expect.objectContaining({ vatTextPresent: true }),
+        warnings: expect.arrayContaining([
+          { code: "vat_present_but_unread", field: "vatBreakdown" },
+        ]),
+      }),
+    );
+  });
+
   it("records a non-retryable failure", async () => {
     await extractReceipt(
       input({

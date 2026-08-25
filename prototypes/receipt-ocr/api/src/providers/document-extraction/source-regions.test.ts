@@ -47,6 +47,29 @@ describe("source region projection", () => {
     ).toBe(true);
   });
 
+  it("projects canonical VAT paths from table-cell geometry", async () => {
+    const result = mapSourceRegions(await fixture("racun-mobilna-trgovina"));
+
+    for (const field of [
+      "vatBreakdown.0.rate",
+      "vatBreakdown.0.taxableBase",
+      "vatBreakdown.0.vatAmount",
+    ]) {
+      const region = result.regions.find((entry) => entry.fields.includes(field));
+      expect(region).toBeDefined();
+      expect(region?.corners).toHaveLength(4);
+      for (const corner of region?.corners ?? []) {
+        expect(corner.x).toBeGreaterThanOrEqual(0);
+        expect(corner.x).toBeLessThanOrEqual(1);
+        expect(corner.y).toBeGreaterThanOrEqual(0);
+        expect(corner.y).toBeLessThanOrEqual(1);
+      }
+    }
+    expect(result.regions.flatMap((region) => region.fields)).not.toContain(
+      "vatBreakdown.1.vatAmount",
+    );
+  });
+
   it("maps fiscal text fallbacks against source offsets after a marker", async () => {
     const result = mapSourceRegions(await fixture("26515835"));
     expect(result.regions).toEqual(

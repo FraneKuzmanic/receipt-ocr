@@ -14,13 +14,38 @@ async function fixture(name: string): Promise<AnalyzeResultOutput> {
 }
 
 describe("Azure field mapper", () => {
-  it("maps recorded fixtures with missing VAT, buyer and fiscal identifiers without inventing fields", async () => {
-    const missingVatBuyer = mapAnalyzeResult(await fixture("31231822"));
+  it("maps table VAT without inventing buyer or fiscal identifiers", async () => {
+    const tableVat = mapAnalyzeResult(await fixture("31231822"));
     const missingFiscal = mapAnalyzeResult(await fixture("images"));
 
-    expect(missingVatBuyer.fields.vatBreakdown).toBeUndefined();
-    expect(missingVatBuyer.fields.buyerName).toBeUndefined();
+    expect(tableVat.fields.vatBreakdown).toEqual([
+      { rate: "25.00", taxableBase: "10.40", vatAmount: "2.60" },
+    ]);
+    expect(tableVat.vatSource).toBe("table");
+    expect(tableVat.fields.buyerName).toBeUndefined();
     expect(missingFiscal.fields.sellerOib).toBeUndefined();
+  });
+
+  it("maps recorded currency, VAT and noisy item totals through the canonical mapper", async () => {
+    const inferred = mapAnalyzeResult(await fixture("racun-mobilna-trgovina"));
+    const noisyItem = mapAnalyzeResult(await fixture("31231822"));
+    const labelLessVat = mapAnalyzeResult(await fixture("26515835"));
+    const structuredVat = mapAnalyzeResult(await fixture("images"));
+    const exemptVat = mapAnalyzeResult(await fixture("racuntaksi1"));
+
+    expect(inferred.fields.currency).toBe("HRK");
+    expect(inferred.fieldMetadata.currency).toMatchObject({ source: "inferred" });
+    expect(inferred.fieldMetadata.currency?.confidence).toBeLessThan(0.7);
+    expect(inferred.fields.vatBreakdown).toEqual([
+      { rate: "25.00", taxableBase: "82.95", vatAmount: "20.74" },
+    ]);
+    expect(noisyItem.fields.items?.[0]?.total).toBe("13.00");
+    expect(labelLessVat.fields.vatBreakdown).toEqual([
+      { rate: "05.00", taxableBase: "01.90", vatAmount: "00.09" },
+    ]);
+    expect(structuredVat.vatSource).toBe("model");
+    expect(structuredVat.fields.vatBreakdown).toBeDefined();
+    expect(exemptVat.fields.vatBreakdown).toBeUndefined();
   });
 
   it("records source values that could not be normalized without persisting them", async () => {
