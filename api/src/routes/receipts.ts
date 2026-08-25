@@ -73,6 +73,36 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
   );
 
   /**
+   * One receipt in the same portable formats as the bulk export. Scope matches PRD §7.12: only a
+   * confirmed receipt leaves the PoC, so a draft cannot be mistaken downstream for final data.
+   *
+   * Two segments, so Express can never confuse this with the bulk `/export` route above.
+   */
+  router.get(
+    "/:id/export",
+    authenticated(async (req, res, auth) => {
+      const id = idSchema.safeParse(req.params["id"]);
+      if (!id.success) throw new HttpError(400, "invalid_request");
+
+      const format = exportFormatSchema.safeParse(req.query["format"]);
+      if (!format.success) throw new HttpError(400, "invalid_request");
+
+      const receipt = await new ReceiptRepository(auth.client, auth.userId).findById(id.data);
+      if (receipt === null) throw new HttpError(404, "not_found");
+      if (receipt.status !== "confirmed") throw new HttpError(409, "export_not_allowed");
+
+      if (format.data === "csv") {
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename="receipt-${receipt.id}.csv"`);
+        res.send(toCsv([receipt]));
+        return;
+      }
+
+      res.json(toJsonExport([receipt]));
+    }),
+  );
+
+  /**
    * PRD §10.3. A receipt owned by someone else returns 404, never 403: telling a caller that an
    * id exists but is not theirs leaks exactly what ownership is meant to hide.
    *

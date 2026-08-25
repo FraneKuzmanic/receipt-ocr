@@ -190,6 +190,21 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 14  | Busy-state, capture-loading & desktop-picker corrections | _none — user asked for a direct fix_ | [history](history/14-busy-state-and-desktop-picker-fixes.md) |
 | 15  | Source-document field highlighting | [plan](plans/source-field-highlighting.md) | [history](history/15-source-field-highlighting.md) |
 | 16  | Source-panel zoom, mobile inspect popover & edited-field indicator | _none — user asked for a direct implementation_ | [history](history/16-source-panel-zoom-inspect-popover.md) |
+| 17  | Receipts table, row actions & single-receipt export | _none — user asked for research, questions, then direct implementation_ | [history](history/17-receipts-table-row-actions-single-export.md) |
+
+**Amendment from iteration 17 — a validation grep encodes an intention it cannot see, so a red check
+means "find out which of the two is wrong", not "change the code".** Phase 6.14 rejected any mention
+of `originalExtraction` in the receipt routes. Iteration 16's `editedFields` projection legitimately
+*reads* it, so the check had been failing since that commit, unnoticed because that iteration ran
+only the checks its own diff implicated. The correct fix was to narrow the grep to an assignment;
+"fix the cause" in `/validate`'s header does not always mean the cause is in the application code.
+
+**Amendment from iteration 17 — a modal is a native `<dialog>` with `showModal()`, never a
+hand-rolled overlay.** It renders in the browser's top layer and makes the rest of the page inert,
+which is structurally incapable of repeating iteration 12's `inert` failure, and it supplies focus
+trapping and Escape for free. jsdom implements none of it — `client/src/test/setup.ts` stubs
+`showModal`/`close` purely so components mount — so real modality is still browser-only, and
+`dialog.matches(":modal")` is the assertion that actually proves it.
 
 **Amendment from iteration 14 — a sized element must not depend on its parent being a flex box, and
 jsdom cannot tell you that it does.** Iteration 13's busy buttons nested the spinner glyph inside a

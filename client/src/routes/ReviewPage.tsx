@@ -1,4 +1,4 @@
-import { ChevronLeft, TriangleAlert } from "lucide-react";
+import { ChevronLeft, Download, FileJson, FileSpreadsheet, TriangleAlert } from "lucide-react";
 import {
   cloneElement,
   useEffect,
@@ -9,11 +9,19 @@ import {
 import { useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
-import type { ReceiptDetailResponse, SourceRegionsResponse } from "@receipt/shared";
-import { confirmReceipt, getReceipt, getReceiptRegions, updateReceipt } from "../api/client";
+import type { ExportFormat, ReceiptDetailResponse, SourceRegionsResponse } from "@receipt/shared";
+import {
+  confirmReceipt,
+  exportReceipt,
+  getReceipt,
+  getReceiptRegions,
+  updateReceipt,
+} from "../api/client";
+import { ActionMenu } from "../components/ActionMenu";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Skeleton } from "../components/Skeleton";
 import { useToast } from "../components/Toast";
+import { receiptExportFilename, saveBlob } from "../history/download";
 import { SourceDocumentPanel } from "../review/SourceDocumentPanel";
 import { SECTION_COLOURS, type Section } from "../review/regionSections";
 import { toFormValues, toPatch, type ReviewFormValues } from "../review/reviewForm";
@@ -152,6 +160,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
   const { show } = useToast();
   const [saving, setSaving] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [regions, setRegions] = useState<SourceRegionsResponse | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
@@ -214,6 +223,21 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
     }
   }
 
+  /** Confirming and then having to go back to the list to download the result is a detour. */
+  async function download(format: ExportFormat) {
+    if (downloading) return;
+    setDownloading(true);
+    setError(null);
+    try {
+      const blob = await exportReceipt(receiptId, format);
+      saveBlob(blob, receiptExportFilename({ ...receipt, id: receiptId }, format));
+    } catch {
+      setError(t("review.errors.download"));
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   async function confirm() {
     setConfirming(true);
     setError(null);
@@ -250,7 +274,32 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
             <ChevronLeft aria-hidden="true" className="size-4" />
             {t("review.backToReceipts")}
           </Link>
-          <h1 className="text-2xl font-semibold">{t("review.title")}</h1>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-2xl font-semibold">{t("review.title")}</h1>
+            {receipt.status === "confirmed" ? (
+              <ActionMenu
+                id="receipt-download-menu"
+                variant="labelled"
+                icon={Download}
+                label={t("common.download")}
+                busy={downloading}
+                items={[
+                  {
+                    key: "csv",
+                    label: t("common.downloadCsv"),
+                    icon: FileSpreadsheet,
+                    onSelect: () => void download("csv"),
+                  },
+                  {
+                    key: "json",
+                    label: t("common.downloadJson"),
+                    icon: FileJson,
+                    onSelect: () => void download("json"),
+                  },
+                ]}
+              />
+            ) : null}
+          </div>
           {receipt.status === "confirmed" ? (
             <p className="text-green-700">{t("review.confirmed")}</p>
           ) : null}

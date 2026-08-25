@@ -1,30 +1,36 @@
-import { Download, ReceiptText, Trash2 } from "lucide-react";
+import { Download, FileJson, FileSpreadsheet, ReceiptText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import {
   RECEIPT_STATUSES,
+  type CanonicalReceipt,
   type ExportFormat,
   type ListReceiptsResponse,
   type ReceiptStatus,
 } from "@receipt/shared";
-import { deleteReceipt, exportReceipts, getReceipts } from "../api/client";
+import { deleteReceipt, exportReceipt, exportReceipts, getReceipts } from "../api/client";
+import { ActionMenu } from "../components/ActionMenu";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Skeleton } from "../components/Skeleton";
-import { Spinner } from "../components/Spinner";
-import { exportFilename, saveBlob } from "../history/download";
-import { formatReceiptTotal, receiptRoute } from "../history/receiptSummary";
+import { ReceiptCards } from "../history/ReceiptCards";
+import { ReceiptTable } from "../history/ReceiptTable";
+import { exportFilename, receiptExportFilename, saveBlob } from "../history/download";
+import { useWideLayout } from "../history/useWideLayout";
 
 export function HistoryPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const wide = useWideLayout();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<ReceiptStatus | "">("");
   const [data, setData] = useState<ListReceiptsResponse | null>(null);
   const [failed, setFailed] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<CanonicalReceipt | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [deleteFailed, setDeleteFailed] = useState(false);
   const [exporting, setExporting] = useState<ReadonlySet<ExportFormat>>(() => new Set());
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [exportFailed, setExportFailed] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -50,8 +56,8 @@ export function HistoryPage() {
   }, [page, reloadToken, status]);
 
   async function remove(id: string) {
-    if (deletingId !== null) return;
-    setDeletingId(id);
+    if (deleting) return;
+    setDeleting(true);
     setDeleteFailed(false);
     try {
       await deleteReceipt(id);
@@ -60,7 +66,7 @@ export function HistoryPage() {
     } catch {
       setDeleteFailed(true);
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   }
 
@@ -82,16 +88,29 @@ export function HistoryPage() {
     }
   }
 
+  async function downloadOne(receipt: CanonicalReceipt, format: ExportFormat) {
+    if (downloadingId !== null) return;
+    setDownloadingId(receipt.id);
+    setExportFailed(false);
+    try {
+      const blob = await exportReceipt(receipt.id, format);
+      saveBlob(blob, receiptExportFilename(receipt, format));
+    } catch {
+      setExportFailed(true);
+    } finally {
+      setDownloadingId(null);
+    }
+  }
+
   const totalPages = data === null ? 1 : Math.max(1, Math.ceil(data.total / data.limit));
-  const busyMessage =
-    deletingId !== null
-      ? t("history.deletingStatus")
-      : exporting.size > 0
-        ? t("history.exportingStatus")
-        : null;
+  const busyMessage = deleting
+    ? t("history.deletingStatus")
+    : exporting.size > 0 || downloadingId !== null
+      ? t("history.exportingStatus")
+      : null;
 
   return (
-    <section className="mx-auto flex max-w-lg flex-col gap-5 px-4 py-6">
+    <section className="mx-auto flex max-w-lg flex-col gap-5 px-4 py-6 lg:max-w-6xl">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold">{t("history.title")}</h1>
         {data === null ? null : (
@@ -99,67 +118,58 @@ export function HistoryPage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4">
-        <div>
-          <h2 className="font-semibold text-slate-900">{t("history.exportTitle")}</h2>
-          <p className="mt-1 text-sm text-slate-600">{t("history.exportHint")}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => void download("csv")}
-            aria-disabled={exporting.has("csv")}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-3 text-sm font-semibold text-white hover:bg-accent-hover aria-disabled:bg-slate-400"
+      {/* One toolbar owns everything that acts on the list: the filter that narrows it on the
+          left, the bulk export that consumes it on the right. The export used to be a card of
+          its own above the receipts, which gave a secondary action more visual weight than the
+          list it operates on. */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="receipt-status" className="text-sm font-medium text-slate-700">
+            {t("history.filterLabel")}
+          </label>
+          <select
+            id="receipt-status"
+            value={status}
+            onChange={(event) => {
+              setStatus(event.target.value as ReceiptStatus | "");
+              setPage(1);
+            }}
+            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-slate-900"
           >
-            {/* The idle icon and the spinner occupy the same box, so the busy state neither
-                reflows the button nor leaves a hole in it while idle. The label never changes. */}
-            {exporting.has("csv") ? (
-              <Spinner label={false} />
-            ) : (
-              <Download aria-hidden="true" className="size-4" />
-            )}
-            {t("history.exportCsv")}
-          </button>
-          <button
-            type="button"
-            onClick={() => void download("json")}
-            aria-disabled={exporting.has("json")}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 aria-disabled:text-slate-400"
-          >
-            {exporting.has("json") ? (
-              <Spinner label={false} />
-            ) : (
-              <Download aria-hidden="true" className="size-4" />
-            )}
-            {t("history.exportJson")}
-          </button>
+            <option value="">{t("history.filterAll")}</option>
+            {RECEIPT_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {t(`history.status.${value}`)}
+              </option>
+            ))}
+          </select>
         </div>
+
+        <ActionMenu
+          id="bulk-export-menu"
+          variant="labelled"
+          icon={Download}
+          label={t("history.export")}
+          busy={exporting.size > 0}
+          items={[
+            {
+              key: "csv",
+              label: t("history.exportAllCsv"),
+              icon: FileSpreadsheet,
+              onSelect: () => void download("csv"),
+            },
+            {
+              key: "json",
+              label: t("history.exportAllJson"),
+              icon: FileJson,
+              onSelect: () => void download("json"),
+            },
+          ]}
+        />
       </div>
       <p role="status" className="sr-only">
         {busyMessage}
       </p>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="receipt-status" className="text-sm font-medium text-slate-700">
-          {t("history.filterLabel")}
-        </label>
-        <select
-          id="receipt-status"
-          value={status}
-          onChange={(event) => {
-            setStatus(event.target.value as ReceiptStatus | "");
-            setPage(1);
-          }}
-          className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-slate-900"
-        >
-          <option value="">{t("history.filterAll")}</option>
-          {RECEIPT_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {t(`history.status.${value}`)}
-            </option>
-          ))}
-        </select>
-      </div>
 
       {data === null && !failed ? (
         <div role="status" aria-label={t("common.loading")} className="flex flex-col gap-3">
@@ -207,79 +217,21 @@ export function HistoryPage() {
 
       {data !== null && data.items.length > 0 ? (
         <>
-          <ul className="flex flex-col gap-3">
-            {data.items.map((receipt) => (
-              <li
-                key={receipt.id}
-                className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-              >
-                <Link
-                  to={receiptRoute(receipt)}
-                  className="block rounded-lg outline-offset-4 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-slate-900"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-semibold">{receipt.sellerName ?? t("history.noSeller")}</p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        {receipt.documentNumber ?? t("history.noNumber")}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                      {t(`history.status.${receipt.status}`)}
-                    </span>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
-                    <span>{receipt.issueDate ?? t("history.noDate")}</span>
-                    <span className="text-right font-medium text-slate-900">
-                      {formatReceiptTotal(
-                        receipt.total,
-                        receipt.currency,
-                        i18n.resolvedLanguage ?? "hr",
-                      ) ?? t("history.noTotal")}
-                    </span>
-                  </div>
-                </Link>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {pendingDelete === receipt.id ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => void remove(receipt.id)}
-                        aria-disabled={deletingId === receipt.id}
-                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-700 px-3 text-sm font-semibold text-white hover:bg-red-800 aria-disabled:bg-red-400"
-                      >
-                        {deletingId === receipt.id ? (
-                          <Spinner label={false} />
-                        ) : (
-                          <Trash2 aria-hidden="true" className="size-4" />
-                        )}
-                        {t("history.confirmDelete")}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (deletingId === null) setPendingDelete(null);
-                        }}
-                        aria-disabled={deletingId === receipt.id}
-                        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 aria-disabled:text-slate-400"
-                      >
-                        {t("history.cancelDelete")}
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setPendingDelete(receipt.id)}
-                      className="min-h-11 rounded-lg border border-red-300 bg-white px-3 text-sm font-semibold text-red-700 hover:bg-red-50"
-                    >
-                      {t("history.delete")}
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+          {wide ? (
+            <ReceiptTable
+              items={data.items}
+              downloadingId={downloadingId}
+              onDownload={(receipt, format) => void downloadOne(receipt, format)}
+              onDelete={setPendingDelete}
+            />
+          ) : (
+            <ReceiptCards
+              items={data.items}
+              downloadingId={downloadingId}
+              onDownload={(receipt, format) => void downloadOne(receipt, format)}
+              onDelete={setPendingDelete}
+            />
+          )}
 
           <div className="flex items-center justify-between gap-3" aria-live="polite">
             <button
@@ -304,6 +256,23 @@ export function HistoryPage() {
           </div>
         </>
       ) : null}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={t("history.deleteTitle")}
+        description={t("history.deleteBody", {
+          name: pendingDelete?.sellerName ?? t("history.noSeller"),
+        })}
+        confirmLabel={t("history.confirmDelete")}
+        cancelLabel={t("history.cancelDelete")}
+        busy={deleting}
+        onConfirm={() => {
+          if (pendingDelete) void remove(pendingDelete.id);
+        }}
+        onCancel={() => {
+          if (!deleting) setPendingDelete(null);
+        }}
+      />
     </section>
   );
 }

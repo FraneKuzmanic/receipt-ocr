@@ -12,7 +12,10 @@
     "mainNav": "Glavna navigacija",
     "accountMenu": "Korisnički izbornik",
     "signedInAs": "Prijavljeni ste kao",
-    "noEmail": "Nema adrese e-pošte"
+    "noEmail": "Nema adrese e-pošte",
+    "download": "Preuzmi",
+    "downloadCsv": "Preuzmi CSV",
+    "downloadJson": "Preuzmi JSON"
   },
   "home": {
     "title": "Digitalizacija računa",
@@ -124,17 +127,14 @@
       "currency": "Unesite troslovnu oznaku valute.",
       "save": "Nije moguće spremiti promjene. Pokušajte ponovno.",
       "confirm": "Nije moguće potvrditi račun. Pokušajte ponovno.",
-      "load": "Nije moguće učitati račun. Pokušajte ponovno."
+      "load": "Nije moguće učitati račun. Pokušajte ponovno.",
+      "download": "Nije moguće pripremiti preuzimanje. Pokušajte ponovno."
     }
   },
   "history": {
     "title": "Vaši računi",
-    "exportTitle": "Izvoz",
-    "exportCsv": "Preuzmi CSV",
-    "exportJson": "Preuzmi JSON",
     "exportingStatus": "Pripremamo izvoz",
     "deletingStatus": "Brišemo račun",
-    "exportHint": "Samo potvrđeni računi.",
     "emptyTitle": "Još nema računa",
     "empty": "Još nemate spremljenih računa.",
     "emptyAction": "Skenirajte svoj prvi račun",
@@ -163,6 +163,20 @@
       "load": "Nije moguće učitati vaše račune. Pokušajte ponovno.",
       "delete": "Nije moguće obrisati ovaj račun. Pokušajte ponovno.",
       "export": "Izvoz nije bilo moguće stvoriti. Pokušajte ponovno."
+    },
+    "export": "Izvoz",
+    "exportAllCsv": "Svi potvrđeni kao CSV",
+    "exportAllJson": "Svi potvrđeni kao JSON",
+    "actionsFor": "Radnje za {{name}}",
+    "deleteTitle": "Obrisati račun?",
+    "deleteBody": "{{name}} će nestati s popisa i iz izvoza. Ovu radnju ne možete poništiti.",
+    "columns": {
+      "date": "Datum računa",
+      "seller": "Prodavatelj",
+      "number": "Broj",
+      "total": "Ukupno",
+      "status": "Status",
+      "actions": "Radnje"
     }
   },
   "auth": {

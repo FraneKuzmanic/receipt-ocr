@@ -145,3 +145,8 @@ export async function exportReceipts(format: ExportFormat): Promise<Blob> {
   const response = await request(`/api/receipts/export?format=${format}`);
   return await response.blob();
 }
+
+export async function exportReceipt(id: string, format: ExportFormat): Promise<Blob> {
+  const response = await request(`/api/receipts/${encodeURIComponent(id)}/export?format=${format}`);
+  return await response.blob();
+}
