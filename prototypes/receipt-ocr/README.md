@@ -235,6 +235,7 @@ only a per-project run catches a stale project name.
 | `GET` | `/api/receipts/:id/regions` | Yes | `200 {"pages","regions"}` source-location projection, `404` if not yours or deleted |
 | `DELETE` | `/api/receipts/:id` | Yes | `204`, then the receipt and source endpoint return `404` |
 | `GET` | `/api/receipts/export` | Yes | `200` CSV or JSON for confirmed, non-deleted receipts; requires `format=csv\|json` |
+| `GET` | `/api/receipts/:id/export` | Yes | `200` CSV or JSON for one confirmed receipt, `409 export_not_allowed` outside `confirmed` |
 
 The health path and response type are defined once in `shared/src/health.ts` (`HEALTH_PATH`,
 `HealthResponse`) and imported by both sides, so a change to either breaks the build rather than
@@ -379,19 +380,47 @@ translated notice because a browser PDF object cannot accept an overlay.
 
 ### History and soft delete
 
-The signed-in header exposes **Receipts**, a mobile card list rather than a desktop table. It displays
-the issue date, seller, document number, total and status, offers a four-status filter, pages through
-server results, and opens `review`/`confirmed` receipts in the existing editable review screen with
-their source document. `processing` and `failed` rows open the processing route, which owns polling
-and retry.
+The signed-in header exposes **Receipts**, which renders as one of two layouts — never both, so only
+one copy of each row reaches the accessibility tree. `client/src/history/useWideLayout.ts` reads
+`(min-width: 1024px)`, the same `lg` line where the shell swaps its bottom tab bar for the sidebar,
+so the app has one definition of "desktop" rather than two.
 
-The two export buttons and the delete confirmation each carry a permanent leading icon — a download
-glyph, a trash glyph — that is **replaced in place** by the spinner while the action runs. The label
-never changes, so a voice-control user who said "click Download CSV" keeps their target and nothing
-reflows; the icon and the spinner occupy the same 16 px box, so the button width is identical busy
-and idle. An earlier attempt reserved an empty box for the spinner instead, which left a visible hole
-in every idle button. Busy buttons take `aria-disabled` with a handler guard rather than the native
-attribute, and a visually-hidden `role="status"` carries the announcement.
+- **Phone: a card list.** Seller, document number and status on top, issue date and total beneath.
+- **Desktop (`lg`+): a table** — issue date, seller, document number, total, status, actions. It is
+  `table-fixed` with explicit column widths, which is what makes an over-long seller name or OCR
+  document number truncate rather than widen the table and give the page a horizontal scrollbar. Its
+  container sets **no `overflow`**: an `overflow-x: auto` ancestor also clips vertically and would
+  cut off an open row menu.
+
+Only the seller cell is a link. A fully clickable row would swallow the action menu's clicks and
+leaves a keyboard user nothing to target.
+
+Both layouts share `ActionMenu`, one overflow menu with two CSS-driven presentations: a dropdown
+under the trigger at `lg`, and a modal bottom sheet with a scrim on a phone, where `position: fixed`
+means the sheet can never be clipped by the card it belongs to. IBM Carbon puts row actions behind an
+overflow menu at three or more actions, and Material 3 names the bottom sheet as the mobile
+substitute for an inline menu. Like `AccountMenu` it is a disclosure rather than an ARIA menu, for
+the same reason: `role="menu"` would oblige a roving-tabindex arrow-key implementation.
+
+Bulk export lives in a toolbar above the list — status filter left, **Export** menu right — instead
+of the card it used to occupy above the receipts, which gave a secondary action more visual weight
+than the list it operates on.
+
+Deleting is confirmed in a **native `<dialog>` opened with `showModal()`**. The element is used
+rather than a hand-built overlay because it promotes itself into the browser's top layer and makes
+the rest of the page inert — precisely where this project's earlier hand-rolled drawer went wrong,
+marking the app root `inert` from inside that same root and opening unfocusable. Focus starts on the
+least destructive action and returns to the invoking control on close, per WAI-ARIA. jsdom implements
+none of this, so `client/src/test/setup.ts` stubs `showModal`/`close` to toggle the `open` attribute
+and the real modality is verified in a browser.
+
+Buttons that run an action carry a permanent leading icon — a download glyph, a trash glyph — that is
+**replaced in place** by the spinner while the action runs. The label never changes, so a
+voice-control user who said "click Download CSV" keeps their target and nothing reflows; the icon and
+the spinner occupy the same 16 px box, so the button width is identical busy and idle. An earlier
+attempt reserved an empty box for the spinner instead, which left a visible hole in every idle
+button. Busy buttons take `aria-disabled` with a handler guard rather than the native attribute, and
+a visually-hidden `role="status"` carries the announcement.
 
 History sorts by `created_at desc`, not `issue_date`: creation time is non-null and backed by the
 active-receipt partial index, while OCR issue dates can be absent. The API defaults each page to 20
@@ -405,8 +434,19 @@ when no currency is available.
 
 ### Export
 
-The history page offers CSV and JSON downloads. Both formats always export the authenticated user's
-confirmed, non-deleted receipts; the current history status filter does not change the export scope.
+The history page offers CSV and JSON downloads at two scopes:
+
+- **Everything confirmed**, from the toolbar's Export menu. The current history status filter does
+  not change that scope.
+- **One receipt**, from its row's overflow menu or from its own review screen once confirmed.
+
+A single receipt exports through `GET /api/receipts/:id/export` in the same two formats, reusing the
+same serializers, so a one-row CSV carries the identical columns and a one-receipt JSON body carries
+the identical `schemaVersion` envelope. **Only a confirmed receipt can be exported**, at either
+scope: an unconfirmed extraction is a draft, and PRD §7.12 keeps drafts inside the application.
+Asking for any other status returns `409 export_not_allowed`, so this is enforced by the API and not
+merely hidden in the UI. Downloads are named from the receipt's own document number and issue date,
+with the untrusted OCR text reduced to a conservative safe set of filename characters.
 
 CSV v1 has one row per receipt and these columns, in order:
 

@@ -148,6 +148,9 @@ Current coverage and what each test protects:
 | `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 15) | The read-time source-region projection: `total`/`currency` share one region, VAT and item cells are individually indexed, page coordinates normalize to `[0,1]` for both pixel (image) and inch (PDF) units, a fixture with a `:barcode:` marker still resolves fallback fields to the correct word span, and a fixture with no analysable pages yields an empty response rather than throwing |
 | `client/src/review/regionSections.test.ts` (Iteration 15) | Canonical field paths map to the correct form section, including nested `vatBreakdown.N.*`/`items.N.*` prefixes; an unrecognized path returns `null` rather than throwing |
 | `client/src/review/SourceOverlay.test.tsx` (Iteration 15) | The overlay is `aria-hidden`; clicking a region calls back with its first field; **an inactive region's whole area is clickable, not just its stroke** — `fill` is never `"none"` and `pointer-events` is explicitly `"all"`, guarding a real bug found only by driving a browser (`fireEvent.click` in jsdom dispatches directly on the element and cannot catch a hit-testing gap) |
+| `client/src/components/ActionMenu.test.tsx` (Iteration 17) | The shared overflow menu: it reports `aria-expanded`/`aria-controls`, opens and closes, runs an item exactly once, returns focus to its trigger on both selection and Escape, closes on an outside pointer without stealing focus back, and stays operable while busy. **What it cannot prove** is anything positional — that the desktop dropdown is not clipped by an ancestor, or that the mobile sheet sits above the tab bar — because jsdom computes no layout |
+| `client/src/routes/HistoryPage.test.tsx` (Iteration 17) | The table renders at `lg` and the card list below it, **never both** — a duplicated tree would put two of every row and every action menu in the accessibility tree; the six column headers in order; per-receipt CSV/JSON downloads calling the single-receipt endpoint; **a non-confirmed receipt offering no download at all**; and delete requiring the dialog's explicit confirmation |
+| `client/src/history/download.test.ts` (Iteration 17) | A single receipt's filename leads with its document number and issue date, and stays safe and non-empty when OCR read something unusable — the document number is untrusted text that reaches a filesystem |
 | `client/src/review/ActiveRegionStrip.test.tsx` (Iteration 15) | The mobile crop strip renders only with a matching active field, a known region and a non-PDF, safe source; `cropTransform`'s output, reproduced through the same `scale ∘ translate` composition the browser applies, centers the region's centroid in the **strip's own viewport**, not the full receipt image — the previous formula centered the whole image regardless of which field was active, verified wrong only by measuring a real rendered page |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
@@ -348,8 +351,18 @@ This is a grep, not a proof. The durable guarantee is that no endpoint consults 
 ### 6.14 Receipt routes never rewrite machine extraction
 
 ```
-node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/routes/receipts.ts','utf8'); if(/originalExtraction/.test(s)) throw new Error('a receipt route writes original extraction; machine values must stay frozen'); console.log('ok');"
+node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/routes/receipts.ts','utf8'); if(/originalExtraction\s*:/.test(s)) throw new Error('a receipt route writes original extraction; machine values must stay frozen'); console.log('ok');"
 ```
+
+**Narrowed during iteration 17, after this check spent a whole iteration silently red.** It used to
+reject the mere *mention* of `originalExtraction`. Iteration 16 then added the `editedFields`
+projection, which legitimately **reads** `state.originalExtraction` to mark which fields a user has
+since corrected — a read the rule never meant to forbid — and because that iteration deliberately ran
+only the checks its diff implicated, nothing noticed. The check now looks for the property being
+*assigned*, which is what a write into a repository input actually looks like, and still fails on
+`update(id, { originalExtraction: … })`. The lesson is the general one: a grep encodes an intention
+it cannot actually see, so when one fires, establish whether the code or the grep is wrong before
+touching either.
 
 ### 6.15 Export route is registered before `/:id`
 
@@ -462,10 +475,10 @@ Expected: an empty array. Anything listed is an orphan — delete it.
 
 ## Phase 8: End-to-end journeys
 
-**As of Iteration 15 there are eleven journeys: the shared contract, authentication, source-document
+**As of Iteration 17 there are twelve journeys: the shared contract, authentication, source-document
 lifecycle, mobile capture/processing, extraction/retry, QR/warnings, review/confirmation, history,
-export, the application shell and source-document field highlighting.
-Everything below runs against real servers, not mocks.**
+export, the application shell, source-document field highlighting, and the receipts table with its
+row actions and single-receipt export. Everything below runs against real servers, not mocks.**
 
 ### 8.1 Start the stack
 
@@ -731,6 +744,38 @@ mobile-strip centering depends on real measured pixel geometry — three separat
 only by driving an actual browser during this journey's first run, none caught by 372 passing unit
 tests. See the Iteration 15 history file for what those were and why the unit tests could not see
 them.
+
+### 8.15 Journey - the receipts table, row actions and single-receipt export
+
+At **1440 px**, `/receipts` must render a **table**, not cards: six columns, only the seller cell a
+link, and `document.documentElement.scrollWidth` no greater than the viewport width even with a
+seller name and a document number long enough to truncate. Open a row's ⋮ menu and confirm with
+`document.elementFromPoint` that a point in the **middle of the open panel** resolves to a menu item.
+That is the check that matters: the panel is absolutely positioned inside the table container, so
+giving that container `overflow-x: auto` — which also clips vertically — would cut the menu off, and
+no unit test can see it.
+
+A **confirmed** row offers Download CSV, Download JSON and Delete; a `review`, `processing` or
+`failed` row offers only Delete. Downloading must call `/api/receipts/:id/export?format=…` and return
+200. Confirm the same Download menu appears on a confirmed receipt's own review screen.
+
+Choose Delete and confirm the dialog is genuinely modal — `dialog.matches(":modal")` is true, not
+merely visible — that initial focus is on the least destructive button, that
+`document.elementFromPoint` outside its box hits the dialog's backdrop rather than the page beneath,
+and that Escape closes it and returns focus to the ⋮ trigger. Then complete a delete and confirm the
+list reloads with one fewer receipt.
+
+At **390 px** the same menu must open as a **bottom sheet**: anchored to the viewport bottom,
+covering the fixed tab bar, over a scrim that closes it on tap, with every item at least 44 px tall.
+With more than one page of receipts, scroll to the end and confirm the pagination controls clear the
+tab bar, then page forward and confirm the new page starts at the top rather than at the previous
+scroll offset.
+
+Repeat the row menu and the delete dialog in Croatian and confirm no raw translation key appears.
+
+**Two of these are provable only in a browser** — the dropdown's clipping and the dialog's real
+modality both depend on layout and the top layer, neither of which jsdom implements at all. Its
+`showModal` is stubbed in `client/src/test/setup.ts` purely so the components mount.
 
 ---
 

@@ -1,10 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import type { CanonicalReceipt } from "@receipt/shared";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deleteReceipt, exportReceipts, getReceipts } from "../api/client";
-import { exportFilename, saveBlob } from "../history/download";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { deleteReceipt, exportReceipt, exportReceipts, getReceipts } from "../api/client";
+import { exportFilename, receiptExportFilename, saveBlob } from "../history/download";
 import i18n from "../i18n";
 import { HistoryPage } from "./HistoryPage";
 
@@ -12,9 +12,11 @@ vi.mock("../api/client", () => ({
   getReceipts: vi.fn(),
   deleteReceipt: vi.fn(),
   exportReceipts: vi.fn(),
+  exportReceipt: vi.fn(),
 }));
 vi.mock("../history/download", () => ({
   exportFilename: vi.fn((format: string) => `receipts-2026-08-20.${format}`),
+  receiptExportFilename: vi.fn((_receipt: unknown, format: string) => `receipt-381-1-2.${format}`),
   saveBlob: vi.fn(),
 }));
 
@@ -35,11 +37,24 @@ const receipt: CanonicalReceipt = {
 const mockedGetReceipts = vi.mocked(getReceipts);
 const mockedDeleteReceipt = vi.mocked(deleteReceipt);
 const mockedExportReceipts = vi.mocked(exportReceipts);
+const mockedExportReceipt = vi.mocked(exportReceipt);
 const mockedExportFilename = vi.mocked(exportFilename);
+const mockedReceiptExportFilename = vi.mocked(receiptExportFilename);
 const mockedSaveBlob = vi.mocked(saveBlob);
 
 function page(items = [receipt], total = items.length, pageNumber = 1, limit = 20) {
   return { items, page: pageNumber, limit, total };
+}
+
+/**
+ * jsdom has no matchMedia at all, so the page falls back to the card list. A viewport-width test
+ * has to say which layout it means.
+ */
+function stubViewport(wide: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: wide, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+  );
 }
 
 function renderPage() {
@@ -55,12 +70,25 @@ function renderPage() {
   );
 }
 
+/** Every per-receipt action lives behind that receipt's overflow menu, at both widths. */
+async function openReceiptMenu(
+  user: ReturnType<typeof userEvent.setup>,
+  seller = "Market Example",
+) {
+  await user.click(await screen.findByRole("button", { name: `Actions for ${seller}` }));
+}
+
 beforeEach(async () => {
   await i18n.changeLanguage("en");
   vi.clearAllMocks();
   mockedGetReceipts.mockResolvedValue(page());
   mockedDeleteReceipt.mockResolvedValue();
   mockedExportReceipts.mockResolvedValue(new Blob(["export"]));
+  mockedExportReceipt.mockResolvedValue(new Blob(["export"]));
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("HistoryPage", () => {
@@ -72,6 +100,27 @@ describe("HistoryPage", () => {
     expect(screen.getByText("2026-08-19")).toBeInTheDocument();
     expect(screen.getByText(/8\.08/)).toBeInTheDocument();
     expect(screen.getByText("Confirmed", { selector: "span" })).toBeInTheDocument();
+  });
+
+  it("renders a table at desktop width and a card list below it", async () => {
+    stubViewport(true);
+    renderPage();
+
+    const table = await screen.findByRole("table");
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((header) => header.textContent),
+    ).toEqual(["Issue date", "Seller", "Number", "Total", "Status", "Actions"]);
+    const row = within(table).getAllByRole("row")[1];
+    expect(within(row!).getByRole("link", { name: "Market Example" })).toHaveAttribute(
+      "href",
+      "/receipts/00000000-0000-4000-8000-000000000001/review",
+    );
+
+    // The two layouts are mutually exclusive: rendering both would duplicate every row and every
+    // action menu in the accessibility tree.
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
 
   it("renders an empty state with a capture link", async () => {
@@ -124,45 +173,84 @@ describe("HistoryPage", () => {
     );
   });
 
-  it("requires a second delete click before deleting and then reloads", async () => {
+  it("confirms a delete in a dialog before deleting, then reloads", async () => {
     const user = userEvent.setup();
     renderPage();
 
-    await screen.findByText("Market Example");
+    await openReceiptMenu(user);
     await user.click(screen.getByRole("button", { name: "Delete" }));
     expect(mockedDeleteReceipt).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("button", { name: "Delete this receipt" }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(/will disappear from your list/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Delete this receipt" }));
+
     await waitFor(() => expect(mockedDeleteReceipt).toHaveBeenCalledWith(receipt.id));
     await waitFor(() => expect(mockedGetReceipts).toHaveBeenCalledTimes(2));
   });
 
-  it("downloads CSV exports from history", async () => {
+  it("keeps the receipt when the delete dialog is dismissed", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await openReceiptMenu(user);
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Keep it" }));
+
+    expect(mockedDeleteReceipt).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("downloads one confirmed receipt as CSV", async () => {
+    const user = userEvent.setup();
+    const blob = new Blob(["csv"]);
+    mockedExportReceipt.mockResolvedValue(blob);
+    renderPage();
+
+    await openReceiptMenu(user);
+    await user.click(screen.getByRole("button", { name: "Download CSV" }));
+
+    await waitFor(() => expect(mockedExportReceipt).toHaveBeenCalledWith(receipt.id, "csv"));
+    expect(mockedReceiptExportFilename).toHaveBeenCalledWith(receipt, "csv");
+    expect(mockedSaveBlob).toHaveBeenCalledWith(blob, "receipt-381-1-2.csv");
+  });
+
+  it("downloads one confirmed receipt as JSON", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await openReceiptMenu(user);
+    await user.click(screen.getByRole("button", { name: "Download JSON" }));
+
+    await waitFor(() => expect(mockedExportReceipt).toHaveBeenCalledWith(receipt.id, "json"));
+  });
+
+  it("offers no download for a receipt that is not confirmed", async () => {
+    const user = userEvent.setup();
+    mockedGetReceipts.mockResolvedValue(page([{ ...receipt, status: "review" as const }]));
+    renderPage();
+
+    await openReceiptMenu(user);
+    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Download CSV" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Download JSON" })).not.toBeInTheDocument();
+  });
+
+  it("downloads every confirmed receipt from the toolbar export menu", async () => {
     const user = userEvent.setup();
     const blob = new Blob(["csv"]);
     mockedExportReceipts.mockResolvedValue(blob);
     renderPage();
 
-    await user.click(await screen.findByRole("button", { name: "Download CSV" }));
+    await user.click(await screen.findByRole("button", { name: "Export" }));
+    await user.click(screen.getByRole("button", { name: "All confirmed as CSV" }));
 
     await waitFor(() => expect(mockedExportReceipts).toHaveBeenCalledWith("csv"));
     expect(mockedExportFilename).toHaveBeenCalledWith("csv", expect.any(Date));
     expect(mockedSaveBlob).toHaveBeenCalledWith(blob, "receipts-2026-08-20.csv");
   });
 
-  it("downloads JSON exports from history", async () => {
-    const user = userEvent.setup();
-    const blob = new Blob(["json"]);
-    mockedExportReceipts.mockResolvedValue(blob);
-    renderPage();
-
-    await user.click(await screen.findByRole("button", { name: "Download JSON" }));
-
-    await waitFor(() => expect(mockedExportReceipts).toHaveBeenCalledWith("json"));
-    expect(mockedExportFilename).toHaveBeenCalledWith("json", expect.any(Date));
-    expect(mockedSaveBlob).toHaveBeenCalledWith(blob, "receipts-2026-08-20.json");
-  });
-
-  it("keeps export labels stable and the other export available while busy", async () => {
+  it("announces a running export and keeps the export trigger operable", async () => {
     let resolveExport: ((value: Blob) => void) | undefined;
     mockedExportReceipts.mockImplementationOnce(
       () =>
@@ -173,16 +261,15 @@ describe("HistoryPage", () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(await screen.findByRole("button", { name: "Download CSV" }));
+    await user.click(await screen.findByRole("button", { name: "Export" }));
+    await user.click(screen.getByRole("button", { name: "All confirmed as JSON" }));
 
-    const csv = screen.getByRole("button", { name: "Download CSV" });
-    expect(csv).toHaveAttribute("aria-disabled", "true");
-    expect(csv).not.toBeDisabled();
-    expect(csv).toHaveTextContent("Download CSV");
-    expect(screen.getByRole("button", { name: "Download JSON" })).toBeEnabled();
+    const trigger = screen.getByRole("button", { name: "Export" });
+    expect(trigger).toBeEnabled();
+    expect(trigger).toHaveTextContent("Export");
     expect(screen.getByRole("status")).toHaveTextContent("Preparing export");
 
-    resolveExport?.(new Blob(["csv"]));
+    resolveExport?.(new Blob(["json"]));
   });
 
   it("uses Croatian singular receipt count", async () => {
@@ -192,17 +279,31 @@ describe("HistoryPage", () => {
     expect(await screen.findByText("1 račun")).toBeInTheDocument();
   });
 
-  it("renders an export failure without disabling the other format", async () => {
+  it("reports an export failure without blocking the next attempt", async () => {
     const user = userEvent.setup();
     mockedExportReceipts.mockRejectedValueOnce(new Error("export failed"));
     renderPage();
 
-    await user.click(await screen.findByRole("button", { name: "Download CSV" }));
+    await user.click(await screen.findByRole("button", { name: "Export" }));
+    await user.click(screen.getByRole("button", { name: "All confirmed as CSV" }));
 
     expect(
       await screen.findByText("The export could not be created. Try again."),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Download JSON" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Export" })).toBeEnabled();
+  });
+
+  it("reports a single-receipt download failure", async () => {
+    const user = userEvent.setup();
+    mockedExportReceipt.mockRejectedValueOnce(new Error("download failed"));
+    renderPage();
+
+    await openReceiptMenu(user);
+    await user.click(screen.getByRole("button", { name: "Download CSV" }));
+
+    expect(
+      await screen.findByText("The export could not be created. Try again."),
+    ).toBeInTheDocument();
   });
 
   it("keeps rendering when a receipt has a malformed currency", async () => {

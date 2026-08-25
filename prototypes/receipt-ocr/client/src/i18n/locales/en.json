@@ -12,7 +12,10 @@
     "mainNav": "Main navigation",
     "accountMenu": "User menu",
     "signedInAs": "Signed in as",
-    "noEmail": "No email address"
+    "noEmail": "No email address",
+    "download": "Download",
+    "downloadCsv": "Download CSV",
+    "downloadJson": "Download JSON"
   },
   "home": {
     "title": "Receipt digitization",
@@ -124,17 +127,14 @@
       "currency": "Enter a three-letter currency code.",
       "save": "The changes could not be saved. Try again.",
       "confirm": "The receipt could not be confirmed. Try again.",
-      "load": "The receipt could not be loaded. Try again."
+      "load": "The receipt could not be loaded. Try again.",
+      "download": "The download could not be created. Try again."
     }
   },
   "history": {
     "title": "Your receipts",
-    "exportTitle": "Export",
-    "exportCsv": "Download CSV",
-    "exportJson": "Download JSON",
     "exportingStatus": "Preparing export",
     "deletingStatus": "Deleting receipt",
-    "exportHint": "Confirmed receipts only.",
     "emptyTitle": "No receipts yet",
     "empty": "You have not saved any receipts yet.",
     "emptyAction": "Scan your first receipt",
@@ -162,6 +162,20 @@
       "load": "Your receipts could not be loaded. Try again.",
       "delete": "This receipt could not be deleted. Try again.",
       "export": "The export could not be created. Try again."
+    },
+    "export": "Export",
+    "exportAllCsv": "All confirmed as CSV",
+    "exportAllJson": "All confirmed as JSON",
+    "actionsFor": "Actions for {{name}}",
+    "deleteTitle": "Delete receipt?",
+    "deleteBody": "{{name}} will disappear from your list and from exports. You cannot undo this.",
+    "columns": {
+      "date": "Issue date",
+      "seller": "Seller",
+      "number": "Number",
+      "total": "Total",
+      "status": "Status",
+      "actions": "Actions"
     }
   },
   "auth": {

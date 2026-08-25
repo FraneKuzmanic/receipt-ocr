@@ -345,6 +345,70 @@ describe("receipt source lifecycle against the hosted project", () => {
     expect(JSON.stringify(body)).not.toContain("rawProviderResult");
   });
 
+  it("exports one confirmed receipt and refuses every other case", async () => {
+    const confirmedId = randomUUID();
+    const reviewId = randomUUID();
+    const userBId2 = randomUUID();
+    const rows = [
+      { id: confirmedId, status: "confirmed" as const, userId: userAId, client: userA },
+      { id: reviewId, status: "review" as const, userId: userAId, client: userA },
+      { id: userBId2, status: "confirmed" as const, userId: userBId, client: userB },
+    ];
+
+    for (const row of rows) {
+      const path = sourceObjectPath(row.userId, row.id);
+      await new ReceiptRepository(row.client, row.userId).create({
+        id: row.id,
+        sourceObjectPath: path,
+        sourceOriginalFilename: "single-export.jpg",
+        sourceContentType: "image/jpeg",
+        status: row.status,
+        canonicalData: { sellerName: "Single seller", total: "42.00", currency: "EUR" },
+      });
+      sourcePaths.push(path);
+    }
+
+    const csv = await request(app)
+      .get(`/api/receipts/${confirmedId}/export?format=csv`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(csv.status).toBe(200);
+    expect(csv.headers["content-type"]).toMatch(/^text\/csv/);
+    expect(csv.text).toContain(confirmedId);
+    expect(csv.text).toContain(",42.00,");
+    // One header row and exactly one receipt: this endpoint is not the bulk export.
+    expect(csv.text.trimEnd().split("\r\n")).toHaveLength(2);
+
+    const json = await request(app)
+      .get(`/api/receipts/${confirmedId}/export?format=json`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(json.status).toBe(200);
+    const body = jsonExportResponseSchema.parse(json.body);
+    expect(body.receipts).toHaveLength(1);
+    expect(body.receipts[0]?.id).toBe(confirmedId);
+
+    // A draft must not leave the application looking like final data.
+    const notConfirmed = await request(app)
+      .get(`/api/receipts/${reviewId}/export?format=csv`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(notConfirmed.status).toBe(409);
+    expect(notConfirmed.body).toEqual({ error: { code: "export_not_allowed" } });
+
+    // Another user's receipt is 404, never 403 — existence is what ownership hides.
+    const otherUser = await request(app)
+      .get(`/api/receipts/${userBId2}/export?format=csv`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(otherUser.status).toBe(404);
+    expect(otherUser.body).toEqual({ error: { code: "not_found" } });
+
+    const badFormat = await request(app)
+      .get(`/api/receipts/${confirmedId}/export?format=xml`)
+      .set("Authorization", `Bearer ${tokenA}`);
+    expect(badFormat.status).toBe(400);
+
+    const unauthorized = await request(app).get(`/api/receipts/${confirmedId}/export?format=csv`);
+    expect(unauthorized.status).toBe(401);
+  });
+
   it("rejects invalid export requests", async () => {
     const missing = await request(app)
       .get("/api/receipts/export")
