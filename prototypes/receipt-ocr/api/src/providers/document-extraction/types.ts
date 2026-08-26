@@ -1,4 +1,8 @@
-import type { CanonicalReceiptFields, SourceContentType } from "@receipt/shared";
+import type {
+  CanonicalReceiptFields,
+  ReceiptFailureReason,
+  SourceContentType,
+} from "@receipt/shared";
 import type { FiscalQrData } from "./fiscal-qr.js";
 
 /** Metadata for Task 09's low-confidence highlighting; it never suppresses a value. */
@@ -20,6 +24,8 @@ export interface ExtractionMetadata {
   readonly apiVersion: string;
   readonly analyzedAt: string;
   readonly latencyMs: number;
+  readonly uploadMs?: number;
+  readonly analyzeMs?: number;
   readonly documentConfidence: number | null;
   readonly fields: Record<string, ExtractionFieldMetadata>;
   readonly unreadableFields: string[];
@@ -37,9 +43,9 @@ export interface ProviderExtractionResult {
 
 export class ExtractionError extends Error {
   readonly retryable: boolean;
-  readonly reason: string;
+  readonly reason: ReceiptFailureReason;
 
-  constructor(reason: string, retryable: boolean, cause?: unknown) {
+  constructor(reason: ReceiptFailureReason, retryable: boolean, cause?: unknown) {
     super(reason, cause === undefined ? undefined : { cause });
     this.name = "ExtractionError";
     this.reason = reason;

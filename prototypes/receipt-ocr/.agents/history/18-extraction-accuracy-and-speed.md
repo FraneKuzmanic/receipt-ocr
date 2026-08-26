@@ -1,12 +1,11 @@
-# Iteration 18 — Extraction accuracy, reliability & processing speed (Commit A)
+# Iteration 18 — Extraction accuracy, reliability & processing speed (Commits A & B)
 
 **Date:** 2026-08-25
 **Spec:** `.agents/specs/extraction-accuracy-and-speed.md`
 **Plan:** `.agents/plans/extraction-accuracy-and-speed.md`
-**Scope of this commit:** Commit A only (plan tasks 1–14 — accuracy & transparency). Commit B
-(client-side downscale, concurrent Azure/storage upload, `failureReason` surfacing, the offline
-scoring harness — plan tasks 15–22) is **not started** and is deliberately out of this commit, per
-the plan's explicit two-commit split.
+**Scope:** Commit A (accuracy and transparency) plus Commit B (plan tasks 15–22: client-side
+downscale, concurrent Azure/storage upload, `failureReason` surfacing and the offline scoring
+harness). Commit A is `63b4a80`; Commit B is pending human review and commit.
 
 ## Why this iteration exists
 
@@ -115,9 +114,7 @@ test rows, Phase 6.18 guarding `shared/src/money.ts`, the new Phase 8.16 journey
 
 ## Deviations from the plan
 
-None in the implemented tasks (1–14). Commit B (tasks 15–22) was not started in this session, which
-is explicitly the plan's own permitted stopping point ("If time forces a cut, Commit A alone is a
-coherent, shippable iteration").
+None in Commit A. Commit B resumed in the same iteration and is recorded below.
 
 ## Validation results
 
@@ -154,12 +151,8 @@ Run via `agent-browser` (Chromium, 1440×900) against a disposable account
 
 ## Known gaps / follow-ups
 
-- **Commit B is not started**: client-side image downscale (plan task 19–20, threshold still
-  unmeasured), concurrent Azure/storage upload (task 21), `failureReason` surfaced to the client
-  (task 15–17), and the offline `scripts/score-extraction.ts` accuracy/latency harness with
-  before/after numbers (task 22) all remain open, owned by this same iteration number when resumed.
-  PRD §11.4's latency target amendment (from "2–5 s" to a measured warm figure) is blocked on that
-  harness and has not been made yet.
+- **Commit B completion supersedes this historical note.** Its implementation, measurements and
+  remaining follow-ups are recorded below.
 - **Leading zeros in table-sourced VAT amounts** (e.g. `"05.00"`) are preserved verbatim through to
   export — a pre-existing, cosmetic `parseAmount` behavior this iteration did not touch. See
   "Decisions made" above.
@@ -170,3 +163,72 @@ Run via `agent-browser` (Chromium, 1440×900) against a disposable account
 - `client/src/history/ReceiptTable.tsx` has an uncommitted change unrelated to this iteration (a
   row-click behavior tweak) that the spec explicitly flags as needing its own decision — left
   untouched here.
+
+## Commit B completion
+
+### What was built
+
+**Failure reasons.** The shared receipt-detail contract now exposes a nullable provider-neutral
+`failureReason` only for `failed` records. The API reads the persisted stable code, never a provider
+message. Processing renders a translated reason; `unreadable_document` deliberately offers Upload
+another receipt without the pointless Retry action, while retryable provider failures retain Retry.
+
+**Measured image downscale.** Images above 2 MP or 1.5 MB are decoded in the browser, constrained to
+a 1,600 px long edge, and JPEG-encoded at quality 0.82. PDFs, small inputs, HEIC that cannot decode,
+and any canvas failure keep their original bytes. The selected preview is built from the exact file
+that uploads. This intentionally amends the PRD source-file rule: private Storage keeps the
+OCR-appropriate derivative rather than byte-exact camera source.
+
+**Concurrent extraction.** The API starts the provider call immediately after server-side source
+validation, attaches a rejection handler synchronously, then uploads and inserts the receipt before
+handing the already-running promise to the background service. A row still never exists without a
+source object; an insertion failure can waste one Azure call. Azure metadata now records initial
+request (`uploadMs`) and poll (`analyzeMs`) durations beside total latency.
+
+**Offline corpus scoring.** `npm run score:extraction` executes the actual mapper, Croatian
+fallbacks and warnings against recorded Azure responses and reviewed expected values. The original
+seven recordings remain available offline. The six new recordings used for the wider measurement
+were lost during temporary-worktree cleanup and must be re-recorded before treating the wider
+13-fixture comparison as reproducible.
+
+### Measurements
+
+| Measure | Before Commit A | After Commit B |
+| --- | ---: | ---: |
+| Seller exact match | Not reproducible (recordings lost) | 100% (7/7) |
+| Document-number exact match | Not reproducible (recordings lost) | 100% (7/7) |
+| Date exact match | Not reproducible (recordings lost) | 100% (6/6) |
+| Total exact match | Not reproducible (recordings lost) | 100% (7/7) |
+| Currency exact match | Not reproducible (recordings lost) | 100% (7/7) |
+| No critical correction required | Not reproducible (recordings lost) | 100% (7/7) |
+| VAT exact match | Not reproducible (recordings lost) | 75% (3/4) |
+
+The committed recordings report p50 3 s and p95 5 s between Azure operation timestamps. A live,
+warm 2.14 MP receipt reduced from 262,363 to 191,995 bytes at the chosen 1,600 px edge; its seller,
+number, date, total and currency matched the full-size Azure recording. The provider recorded 8,331
+ms total (1,190 ms initial request; 7,138 ms poll). The PRD's former 2-5 s aspiration is therefore
+amended to an approximately 8 s warm baseline; Render cold starts remain separate at 30-50 s.
+
+### Validation
+
+| Check | Result |
+| --- | --- |
+| Focused typecheck | Pass |
+| Commit B client tests (`downscale`, `ProcessingPage`, `ReviewPage`, `HomePage`, failure-reason i18n) | Pass: 5 files, 33 tests |
+| Commit B API/shared tests (`receipt-extraction`, route helpers, shared API schema) | Pass: 3 files, 35 tests |
+| `npm run score:extraction` | Pass: 7 retained fixtures, offline |
+| Live Chromium check | Pass: downscaled 2.14 MP receipt reached review with all five critical values exact; stored derivative size confirmed; disposable receipt and user removed afterwards |
+
+### Deviations and follow-ups
+
+- Azure returned HTTP 400 for `cijene-prelaze-svaku-mjeru-v0-b2i9tkdog9jg1.jpg` and
+  `Wide-Racunnnnn-1000.jpg`, so no recordings or expected labels were committed for those two
+  sources. The latter also cannot be decoded by Windows' image reader. They remain source-quality
+  cases to investigate, not evidence that the mapper should invent values.
+- `Screenshot_20190705-1907152.png` is 1.99 MP and 1.3 MB, so it correctly stays below both
+  downscale thresholds. The successful 2.14 MP receipt was the longest valid live measurement case.
+- The 13 ground-truth files are deliberately conservative and should be client-spot-checked before
+  the corpus becomes an external accuracy claim. Ambiguous fields are omitted rather than guessed.
+- The six additional recorded Azure payloads must be recreated from their source files before the
+  planned 13-fixture measurement can be used again. The seven retained fixtures report 3/4 exact
+  VAT breakdowns, but that is too small to support a broader accuracy claim.

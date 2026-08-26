@@ -1,0 +1,11 @@
+{
+  "sellerName": "caffe bar ANTIQUE",
+  "documentNumber": "49781/001/1",
+  "issueDate": "2025-07-30",
+  "total": "23.80",
+  "currency": "EUR",
+  "vatBreakdown": [
+    { "rate": "25", "taxableBase": "18.97", "vatAmount": "4.74" },
+    { "rate": "0.3", "taxableBase": "2.81", "vatAmount": "0.08" }
+  ]
+}

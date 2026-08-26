@@ -1,0 +1,8 @@
+{
+  "sellerName": "Semovcanka Nova j.d.o.o.",
+  "documentNumber": "22-1-1",
+  "issueDate": "2020-02-21",
+  "total": "103.69",
+  "currency": "HRK",
+  "vatBreakdown": [{ "rate": "25.00", "taxableBase": "82.95", "vatAmount": "20.74" }]
+}

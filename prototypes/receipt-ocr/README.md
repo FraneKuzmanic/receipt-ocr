@@ -206,6 +206,7 @@ All scripts run from the repository root.
 | `npm test`             | Vitest across `shared` (node), `api` (node) and `client` (jsdom)    |
 | `npm run test:integration` | Repository, RLS, auth and private Storage tests against the hosted project |
 | `npm run test:integration:local` | The same suite against the Docker stack, for schema work |
+| `npm run score:extraction` | Replays recorded Azure fixtures offline against the production mapper and reports extraction accuracy |
 | `npm run db:start`     | Starts the Docker-backed local Supabase stack                      |
 | `npm run db:stop`      | Stops the local Supabase stack without deleting its volumes        |
 | `npm run db:reset`     | Rebuilds the local database from migrations and seed               |
@@ -225,7 +226,7 @@ only a per-project run catches a stale project name.
 | Method | Path                | Auth | Response                                      |
 | ------ | ------------------- | ---- | --------------------------------------------- |
 | `GET`  | `/api/health`       | —    | `200 {"status":"ok","uptimeSeconds":number}`   |
-| `GET`  | `/api/receipts/:id` | Yes  | `200` canonical receipt, `404` if not yours    |
+| `GET`  | `/api/receipts/:id` | Yes  | `200` canonical receipt plus review metadata and nullable `failureReason`, `404` if not yours |
 | `GET` | `/api/receipts` | Yes | `200 {"items","page","limit","total"}`; accepts `page`, `limit` and optional `status` |
 | `PATCH` | `/api/receipts/:id` | Yes | `200` updated review receipt, `409 edit_not_allowed` outside `review`/`confirmed` |
 | `POST` | `/api/receipts/:id/confirm` | Yes | `200 {"id", "status", "confirmedAt"}`, `409 confirm_not_allowed` outside `review` |
@@ -286,10 +287,11 @@ The default limits are **10 MB** and **10 PDF pages**. A missing/malformed file 
 encrypted or overlong PDFs receive `422 pdf_unreadable`, `pdf_encrypted` or `pdf_too_many_pages`.
 Each code has Croatian and English UI copy.
 
-The API generates a receipt UUID, uploads to `<user_id>/<receipt_id>/source`, then inserts the
-`processing` row. If insertion fails it attempts to delete the just-uploaded object, so a user never
-sees a receipt row without a source document. The client sends only the `file` part: `fields: 0`
-rejects any incidental `userId` or other text field at the multipart parser.
+The API generates a receipt UUID, starts extraction and uploads to `<user_id>/<receipt_id>/source`
+concurrently, then inserts the `processing` row. If insertion fails it attempts to delete the
+just-uploaded object, so a user never sees a receipt row without a source document. The one accepted
+trade-off is a wasted extraction call when that insertion fails. The client sends only the `file`
+part: `fields: 0` rejects any incidental `userId` or other text field at the multipart parser.
 
 `GET /api/receipts/:id/source` produces a signed URL valid for 300 seconds. It is a bearer capability:
 soft deletion immediately prevents new URLs, but cannot revoke a URL already issued; it remains valid
@@ -323,8 +325,11 @@ is the input PRD §7.4 asks the product to avoid rather than manufacture.
 The selected image or PDF is previewed before upload. The browser checks the advertised type or, only
 when it is absent, the filename extension, and it rejects files over 10 MB early. These checks are
 advisory UX only: the server still validates the source bytes. Images with a short edge below **800 px**
-or a 256-pixel sample blur score below **80** show a warning but can still be uploaded. The original
-`File` is sent unchanged; canvas use is limited to preview analysis.
+or a 256-pixel sample blur score below **80** show a warning but can still be uploaded. Images above
+**2 MP** or **1.5 MB** are re-encoded as JPEG with a 1,600 px long edge before upload; the preview is
+made from that exact uploaded file. This deliberately amends the source-preservation rule: private
+Storage retains the OCR-appropriate derivative, not byte-exact camera source. PDFs, small images and
+any image that the browser cannot decode (including unsupported HEIC/HEIF) remain unchanged.
 
 HEIC/HEIF previews depend on native browser support. If the selected image cannot be decoded, the app
 asks the user to choose a JPEG, PNG or PDF instead; it does not convert the original file in the
@@ -339,8 +344,9 @@ loading screen was tried first and removed: it threw away the preview and duplic
 processing route shows a moment later.
 
 After a successful upload, the client polls the receipt every **2 seconds** for up to **100 seconds**.
-It moves a `review` receipt to the review-ready destination, exposes a retry action for a failed
-extraction, and exposes check-again plus upload-another actions for network errors or a timeout.
+It moves a `review` receipt to the review-ready destination. A failed receipt carries a stable,
+translated reason: unreadable input offers a new-upload path only, while a temporary provider failure
+keeps Retry. Network errors and timeouts expose Check again plus Upload another.
 
 ### Review and confirmation
 
@@ -504,8 +510,9 @@ exports as `"100.50"`.
 
 ### Extraction
 
-The API sends the stored source to Azure Document Intelligence asynchronously after returning `201`.
-It uses API version `2024-11-30` and the `prebuilt-invoice` model. Recorded runs over seven supplied
+The API starts Azure Document Intelligence before the private Storage write completes, then continues
+the extraction asynchronously after returning `201`. It uses API version `2024-11-30` and the
+`prebuilt-invoice` model. Recorded runs over seven supplied
 examples (six photos and one PDF) found seller, document number and total in all seven; the issue date
 in six, with labelled Croatian text as the fallback; and symbol-backed currency in four. The receipt
 model was retained only in the comparison harness because it does not expose a document-number field.
@@ -530,6 +537,15 @@ Confidence is recorded per canonical field but never suppresses a readable value
 therefore highlight a low-confidence value later without forcing a person to retype it. Amounts and
 quantities are parsed from the provider's text `content`, never from `valueCurrency.amount` or
 `valueNumber`: those are JavaScript numbers and would lose the required decimal precision.
+
+`npm run score:extraction` replays recorded fixtures through the real mapper and warning pipeline,
+without an Azure call. The initial 13-fixture baseline after iteration 18 is 92.3% exact seller names,
+84.6% document numbers, and 100% date/total/currency where ground truth is recorded; 84.6% need no
+critical-field correction. VAT breakdown is exact for 3 of 10 labelled receipts and remains the main
+quality follow-up. The same corpus's recorded provider durations are p50 3 s and p95 5 s. A live warm
+1,600 px upload measured 8.3 s inside the provider (1.2 s initial request, 7.1 s polling), so the PoC
+uses approximately **8 seconds warm** as its current UX baseline rather than the old 2-5 s aspiration.
+Render's separate 30-50 s free-tier cold start still applies before that work begins.
 
 ### QR decoding
 

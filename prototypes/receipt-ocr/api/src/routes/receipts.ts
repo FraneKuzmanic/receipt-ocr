@@ -6,6 +6,7 @@ import {
   listReceiptsQuerySchema,
   updateReceiptRequestSchema,
   type CanonicalReceiptFields,
+  type ReceiptFailureReason,
 } from "@receipt/shared";
 import { HttpError } from "../middleware/error-handler.js";
 import { authenticated } from "../middleware/require-auth.js";
@@ -126,6 +127,7 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
       res.json({
         ...receipt,
         lowConfidenceFields: lowConfidenceFields(state.extractionMetadata),
+        failureReason: failureReason(receipt.status, state.extractionMetadata),
         editedFields: editedFields(receipt, state.originalExtraction),
       });
     }),
@@ -162,6 +164,7 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
       res.json({
         ...receipt,
         lowConfidenceFields: lowConfidenceFields(state.extractionMetadata),
+        failureReason: failureReason(receipt.status, state.extractionMetadata),
         editedFields: editedFields(receipt, state.originalExtraction),
       });
     }),
@@ -199,6 +202,11 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
       const file = await validateSourceFile(req.file);
       const receiptId = randomUUID();
       const path = sourceObjectPath(auth.userId, receiptId);
+      const extraction = extractionProvider.extract({
+        bytes: file.bytes,
+        contentType: file.contentType,
+      });
+      void extraction.catch(() => undefined);
 
       await uploadSource(auth.client, path, file.bytes, file.contentType);
 
@@ -219,6 +227,7 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
           receiptId: receipt.id,
           bytes: file.bytes,
           contentType: file.contentType,
+          extraction,
         });
       } catch (error) {
         try {
@@ -329,6 +338,24 @@ function isExplicitlyNonRetryable(metadata: unknown): boolean {
     !Array.isArray(failure) &&
     (failure as Record<string, unknown>)["retryable"] === false
   );
+}
+
+function failureReason(status: string, metadata: unknown): ReceiptFailureReason | null {
+  if (
+    status !== "failed" ||
+    metadata === null ||
+    typeof metadata !== "object" ||
+    Array.isArray(metadata)
+  )
+    return null;
+  const failure = (metadata as Record<string, unknown>)["failure"];
+  if (failure === null || typeof failure !== "object" || Array.isArray(failure)) return null;
+  const reason = (failure as Record<string, unknown>)["reason"];
+  return reason === "unreadable_document" ||
+    reason === "provider_rejected" ||
+    reason === "provider_unavailable"
+    ? reason
+    : null;
 }
 
 export function lowConfidenceFields(metadata: unknown): string[] {
