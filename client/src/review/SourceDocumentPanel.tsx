@@ -65,7 +65,8 @@ export function SourceDocumentPanel({
       const next = await getReceiptSource(receiptId);
       setSource(next);
       setRetriedImage(false);
-    } catch {
+    } catch (error) {
+      console.error("[review] could not load the source document", error);
       setFailed(true);
     } finally {
       setLoading(false);

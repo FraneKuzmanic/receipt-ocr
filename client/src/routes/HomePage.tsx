@@ -95,7 +95,8 @@ export function HomePage() {
         previewUrl: nextPreviewUrl,
         warnings: analysis.warnings,
       });
-    } catch {
+    } catch (caught) {
+      console.error("[capture] could not read the selected image", caught);
       if (selectionVersion.current === version) setError(t("capture.errors.preview_unavailable"));
     } finally {
       if (selectionVersion.current === version) setChecking(false);
@@ -118,6 +119,8 @@ export function HomePage() {
           return;
         }
       }
+      // Only the fall-through is logged: a recognised upload code is already shown precisely.
+      console.error("[capture] upload failed for an unrecognised reason", caught);
       setError(t("capture.errors.generic"));
     } finally {
       setUploading(false);

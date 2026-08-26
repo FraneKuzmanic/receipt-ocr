@@ -50,12 +50,14 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
     headers.set("Authorization", `Bearer ${data.session.access_token}`);
   }
 
+  const method = init.method ?? "GET";
   const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
 
   if (response.status === 401) {
     // The token is gone or no longer valid. Signing out fires onAuthStateChange, which clears
     // the session and lets ProtectedRoute do the redirect — no navigation logic lives here.
     // Signing out an already-signed-out client is a no-op, so this cannot loop.
+    console.error(`[api] ${method} ${path} → 401; signing out`);
     await supabase.auth.signOut();
     throw new ApiError(401);
   }
@@ -67,10 +69,46 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
       .then((value: unknown) => apiErrorResponseSchema.safeParse(value))
       .catch(() => null);
 
-    throw new ApiError(response.status, body?.success ? body.data.error.code : undefined);
+    const code = body?.success ? body.data.error.code : undefined;
+    console.error(
+      `[api] ${method} ${path} → ${response.status}`,
+      code ?? "(no error code in body)",
+    );
+    throw new ApiError(response.status, code);
   }
 
   return response;
+}
+
+/** Structural rather than a Zod type: the client deliberately has no direct `zod` dependency. */
+interface ResponseParser<T> {
+  parse: (value: unknown) => T;
+}
+
+/**
+ * Parses a response body and, when it does not match, says so in the console before rethrowing.
+ *
+ * The rethrow is what callers already handled, so nothing the user sees changes — the screen keeps
+ * its translated copy. The console line is the part that was missing: every call site swallowed
+ * this error with a bare `catch {}`, so the 2026-08-26 contract skew produced a generic error
+ * screen and a completely empty console, and took hours to identify from the outside.
+ */
+async function parseResponse<T>(
+  schema: ResponseParser<T>,
+  response: Response,
+  label: string,
+): Promise<T> {
+  const body: unknown = await response.json();
+  try {
+    return schema.parse(body);
+  } catch (error) {
+    console.error(
+      `[api] ${label}: the response did not match the expected shape. ` +
+        `If this bundle is older than the API, reload the page.`,
+      error,
+    );
+    throw error;
+  }
 }
 
 export async function getHealth(): Promise<HealthResponse> {
@@ -83,12 +121,12 @@ export async function createReceipt(file: File): Promise<CreateReceiptResponse> 
   formData.append("file", file);
 
   const response = await request("/api/receipts", { method: "POST", body: formData });
-  return createReceiptResponseSchema.parse(await response.json());
+  return await parseResponse(createReceiptResponseSchema, response, "POST /api/receipts");
 }
 
 export async function getReceipt(id: string, signal?: AbortSignal): Promise<ReceiptDetailResponse> {
   const response = await request(`/api/receipts/${encodeURIComponent(id)}`, { signal });
-  return receiptDetailResponseSchema.parse(await response.json());
+  return await parseResponse(receiptDetailResponseSchema, response, "GET /api/receipts/:id");
 }
 
 export async function getReceipts(
@@ -101,7 +139,7 @@ export async function getReceipts(
   const search = params.toString();
 
   const response = await request(`/api/receipts${search === "" ? "" : `?${search}`}`, { signal });
-  return listReceiptsResponseSchema.parse(await response.json());
+  return await parseResponse(listReceiptsResponseSchema, response, "GET /api/receipts");
 }
 
 export async function retryReceipt(id: string): Promise<void> {
@@ -117,14 +155,18 @@ export async function updateReceipt(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
   });
-  return receiptDetailResponseSchema.parse(await response.json());
+  return await parseResponse(receiptDetailResponseSchema, response, "PATCH /api/receipts/:id");
 }
 
 export async function confirmReceipt(id: string): Promise<ConfirmReceiptResponse> {
   const response = await request(`/api/receipts/${encodeURIComponent(id)}/confirm`, {
     method: "POST",
   });
-  return confirmReceiptResponseSchema.parse(await response.json());
+  return await parseResponse(
+    confirmReceiptResponseSchema,
+    response,
+    "POST /api/receipts/:id/confirm",
+  );
 }
 
 export async function deleteReceipt(id: string): Promise<void> {
@@ -133,12 +175,20 @@ export async function deleteReceipt(id: string): Promise<void> {
 
 export async function getReceiptSource(id: string): Promise<SourceDocumentResponse> {
   const response = await request(`/api/receipts/${encodeURIComponent(id)}/source`);
-  return sourceDocumentResponseSchema.parse(await response.json());
+  return await parseResponse(
+    sourceDocumentResponseSchema,
+    response,
+    "GET /api/receipts/:id/source",
+  );
 }
 
 export async function getReceiptRegions(id: string): Promise<SourceRegionsResponse> {
   const response = await request(`/api/receipts/${encodeURIComponent(id)}/regions`);
-  return sourceRegionsResponseSchema.parse(await response.json());
+  return await parseResponse(
+    sourceRegionsResponseSchema,
+    response,
+    "GET /api/receipts/:id/regions",
+  );
 }
 
 export async function exportReceipts(format: ExportFormat): Promise<Blob> {

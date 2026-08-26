@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  apiErrorResponseSchema,
   confirmReceiptResponseSchema,
   createReceiptResponseSchema,
   exportedReceiptSchema,
   jsonExportResponseSchema,
   receiptDetailResponseSchema,
   listReceiptsQuerySchema,
+  listReceiptsResponseSchema,
+  sourceDocumentResponseSchema,
   updateReceiptRequestSchema,
 } from "./api.js";
 
@@ -19,6 +22,13 @@ const baseReceipt = {
   updatedAt: "2026-08-17T12:00:00Z",
   confirmedAt: "2026-08-17T12:04:00Z",
   deletedAt: null,
+};
+
+const sourceDocument = {
+  url: "https://example.test/signed",
+  contentType: "image/jpeg",
+  originalFilename: "receipt.jpg",
+  expiresAt: "2026-08-17T12:05:00Z",
 };
 
 describe("updateReceiptRequestSchema", () => {
@@ -89,8 +99,11 @@ describe("response DTOs", () => {
       createdAt: "2026-08-17T12:00:00Z",
     };
     expect(createReceiptResponseSchema.safeParse(body).success).toBe(true);
-    expect(createReceiptResponseSchema.safeParse({ ...body, userId: "user_1" }).success).toBe(
-      false,
+    // The owner id must never reach this response. Since the response DTOs became forward
+    // compatible it is dropped rather than rejected, which keeps the same guarantee — the client
+    // cannot read a field the DTO does not promise — without an added field breaking older tabs.
+    expect(createReceiptResponseSchema.parse({ ...body, userId: "user_1" })).not.toHaveProperty(
+      "userId",
     );
   });
 
@@ -103,7 +116,7 @@ describe("response DTOs", () => {
     expect(confirmReceiptResponseSchema.safeParse(body).success).toBe(true);
   });
 
-  it("requires a strict low-confidence projection and edited-field list for review responses", () => {
+  it("requires a low-confidence projection and edited-field list for review responses", () => {
     const body = {
       id: "123e4567-e89b-42d3-a456-426614174000",
       userId: "123e4567-e89b-42d3-a456-426614174001",
@@ -122,7 +135,9 @@ describe("response DTOs", () => {
     expect(
       receiptDetailResponseSchema.safeParse({ ...body, editedFields: undefined }).success,
     ).toBe(false);
-    expect(receiptDetailResponseSchema.safeParse({ ...body, extra: true }).success).toBe(false);
+    // Deliberately no longer a rejection: an unknown key is dropped, not fatal. See the
+    // "response DTOs tolerate a newer API" block below for why that changed.
+    expect(receiptDetailResponseSchema.parse({ ...body, extra: true })).not.toHaveProperty("extra");
   });
 
   it("exports receipts without owner or soft-delete fields", () => {
@@ -163,5 +178,53 @@ describe("response DTOs", () => {
     const result = jsonExportResponseSchema.parse({ schemaVersion: 1, receipts: [exported] });
 
     expect(result.receipts[0]?.total).toBe("100.50");
+  });
+});
+
+/**
+ * A browser tab left open across a deploy runs the previous bundle against the new API, so a field
+ * the API has since added must be ignored rather than rejected. When these schemas were `.strict()`
+ * that was not true: shipping `failureReason` on 2026-08-26 made every open tab reject every
+ * receipt response, which surfaced as the generic processing-error screen on receipts that had
+ * extracted perfectly, and cost a client demo.
+ *
+ * The paired assertion below is the half that must never be relaxed with it — request bodies stay
+ * strict, because that is what makes a forged `userId` a schema rejection (PRD §9.1).
+ */
+describe("response DTOs tolerate a newer API", () => {
+  const detail = { ...baseReceipt, lowConfidenceFields: [], editedFields: [] };
+
+  it.each([
+    ["createReceiptResponseSchema", createReceiptResponseSchema, baseReceipt],
+    ["confirmReceiptResponseSchema", confirmReceiptResponseSchema, baseReceipt],
+    ["receiptDetailResponseSchema", receiptDetailResponseSchema, detail],
+    ["sourceDocumentResponseSchema", sourceDocumentResponseSchema, sourceDocument],
+    ["apiErrorResponseSchema", apiErrorResponseSchema, { error: { code: "not_found" } }],
+  ])("%s accepts an unknown field added by a newer API", (_name, schema, body) => {
+    const result = schema.safeParse({ ...body, aFieldThisBundleHasNeverHeardOf: null });
+
+    expect(result.success).toBe(true);
+    // Accepted, then discarded: `.strip()` rather than `.loose()`, so an undeclared field can
+    // never reach a caller that has no idea what it means.
+    expect(result.data).not.toHaveProperty("aFieldThisBundleHasNeverHeardOf");
+  });
+
+  it("listReceiptsResponseSchema tolerates a new field on the envelope and on a receipt", () => {
+    const result = listReceiptsResponseSchema.safeParse({
+      items: [{ ...baseReceipt, someNewCanonicalField: "x" }],
+      page: 1,
+      limit: 20,
+      total: 1,
+      someNewEnvelopeField: true,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("still rejects an unknown field in a request body", () => {
+    expect(
+      updateReceiptRequestSchema.safeParse({ total: "10.00", userId: "attacker" }).success,
+    ).toBe(false);
+    expect(listReceiptsQuerySchema.safeParse({ page: "1", unexpected: "x" }).success).toBe(false);
   });
 });
