@@ -192,11 +192,30 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 16  | Source-panel zoom, mobile inspect popover & edited-field indicator | _none — user asked for a direct implementation_ | [history](history/16-source-panel-zoom-inspect-popover.md) |
 | 17  | Receipts table, row actions & single-receipt export | _none — user asked for research, questions, then direct implementation_ | [history](history/17-receipts-table-row-actions-single-export.md) |
 | 18  | Extraction accuracy, reliability & processing speed | [plan](plans/extraction-accuracy-and-speed.md) | [history](history/18-extraction-accuracy-and-speed.md) |
+| 19  | Stale-bundle response contract & error visibility | _none — user reported a live failure and asked for a diagnosis, then a direct fix_ | [history](history/19-stale-bundle-response-contract.md) |
 
 Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
 amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region
 highlighting. Commit B added measured client-side downscaling, concurrent Azure/storage work,
 `failureReason` surfacing, and the offline accuracy/latency harness.
+
+**Amendment from iteration 19 — `.strict()` belongs on requests, never on a response the browser
+parses.** Adding `failureReason` to the receipt detail response broke every browser tab that had been
+open across the deploy: an SPA never re-fetches its own JavaScript, so the older bundle met a key its
+strict schema did not declare and rejected the whole body. It surfaced as the generic processing-error
+screen on receipts that had extracted perfectly, during a client demo. Response DTOs are now
+`.strip()` — an unknown key is accepted and discarded, so a newer API can neither break an older
+bundle nor smuggle an undeclared field into it. **Request strictness is the half that must never be
+relaxed with it:** `canonicalReceiptFieldsSchema` stays strict because that is what makes a forged
+`userId` a schema rejection (PRD §9.1). `sourceRegionsResponseSchema` also stays strict, because the
+API validates its own output against it as the Azure-leak guard. Tolerant parsing survives an
+*additive* change only; a removed or retyped field still needs a version handshake, which is not built.
+
+**Amendment from iteration 19 — a bare `catch {}` turns a two-minute diagnosis into a two-hour one.**
+Every swallowing handler in the client discarded its error without binding it, so a live failure
+produced an empty console and there was nothing to give the client in the room. Handlers now log the
+technical detail to the **console only**; the visible message stays translated, plain-language copy.
+Adding logging never means showing an error to a user.
 
 **Amendment from iteration 17 — a validation grep encodes an intention it cannot see, so a red check
 means "find out which of the two is wrong", not "change the code".** Phase 6.14 rejected any mention

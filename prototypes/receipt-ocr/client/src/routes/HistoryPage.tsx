@@ -48,7 +48,11 @@ export function HistoryPage() {
         }
         setData(next);
       })
-      .catch(() => active && setFailed(true));
+      .catch((error: unknown) => {
+        if (!active) return;
+        console.error("[history] could not load the receipt list", error);
+        setFailed(true);
+      });
 
     return () => {
       active = false;
@@ -63,7 +67,8 @@ export function HistoryPage() {
       await deleteReceipt(id);
       setPendingDelete(null);
       setReloadToken((value) => value + 1);
-    } catch {
+    } catch (error) {
+      console.error("[history] deleting the receipt failed", error);
       setDeleteFailed(true);
     } finally {
       setDeleting(false);
@@ -77,7 +82,8 @@ export function HistoryPage() {
     try {
       const blob = await exportReceipts(format);
       saveBlob(blob, exportFilename(format, new Date()));
-    } catch {
+    } catch (error) {
+      console.error(`[history] exporting all confirmed receipts as ${format} failed`, error);
       setExportFailed(true);
     } finally {
       setExporting((current) => {
@@ -95,7 +101,8 @@ export function HistoryPage() {
     try {
       const blob = await exportReceipt(receipt.id, format);
       saveBlob(blob, receiptExportFilename(receipt, format));
-    } catch {
+    } catch (error) {
+      console.error(`[history] exporting one receipt as ${format} failed`, error);
       setExportFailed(true);
     } finally {
       setDownloadingId(null);

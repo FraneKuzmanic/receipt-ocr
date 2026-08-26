@@ -25,6 +25,7 @@ export function ProcessingPage() {
       setAttempt((value) => value + 1);
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) return;
+      console.error("[processing] retry request failed", error);
       setState("failed");
     }
   }
@@ -69,8 +70,12 @@ export function ProcessingPage() {
         }
 
         pollTimer = window.setTimeout(() => void poll(), POLL_INTERVAL_MS);
-      } catch {
-        if (!cancelled && !finished) finish("request_error");
+      } catch (error) {
+        // An abort from unmount or the timeout is expected, and the flags already cover it — only
+        // an error that actually reaches the user is worth a console line.
+        if (cancelled || finished) return;
+        console.error("[processing] polling stopped after an unexpected error", error);
+        finish("request_error");
       }
     }
 

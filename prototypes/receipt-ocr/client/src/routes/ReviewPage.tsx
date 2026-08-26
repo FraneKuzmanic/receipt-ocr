@@ -118,7 +118,11 @@ export function ReviewPage() {
           navigate(`/receipts/${id}/processing`, { replace: true });
         } else setReceipt(next);
       })
-      .catch(() => active && setFailed(true));
+      .catch((error: unknown) => {
+        if (!active) return;
+        console.error("[review] could not load the receipt", error);
+        setFailed(true);
+      });
     return () => {
       active = false;
     };
@@ -174,7 +178,12 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
     let active = true;
     void getReceiptRegions(receiptId)
       .then((next) => active && setRegions(next))
-      .catch(() => active && setRegions(null));
+      .catch((caught: unknown) => {
+        // Non-fatal by design: the form still works, it just loses the source outlines.
+        if (!active) return;
+        console.error("[review] could not load source regions; overlays are unavailable", caught);
+        setRegions(null);
+      });
     return () => {
       active = false;
     };
@@ -216,7 +225,8 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
       onReceipt(next);
       reset(toFormValues(next));
       show(t("review.saved"));
-    } catch {
+    } catch (caught) {
+      console.error("[review] saving the receipt failed", caught);
       setError(t("review.errors.save"));
     } finally {
       setSaving(false);
@@ -231,7 +241,8 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
     try {
       const blob = await exportReceipt(receiptId, format);
       saveBlob(blob, receiptExportFilename({ ...receipt, id: receiptId }, format));
-    } catch {
+    } catch (caught) {
+      console.error("[review] downloading the export failed", caught);
       setError(t("review.errors.download"));
     } finally {
       setDownloading(false);
@@ -245,7 +256,8 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
       const next = await confirmReceipt(receiptId);
       onReceipt({ ...receipt, ...next });
       show(t("review.confirmed"));
-    } catch {
+    } catch (caught) {
+      console.error("[review] confirming the receipt failed", caught);
       setError(t("review.errors.confirm"));
     } finally {
       setConfirming(false);
