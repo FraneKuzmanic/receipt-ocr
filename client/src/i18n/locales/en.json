@@ -93,6 +93,8 @@
     "addVat": "Add VAT row",
     "addItem": "Add item",
     "removeRow": "Remove row",
+    "removeItem": "Remove item {{number}}",
+    "itemFieldLabel": "{{field}}, item {{number}}",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "zoomReset": "Fit to view",

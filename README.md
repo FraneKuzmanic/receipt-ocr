@@ -367,6 +367,26 @@ shows the generic "may need extra checking" hint, never both. `aria-invalid` is 
 used here: an uncertain-but-plausible OCR value is not a validation failure, and claiming otherwise
 would collide with the form's real errors.
 
+**The items section is the one exception to the label-above-every-input rule, and deliberately so.**
+Repeating a full label above each of description, quantity, unit price and total is right for the
+fifteen one-off header fields and wrong for a receipt with twenty items — four stacked label/input
+pairs each turned that section into most of the page. The field name is therefore stated once and
+each item occupies a single row. `client/src/review/ItemRows.tsx` picks the layout through the same
+`useWideLayout` hook the receipts list uses, so there is one definition of "desktop" and the two
+layouts never both reach the accessibility tree:
+
+- **Desktop (`lg`+): a real `<table>`** with the four column headers, one row per item and an icon
+  remove button. The inputs have no visible label, so each carries an `aria-label` naming both the
+  field and the item number — a `<th scope="col">` labels a cell, not the control inside it.
+- **Phone: a condensed card** — description on its own line with the remove button beside it, then
+  quantity, unit price and total in one three-column row, each under a small caption.
+
+A dense row has no room for an explanation beneath each cell, so a flagged value keeps its amber
+cell and `aria-describedby`, while the words collapse to **one note per item** listing the affected
+field names. Warnings still win over the generic low-confidence hint on the same field, exactly as in
+`ReviewField`. Every input keeps its `review-field-…` id, so clicking a source outline still focuses
+the individual item cell and focusing a cell still raises its outline.
+
 The detail response exposes lowConfidenceFields, a provider-neutral list of canonical field names.
 Inputs keep canonical strings after a save but accept Croatian and English locale formatting on entry.
 PATCH is allowed only in review and confirmed; it never changes status. Confirm moves only review to

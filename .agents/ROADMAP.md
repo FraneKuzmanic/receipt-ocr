@@ -193,6 +193,7 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 17  | Receipts table, row actions & single-receipt export | _none — user asked for research, questions, then direct implementation_ | [history](history/17-receipts-table-row-actions-single-export.md) |
 | 18  | Extraction accuracy, reliability & processing speed | [plan](plans/extraction-accuracy-and-speed.md) | [history](history/18-extraction-accuracy-and-speed.md) |
 | 19  | Stale-bundle response contract & error visibility | _none — user reported a live failure and asked for a diagnosis, then a direct fix_ | [history](history/19-stale-bundle-response-contract.md) |
+| 20  | Items section density | _none — user asked for research, a recommendation, then a direct implementation_ | [history](history/20-items-section-density.md) |
 
 Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
 amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region
