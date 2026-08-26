@@ -93,6 +93,8 @@
     "addVat": "Dodajte redak PDV-a",
     "addItem": "Dodajte stavku",
     "removeRow": "Uklonite redak",
+    "removeItem": "Uklonite stavku {{number}}",
+    "itemFieldLabel": "{{field}}, stavka {{number}}",
     "zoomIn": "Približite",
     "zoomOut": "Udaljite",
     "zoomReset": "Prilagodite prikazu",

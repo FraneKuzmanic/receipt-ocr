@@ -22,6 +22,7 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { Skeleton } from "../components/Skeleton";
 import { useToast } from "../components/Toast";
 import { receiptExportFilename, saveBlob } from "../history/download";
+import { ItemRows } from "../review/ItemRows";
 import { SourceDocumentPanel } from "../review/SourceDocumentPanel";
 import { SECTION_COLOURS, type Section } from "../review/regionSections";
 import { toFormValues, toPatch, type ReviewFormValues } from "../review/reviewForm";
@@ -467,47 +468,17 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
 
         <fieldset className="flex flex-col gap-3">
           <SectionLegend section="items" label={t("review.items")} />
-          {items.fields.map((field, index) => (
-            <div key={field.id} className="grid gap-2 rounded border border-slate-200 p-3">
-              <ReviewField
-                field={`items.${index}.description`}
-                label={t("review.fields.description")}
-                lowConfidenceFields={receipt.lowConfidenceFields}
-                warnings={receipt.warnings}
-                input={<input {...register(`items.${index}.description`)} />}
-              />
-              {(["quantity", "unitPrice", "total"] as const).map((name) => (
-                <ReviewField
-                  key={name}
-                  field={`items.${index}.${name}`}
-                  label={t(`review.fields.${name}`)}
-                  lowConfidenceFields={receipt.lowConfidenceFields}
-                  warnings={receipt.warnings}
-                  input={
-                    <input
-                      {...register(`items.${index}.${name}`, { validate: amountValidation })}
-                    />
-                  }
-                />
-              ))}
-              <button
-                type="button"
-                onClick={() => items.remove(index)}
-                className="min-h-11 text-left underline"
-              >
-                {t("review.removeRow")}
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() =>
+          <ItemRows
+            fields={items.fields}
+            register={register}
+            amountValidation={amountValidation}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            onRemove={(index) => items.remove(index)}
+            onAppend={() =>
               items.append({ description: "", quantity: "", unitPrice: "", total: "" })
             }
-            className="min-h-11 text-left underline"
-          >
-            {t("review.addItem")}
-          </button>
+          />
         </fieldset>
 
         {error ? (
