@@ -11,5 +11,7 @@ playwright-report/
 .DS_Store
 
 # Real receipt photos used for Task 07 model evaluation — contain real names, addresses, OIBs.
-# Only recorded Azure JSON responses (api/src/providers/document-extraction/fixtures/) are committed.
-.agents/fixtures/
+# Recorded Azure JSON responses and reviewed expected values are committed; source files remain local.
+.agents/fixtures/*
+!.agents/fixtures/expected/
+!.agents/fixtures/expected/*.json

@@ -41,7 +41,10 @@ export function toFormValues(receipt: CanonicalReceiptFields): ReviewFormValues 
     issueDate: text(receipt.issueDate),
     issueTime: text(receipt.issueTime),
     subtotal: text(receipt.subtotal),
-    vatBreakdown: (receipt.vatBreakdown ?? []).map((entry) => ({
+    vatBreakdown: (receipt.vatBreakdown?.length
+      ? receipt.vatBreakdown
+      : [{ rate: null, taxableBase: null, vatAmount: null }]
+    ).map((entry) => ({
       rate: text(entry.rate),
       taxableBase: text(entry.taxableBase),
       vatAmount: text(entry.vatAmount),

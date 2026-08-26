@@ -1,0 +1,8 @@
+{
+  "sellerName": "INA - INDUSTRIJA NAFTE d.d.",
+  "documentNumber": "23024347-SU279WC1-503446097",
+  "issueDate": "2023-05-05",
+  "total": "0.50",
+  "currency": "EUR",
+  "vatBreakdown": [{ "rate": "25", "taxableBase": "0.40", "vatAmount": "0.10" }]
+}

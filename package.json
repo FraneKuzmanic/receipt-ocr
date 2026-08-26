@@ -24,6 +24,7 @@
     "test": "vitest run",
     "test:integration": "node --env-file-if-exists=.env scripts/run-supabase-integration-tests.mjs",
     "test:integration:local": "node scripts/run-supabase-integration-tests.mjs --local",
+    "score:extraction": "tsx scripts/score-extraction.ts",
     "db:start": "npx --no-install supabase start",
     "db:stop": "npx --no-install supabase stop",
     "db:reset": "npx --no-install supabase db reset --local",

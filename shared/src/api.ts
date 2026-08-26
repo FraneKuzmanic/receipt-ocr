@@ -28,9 +28,18 @@ export const createReceiptResponseSchema = canonicalReceiptSchema.pick({
 
 export type CreateReceiptResponse = z.infer<typeof createReceiptResponseSchema>;
 
+export const RECEIPT_FAILURE_REASONS = [
+  "unreadable_document",
+  "provider_rejected",
+  "provider_unavailable",
+] as const;
+export const receiptFailureReasonSchema = z.enum(RECEIPT_FAILURE_REASONS);
+export type ReceiptFailureReason = z.infer<typeof receiptFailureReasonSchema>;
+
 /** The review surface exposes canonical low-confidence field names, never provider metadata. */
 export const receiptDetailResponseSchema = canonicalReceiptSchema.extend({
   lowConfidenceFields: z.array(z.string()),
+  failureReason: receiptFailureReasonSchema.nullable().optional(),
   /**
    * Scalar canonical fields whose current value differs from the original machine extraction —
    * the same provenance distinction PRD §6.4 requires be kept internally, surfaced so the review

@@ -125,6 +125,7 @@ Current coverage and what each test protects:
 | `client/src/auth/ProtectedRoute.test.tsx` | Spinner while loading — neither outcome rendered early — redirect to `/login` when signed out, children when signed in |
 | `client/src/api/client.test.ts` | The bearer token is attached when a session exists and omitted when not; a 401 triggers exactly one `signOut`; a 403/404 triggers none; paged list queries, body-less deletes and export downloads use the shared authenticated wrapper |
 | `client/src/capture/receiptFile.test.ts` | Client-only source classification accepts supported types and empty-MIME extension fallback, applies the 10 MB boundary, and keeps resolution/blur guidance advisory through deterministic pixel samples |
+| `client/src/capture/downscale.test.ts` (Iteration 18 Commit B) | PDFs and small images pass through unchanged; large images re-encode to the measured long edge; decode/encode failures preserve the selected source |
 | `client/src/routes/HomePage.test.tsx` | Native camera hint and always-visible picker fallback, preview/retake, advisory warnings, exact-file upload, translated upload errors; the on-button `Loading…` state that keeps the preview and blocks retake mid-upload; and the pointer-driven picker split — a coarse pointer keeps both actions, a fine pointer drops the camera one |
 | `client/src/routes/ReviewPage.test.tsx` (amber) | Amber marks **every** field needing attention — low-confidence readings *and* warned fields such as an empty critical field — each with `aria-describedby` and none with `aria-invalid`, and a warned field never shows the generic hint as well as its own warning |
 | `client/src/routes/ProcessingPage.test.tsx` | Immediate sequential polling, no overlap, review/confirmed routing, failed/error/timeout actions, retry window and unmount abort cleanup |
@@ -144,6 +145,7 @@ Current coverage and what each test protects:
 | `api/src/providers/document-extraction/tax-signals.test.ts` (Iteration 18) | The unread-VAT signal requires structural recap evidence and remains silent for the recorded VAT-exempt receipts |
 | `api/src/providers/document-extraction/azure.test.ts` | Azure retryability classification, deterministic fallbacks isolated from the network, and — regression coverage for a real post-review bug — the request's abort signal is proven to reach the long-running poll, and a poll that outlives `EXTRACTION_TIMEOUT_MS` is proven to reject as a retryable failure rather than hang |
 | `api/src/services/receipt-extraction.test.ts` | Background extraction writes review/original data together and contains expected and unexpected failures |
+| `client/src/i18n/failureReasons.test.ts` (Iteration 18 Commit B) | Every stable failed-receipt reason has non-empty Croatian and English template-literal translation, with no orphan message |
 | `api/src/providers/document-extraction/fiscal-qr.test.ts` | Croatian fiscal QR URLs, a bare JIR UUID, case-insensitive parameters, ZKI, malformed payloads and separator-less `izn` parsing remain deterministic, local and non-throwing |
 | `api/src/providers/document-extraction/azure-fields.test.ts` (Task 08) | Unreadable source values are tracked as `unreadableFields` without persisting bad data; structured Azure values still take precedence when valid |
 | `api/src/providers/document-extraction/azure.test.ts` (Task 08) | Barcode feature propagation, QR extraction and marker-safe text fallbacks preserve normal field extraction when a QR is absent |
@@ -806,6 +808,10 @@ confirm its table-cell source outline appears. Upload a VAT-exempt receipt and c
 
 The table-cell outlines require a real browser; jsdom cannot verify painted SVG geometry or pointer
 hit testing.
+
+For a source above 2 MP or 1.5 MB, confirm its preview and stored source are the same downscaled JPEG,
+the critical extracted fields still match the full-size source, and an unreadable failure offers Upload
+another receipt without Retry.
 
 ---
 

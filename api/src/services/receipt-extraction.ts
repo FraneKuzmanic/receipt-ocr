@@ -9,6 +9,7 @@ import {
 } from "../providers/document-extraction/types.js";
 import { computeWarnings } from "../validation/warnings.js";
 import type { SourceContentType } from "@receipt/shared";
+import type { ProviderExtractionResult } from "../providers/document-extraction/types.js";
 
 export interface ExtractReceiptInput {
   readonly provider: DocumentExtractionProvider;
@@ -17,6 +18,7 @@ export interface ExtractReceiptInput {
   readonly receiptId: string;
   readonly bytes: Buffer;
   readonly contentType: SourceContentType;
+  readonly extraction?: Promise<ProviderExtractionResult>;
 }
 
 /** Background extraction must never reject after an HTTP response has already been sent. */
@@ -24,10 +26,11 @@ export async function extractReceipt(input: ExtractReceiptInput): Promise<void> 
   const repository = new ReceiptRepository(input.client, input.userId);
 
   try {
-    const result = await input.provider.extract({
-      bytes: input.bytes,
-      contentType: input.contentType,
-    });
+    const result = await (input.extraction ??
+      input.provider.extract({
+        bytes: input.bytes,
+        contentType: input.contentType,
+      }));
     const warnings = computeWarnings({
       fields: result.fields,
       qr: result.qr,

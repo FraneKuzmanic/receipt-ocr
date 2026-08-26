@@ -26,6 +26,8 @@ vi.mock("../capture/receiptFile", async (importOriginal) => ({
   analyzeReceiptImage: vi.fn(),
 }));
 
+vi.mock("../capture/downscale", () => ({ downscaleReceiptImage: vi.fn((file) => file) }));
+
 function Location() {
   return <p data-testid="location">{useLocation().pathname}</p>;
 }

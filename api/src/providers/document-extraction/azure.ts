@@ -41,7 +41,12 @@ export interface AzureProviderOptions {
   readonly analyze?: (
     input: ExtractionInput,
     signal: AbortSignal,
-  ) => Promise<{ analyzeResult: AnalyzeResultOutput; raw: unknown }>;
+  ) => Promise<{
+    analyzeResult: AnalyzeResultOutput;
+    raw: unknown;
+    uploadMs?: number;
+    analyzeMs?: number;
+  }>;
 }
 
 export function createAzureProvider(
@@ -85,6 +90,8 @@ export function createAzureProvider(
             apiVersion: response.analyzeResult.apiVersion || AZURE_API_VERSION,
             analyzedAt: new Date().toISOString(),
             latencyMs: Date.now() - startedAt,
+            uploadMs: response.uploadMs,
+            analyzeMs: response.analyzeMs,
             documentConfidence: mapped.documentConfidence,
             fields: metadata,
             unreadableFields: mapped.unreadableFields,
@@ -118,15 +125,23 @@ async function analyzeWithAzure(
   settings: AzureSettings,
   input: ExtractionInput,
   signal: AbortSignal,
-): Promise<{ analyzeResult: AnalyzeResultOutput; raw: unknown }> {
+): Promise<{
+  analyzeResult: AnalyzeResultOutput;
+  raw: unknown;
+  uploadMs: number;
+  analyzeMs: number;
+}> {
+  const uploadStartedAt = Date.now();
   const initial = await client.path("/documentModels/{modelId}:analyze", settings.modelId).post({
     contentType: "application/json",
     body: { base64Source: input.bytes.toString("base64") },
     queryParameters: { locale: settings.locale, features: ["barcodes"] },
     abortSignal: signal,
   });
+  const uploadMs = Date.now() - uploadStartedAt;
   if (isUnexpected(initial)) throw classifyAzureFailure(initial.status);
 
+  const analyzeStartedAt = Date.now();
   const completed = await getLongRunningPoller(client, initial, {
     intervalInMs: 500,
   }).pollUntilDone({ abortSignal: signal });
@@ -134,7 +149,12 @@ async function analyzeWithAzure(
   if (operation.status !== "succeeded" || operation.analyzeResult === undefined) {
     throw new ExtractionError("provider_rejected", false);
   }
-  return { analyzeResult: operation.analyzeResult, raw: operation };
+  return {
+    analyzeResult: operation.analyzeResult,
+    raw: operation,
+    uploadMs,
+    analyzeMs: Date.now() - analyzeStartedAt,
+  };
 }
 
 function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | null {
@@ -153,7 +173,7 @@ function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | nul
   return firstQr;
 }
 
-function applyTextFallbacks(
+export function applyTextFallbacks(
   fields: Record<string, unknown>,
   metadata: Record<string, ExtractionFieldMetadata>,
   content: StrippedContent,

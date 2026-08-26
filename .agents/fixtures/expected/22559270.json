@@ -1,0 +1,12 @@
+{
+  "sellerName": "Milenij hoteli d. o.o.",
+  "documentNumber": "38302/013/101",
+  "issueDate": "2022-06-26",
+  "total": "517.00",
+  "currency": "HRK",
+  "vatBreakdown": [
+    { "rate": "25", "taxableBase": "60.68", "vatAmount": "15.02" },
+    { "rate": "25", "taxableBase": "88.80", "vatAmount": "22.20" },
+    { "rate": "13", "taxableBase": "292.00", "vatAmount": "37.96" }
+  ]
+}

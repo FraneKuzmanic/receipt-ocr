@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { ApiError, getReceipt, retryReceipt } from "../api/client";
+import type { ReceiptFailureReason } from "@receipt/shared";
 import { Spinner } from "../components/Spinner";
 
 export const POLL_INTERVAL_MS = 2_000;
@@ -15,6 +16,7 @@ export function ProcessingPage() {
   const { id } = useParams();
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<ProcessingState>("polling");
+  const [failureReason, setFailureReason] = useState<ReceiptFailureReason | null>(null);
 
   async function retry() {
     if (!id) return;
@@ -39,6 +41,7 @@ export function ProcessingPage() {
     let controller: AbortController | undefined;
 
     setState("polling");
+    setFailureReason(null);
 
     function finish(nextState: Exclude<ProcessingState, "polling">) {
       finished = true;
@@ -60,6 +63,7 @@ export function ProcessingPage() {
           return;
         }
         if (receipt.status === "failed") {
+          setFailureReason(receipt.failureReason ?? null);
           finish("failed");
           return;
         }
@@ -100,7 +104,9 @@ export function ProcessingPage() {
 
   const message =
     state === "failed"
-      ? t("processing.failed")
+      ? failureReason
+        ? t(`processing.failure.${failureReason}`)
+        : t("processing.failed")
       : state === "timeout"
         ? t("processing.timeout")
         : t("processing.requestError");
@@ -112,7 +118,7 @@ export function ProcessingPage() {
     >
       <h1 className="text-2xl font-semibold">{message}</h1>
       <p className="text-slate-600">{t("processing.errorDescription")}</p>
-      {state === "failed" ? (
+      {state === "failed" && failureReason !== "unreadable_document" ? (
         <button
           type="button"
           onClick={() => void retry()}

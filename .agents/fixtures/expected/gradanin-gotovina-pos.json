@@ -1,0 +1,8 @@
+{
+  "sellerName": "AMPER, obrt za elektroinstalacijske radove",
+  "documentNumber": "1/1/1",
+  "issueDate": "2026-08-17",
+  "total": "375.00",
+  "currency": "EUR",
+  "vatBreakdown": [{ "rate": "25.00", "taxableBase": "300.00", "vatAmount": "75.00" }]
+}

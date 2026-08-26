@@ -12,6 +12,7 @@ import {
   classifyReceiptFile,
 } from "../capture/receiptFile";
 import { useCameraCapture } from "../capture/useCameraCapture";
+import { downscaleReceiptImage } from "../capture/downscale";
 import { Spinner } from "../components/Spinner";
 import { uploadErrorCodeSchema } from "@receipt/shared";
 
@@ -83,9 +84,17 @@ export function HomePage() {
       const analysis = await analyzeReceiptImage(file);
       if (selectionVersion.current !== version) return;
 
-      const nextPreviewUrl = URL.createObjectURL(file);
+      const uploadFile = await downscaleReceiptImage(file);
+      if (selectionVersion.current !== version) return;
+
+      const nextPreviewUrl = URL.createObjectURL(uploadFile);
       previewUrl.current = nextPreviewUrl;
-      setSelected({ file, kind: "image", previewUrl: nextPreviewUrl, warnings: analysis.warnings });
+      setSelected({
+        file: uploadFile,
+        kind: "image",
+        previewUrl: nextPreviewUrl,
+        warnings: analysis.warnings,
+      });
     } catch {
       if (selectionVersion.current === version) setError(t("capture.errors.preview_unavailable"));
     } finally {

@@ -191,13 +191,12 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 15  | Source-document field highlighting | [plan](plans/source-field-highlighting.md) | [history](history/15-source-field-highlighting.md) |
 | 16  | Source-panel zoom, mobile inspect popover & edited-field indicator | _none — user asked for a direct implementation_ | [history](history/16-source-panel-zoom-inspect-popover.md) |
 | 17  | Receipts table, row actions & single-receipt export | _none — user asked for research, questions, then direct implementation_ | [history](history/17-receipts-table-row-actions-single-export.md) |
-| 18  | Extraction accuracy, reliability & processing speed — Commit A (accuracy & transparency) | [plan](plans/extraction-accuracy-and-speed.md) | [history](history/18-extraction-accuracy-and-speed.md) |
+| 18  | Extraction accuracy, reliability & processing speed | [plan](plans/extraction-accuracy-and-speed.md) | [history](history/18-extraction-accuracy-and-speed.md) |
 
-Iteration 18 is a two-commit iteration (see its plan). Only Commit A (currency resolution, VAT-table
-extraction, amount-noise normalization, the `vat_present_but_unread` warning, and table-sourced
-source-region highlighting) is done. Commit B (client-side downscale, concurrent Azure/storage
-upload, `failureReason` surfacing, and the offline accuracy/latency harness) remains open under the
-same iteration number.
+Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
+amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region
+highlighting. Commit B added measured client-side downscaling, concurrent Azure/storage work,
+`failureReason` surfacing, and the offline accuracy/latency harness.
 
 **Amendment from iteration 17 — a validation grep encodes an intention it cannot see, so a red check
 means "find out which of the two is wrong", not "change the code".** Phase 6.14 rejected any mention
