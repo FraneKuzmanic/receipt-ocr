@@ -162,6 +162,10 @@ Current coverage and what each test protects:
 | `client/src/components/ActionMenu.test.tsx` (Iteration 17) | The shared overflow menu: it reports `aria-expanded`/`aria-controls`, opens and closes, runs an item exactly once, returns focus to its trigger on both selection and Escape, closes on an outside pointer without stealing focus back, and stays operable while busy. **What it cannot prove** is anything positional — that the desktop dropdown is not clipped by an ancestor, or that the mobile sheet sits above the tab bar — because jsdom computes no layout |
 | `client/src/routes/HistoryPage.test.tsx` (Iteration 17) | The table renders at `lg` and the card list below it, **never both** — a duplicated tree would put two of every row and every action menu in the accessibility tree; the six column headers in order; per-receipt CSV/JSON downloads calling the single-receipt endpoint; **a non-confirmed receipt offering no download at all**; and delete requiring the dialog's explicit confirmation |
 | `client/src/history/download.test.ts` (Iteration 17) | A single receipt's filename leads with its document number and issue date, and stays safe and non-empty when OCR read something unusable — the document number is untrusted text that reaches a filesystem |
+| `api/src/providers/document-extraction/croatian.test.ts` (Iteration 21) | **That a time is read, never guessed.** A clock time matches only with colon separators, so a date can no longer be parsed as one — `Datum i vrijeme: 17.08.2026. 10:30` stored `17:08:20` before this; a date-adjacent time outranks a `Vrijeme:` label, which on a taxi receipt holds the ride duration. Also: JIR/ZKI survive one line break before the value and one inside it but not a blank line; and an OIB is accepted only with a valid MOD 11,10 check digit, while the *shape*-only signal that marks a document Croatian deliberately does not require one |
+| `api/src/providers/document-extraction/vat-tables.test.ts` (Iteration 21) | The recap mapper against real OCR output: a merged `Stopa% Osnovica` header cell yields both columns, values found one column right of their header are still read, `PDV` heads an amount column, an OCR `osnavica` still matches, the recap's own total row is dropped wherever its label sits, and a recap Azure emitted no table for is read from text — while a VAT-exempt receipt still yields nothing |
+| `api/src/providers/document-extraction/receipt-amount.test.ts` (Iteration 21) | `parseVatRate` discards a leading tax-group code (`D1 25,00 %`, misread `01 25.00 %`) and reports a rate outside 0–100 as unreadable rather than storing `0125.00` |
+| `api/src/providers/document-extraction/azure-fields.test.ts` (Iteration 21) | A post-euro-adoption receipt takes the euro amount it asks for rather than the kuna equivalent the provider returned as `InvoiceTotal` — which corrupts total and currency together — while a genuine kuna receipt is untouched; the OIB wins over the VAT number printed above it; and a totals block returned as `Items` does not become purchased lines, while real items survive |
 | `client/src/review/ActiveRegionStrip.test.tsx` (Iteration 15) | The mobile crop strip renders only with a matching active field, a known region and a non-PDF, safe source; `cropTransform`'s output, reproduced through the same `scale ∘ translate` composition the browser applies, centers the region's centroid in the **strip's own viewport**, not the full receipt image — the previous formula centered the whole image regardless of which field was active, verified wrong only by measuring a real rendered page |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
@@ -424,6 +428,20 @@ the shared decimal contract, so this task must not modify `shared/src/money.ts`.
 ```
 git diff --quiet -- shared/src/money.ts || (echo 'shared/src/money.ts changed during receipt-noise parsing' && exit 1)
 ```
+
+### 6.19 Every extraction expectation is actually scored
+
+`score:extraction` scores a receipt only when both its recorded Azure response and its ground truth
+exist, and **silently skips** an expectation whose fixture is missing. Six receipts with known
+extraction defects sat outside the corpus that way while the harness reported healthy numbers, so
+this is the check that keeps the score honest rather than flattering.
+
+```
+node -e "const fs=require('fs'); const fx=new Set(fs.readdirSync('api/src/providers/document-extraction/fixtures')); const missing=fs.readdirSync('.agents/fixtures/expected').filter(n=>n.endsWith('.json')&&!fx.has(n)); if(missing.length) throw new Error('ground truth never scored, no recorded fixture: '+missing.join(', ')); console.log('ok');"
+```
+
+If this fails, upload that receipt once and record its raw provider response as a fixture — do not
+delete the expectation to make the check pass.
 
 ---
 

@@ -4,7 +4,7 @@ import type {
   AnalyzeResultOutput,
   DocumentTableOutput,
 } from "@azure-rest/ai-document-intelligence";
-import { findVatTable, mapVatTable } from "./vat-tables.js";
+import { findVatTable, mapVatTable, mapVatText } from "./vat-tables.js";
 
 async function fixture(name: string): Promise<AnalyzeResultOutput> {
   const raw = JSON.parse(
@@ -50,5 +50,43 @@ describe("VAT recap tables", () => {
     } as DocumentTableOutput;
 
     expect(mapVatTable(table)).toEqual([]);
+  });
+});
+
+describe("VAT recap tables tolerate real OCR output (iteration 21)", () => {
+  it.each([
+    // A single header cell carrying "Stopa% Osnovica" must still yield a taxable base.
+    ["receiptWithTaxMistake", [{ rate: "25.00", taxableBase: "10.40", vatAmount: "2.60" }]],
+    // Headers sit at columns 0/1/3 while the values sit at 2 and 3/4, and "PDV" heads the amount.
+    [
+      "22559270",
+      [
+        { rate: "25", taxableBase: "60.08", vatAmount: "15.02" },
+        { rate: "25", taxableBase: "88.80", vatAmount: "22.20" },
+        { rate: "13", taxableBase: "292.04", vatAmount: "37.96" },
+      ],
+    ],
+    // "osnavica" is an OCR misread of the header, and the rate cell carries a tax-group code.
+    ["ina-racun-sladoled", [{ rate: "25.00", taxableBase: "14.51", vatAmount: "3.63" }]],
+  ])("maps %s", async (name, expected) => {
+    await expect(mappedVat(name)).resolves.toEqual(expected);
+  });
+
+  it("drops the recap's own total row wherever its label sits", async () => {
+    // "UKUPNO POREZ 3,63 €" previously became a second VAT row repeating the same amount.
+    await expect(mappedVat("ina-racun-sladoled")).resolves.toHaveLength(1);
+  });
+
+  it("reads a recap that never became a table", async () => {
+    // Wrapped rows leave Azure emitting no table at all, so the labels arrive as loose lines.
+    const content = (await fixture("gradanin-gotovina-pos")).content ?? "";
+    expect(findVatTable(await fixture("gradanin-gotovina-pos"))).toBeNull();
+    expect(mapVatText(content)).toEqual([
+      { rate: "25.00", taxableBase: "300.00", vatAmount: "75.00" },
+    ]);
+  });
+
+  it("invents no VAT for a receipt outside the VAT system", async () => {
+    expect(mapVatText((await fixture("racuntaksi1")).content ?? "")).toEqual([]);
   });
 });

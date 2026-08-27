@@ -1,0 +1,2606 @@
+{
+  "status": "succeeded",
+  "analyzeResult": {
+    "pages": [
+      {
+        "unit": "pixel",
+        "angle": 0.3232487142086029,
+        "lines": [
+          {
+            "spans": [
+              {
+                "length": 1,
+                "offset": 0
+              }
+            ],
+            "content": "0",
+            "polygon": [
+              675,
+              138,
+              698,
+              138,
+              698,
+              175,
+              675,
+              175
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 13,
+                "offset": 2
+              }
+            ],
+            "content": "REBECA d.o.o.",
+            "polygon": [
+              420,
+              227,
+              643,
+              230,
+              642,
+              268,
+              419,
+              265
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 32,
+                "offset": 16
+              }
+            ],
+            "content": "Prolaz sestara Baković 1, Zagreb",
+            "polygon": [
+              262,
+              271,
+              821,
+              276,
+              820,
+              319,
+              262,
+              314
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 7,
+                "offset": 49
+              }
+            ],
+            "content": "Storija",
+            "polygon": [
+              384,
+              321,
+              627,
+              323,
+              626,
+              364,
+              384,
+              361
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 32,
+                "offset": 57
+              }
+            ],
+            "content": "Prolaz sestara Baković 1, Zagreb",
+            "polygon": [
+              261,
+              366,
+              821,
+              371,
+              821,
+              413,
+              260,
+              408
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 16,
+                "offset": 90
+              }
+            ],
+            "content": "OIB: 16029174381",
+            "polygon": [
+              401,
+              414,
+              680,
+              418,
+              679,
+              456,
+              401,
+              453
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 7,
+                "offset": 107
+              }
+            ],
+            "content": "Štorija",
+            "polygon": [
+              186,
+              507,
+              313,
+              510,
+              312,
+              549,
+              185,
+              546
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 9,
+                "offset": 115
+              }
+            ],
+            "content": "Storija 1",
+            "polygon": [
+              731,
+              515,
+              888,
+              516,
+              887,
+              556,
+              731,
+              554
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 16,
+                "offset": 125
+              }
+            ],
+            "content": "Datum: 25.9.2020",
+            "polygon": [
+              186,
+              554,
+              472,
+              557,
+              471,
+              596,
+              186,
+              593
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 14,
+                "offset": 142
+              }
+            ],
+            "content": "Vrijeme: 17:13",
+            "polygon": [
+              645,
+              559,
+              891,
+              561,
+              891,
+              601,
+              644,
+              600
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 19,
+                "offset": 157
+              }
+            ],
+            "content": "Račun br: 326/U02/1",
+            "polygon": [
+              186,
+              601,
+              521,
+              605,
+              521,
+              646,
+              185,
+              642
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 6,
+                "offset": 177
+              }
+            ],
+            "content": "Artikl",
+            "polygon": [
+              184,
+              649,
+              291,
+              650,
+              291,
+              688,
+              184,
+              687
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 6,
+                "offset": 184
+              }
+            ],
+            "content": "Cijena",
+            "polygon": [
+              452,
+              654,
+              559,
+              655,
+              558,
+              694,
+              452,
+              692
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 4,
+                "offset": 191
+              }
+            ],
+            "content": "Kol.",
+            "polygon": [
+              609,
+              654,
+              678,
+              654,
+              678,
+              692,
+              609,
+              692
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 9,
+                "offset": 196
+              }
+            ],
+            "content": "Ukupno PG",
+            "polygon": [
+              732,
+              653,
+              894,
+              652,
+              894,
+              693,
+              732,
+              693
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 21,
+                "offset": 206
+              }
+            ],
+            "content": "KAVA S MLIJEKOM 13,00",
+            "polygon": [
+              178,
+              741,
+              558,
+              746,
+              558,
+              786,
+              177,
+              782
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 4,
+                "offset": 228
+              }
+            ],
+            "content": "1,00",
+            "polygon": [
+              614,
+              747,
+              682,
+              747,
+              682,
+              787,
+              614,
+              787
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 7,
+                "offset": 233
+              }
+            ],
+            "content": "13,00 H",
+            "polygon": [
+              773,
+              747,
+              896,
+              747,
+              896,
+              789,
+              773,
+              789
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 8,
+                "offset": 241
+              }
+            ],
+            "content": "Ukupno :",
+            "polygon": [
+              174,
+              841,
+              421,
+              845,
+              420,
+              887,
+              173,
+              883
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 8,
+                "offset": 250
+              }
+            ],
+            "content": "13.00 kn",
+            "polygon": [
+              616,
+              844,
+              893,
+              846,
+              892,
+              887,
+              616,
+              885
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 9,
+                "offset": 259
+              }
+            ],
+            "content": "Operater:",
+            "polygon": [
+              173,
+              892,
+              337,
+              894,
+              337,
+              936,
+              172,
+              935
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 7,
+                "offset": 269
+              }
+            ],
+            "content": "VedranG",
+            "polygon": [
+              769,
+              895,
+              896,
+              896,
+              896,
+              937,
+              769,
+              936
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 12,
+                "offset": 277
+              }
+            ],
+            "content": "Vrsta poreza",
+            "polygon": [
+              170,
+              992,
+              393,
+              996,
+              393,
+              1036,
+              169,
+              1033
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 15,
+                "offset": 290
+              }
+            ],
+            "content": "Stopa% Osnovica",
+            "polygon": [
+              464,
+              992,
+              736,
+              993,
+              736,
+              1036,
+              464,
+              1034
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 5,
+                "offset": 306
+              }
+            ],
+            "content": "Iznos",
+            "polygon": [
+              807,
+              995,
+              897,
+              996,
+              896,
+              1035,
+              807,
+              1033
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 7,
+                "offset": 312
+              }
+            ],
+            "content": "PDV 25%",
+            "polygon": [
+              167,
+              1041,
+              301,
+              1042,
+              301,
+              1083,
+              167,
+              1083
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 5,
+                "offset": 320
+              }
+            ],
+            "content": "25.00",
+            "polygon": [
+              481,
+              1042,
+              574,
+              1042,
+              574,
+              1083,
+              481,
+              1082
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 5,
+                "offset": 326
+              }
+            ],
+            "content": "10.40",
+            "polygon": [
+              648,
+              1044,
+              737,
+              1044,
+              737,
+              1083,
+              648,
+              1083
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 4,
+                "offset": 332
+              }
+            ],
+            "content": "2.60",
+            "polygon": [
+              825,
+              1045,
+              897,
+              1045,
+              897,
+              1084,
+              825,
+              1084
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 36,
+                "offset": 337
+              }
+            ],
+            "content": "ZKI:043bb05ab8d54535eddca9eb43fc71f1",
+            "polygon": [
+              165,
+              1142,
+              825,
+              1143,
+              825,
+              1186,
+              165,
+              1186
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 40,
+                "offset": 374
+              }
+            ],
+            "content": "JIR:7b6e8de5-9122-427a-a0e2-1bd2c10b7308",
+            "polygon": [
+              164,
+              1195,
+              901,
+              1195,
+              901,
+              1239,
+              163,
+              1239
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 15,
+                "offset": 415
+              }
+            ],
+            "content": "Način plaćanja:",
+            "polygon": [
+              160,
+              1301,
+              439,
+              1300,
+              439,
+              1349,
+              161,
+              1350
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 8,
+                "offset": 431
+              }
+            ],
+            "content": "Gotovina",
+            "polygon": [
+              755,
+              1302,
+              902,
+              1303,
+              902,
+              1345,
+              754,
+              1344
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 6,
+                "offset": 440
+              }
+            ],
+            "content": "HVALA!",
+            "polygon": [
+              419,
+              1407,
+              633,
+              1407,
+              633,
+              1450,
+              419,
+              1450
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 18,
+                "offset": 447
+              }
+            ],
+            "content": "Remaris v. 2.34.90",
+            "polygon": [
+              361,
+              1515,
+              701,
+              1513,
+              702,
+              1556,
+              361,
+              1558
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "length": 465,
+            "offset": 0
+          }
+        ],
+        "width": 1200,
+        "words": [
+          {
+            "span": {
+              "length": 1,
+              "offset": 0
+            },
+            "content": "0",
+            "polygon": [
+              675,
+              138,
+              698,
+              138,
+              698,
+              176,
+              675,
+              176
+            ],
+            "confidence": 0.963
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 2
+            },
+            "content": "REBECA",
+            "polygon": [
+              420,
+              227,
+              524,
+              228,
+              524,
+              267,
+              419,
+              266
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 9
+            },
+            "content": "d.o.o.",
+            "polygon": [
+              544,
+              229,
+              643,
+              230,
+              643,
+              268,
+              544,
+              267
+            ],
+            "confidence": 0.979
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 16
+            },
+            "content": "Prolaz",
+            "polygon": [
+              262,
+              272,
+              367,
+              272,
+              366,
+              315,
+              262,
+              314
+            ],
+            "confidence": 0.993
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 23
+            },
+            "content": "sestara",
+            "polygon": [
+              388,
+              272,
+              507,
+              273,
+              507,
+              316,
+              387,
+              315
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 31
+            },
+            "content": "Baković",
+            "polygon": [
+              526,
+              273,
+              646,
+              275,
+              645,
+              317,
+              526,
+              316
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 2,
+              "offset": 39
+            },
+            "content": "1,",
+            "polygon": [
+              668,
+              275,
+              693,
+              275,
+              693,
+              318,
+              668,
+              318
+            ],
+            "confidence": 0.993
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 42
+            },
+            "content": "Zagreb",
+            "polygon": [
+              717,
+              276,
+              821,
+              276,
+              821,
+              319,
+              717,
+              318
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 49
+            },
+            "content": "Storija",
+            "polygon": [
+              384,
+              321,
+              627,
+              324,
+              627,
+              364,
+              384,
+              362
+            ],
+            "confidence": 0.863
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 57
+            },
+            "content": "Prolaz",
+            "polygon": [
+              261,
+              367,
+              365,
+              367,
+              364,
+              408,
+              260,
+              407
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 64
+            },
+            "content": "sestara",
+            "polygon": [
+              387,
+              367,
+              506,
+              369,
+              506,
+              410,
+              386,
+              409
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 72
+            },
+            "content": "Baković",
+            "polygon": [
+              526,
+              369,
+              646,
+              370,
+              645,
+              412,
+              526,
+              410
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 2,
+              "offset": 80
+            },
+            "content": "1,",
+            "polygon": [
+              668,
+              370,
+              694,
+              371,
+              694,
+              412,
+              668,
+              412
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 83
+            },
+            "content": "Zagreb",
+            "polygon": [
+              717,
+              371,
+              821,
+              371,
+              821,
+              413,
+              717,
+              412
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 4,
+              "offset": 90
+            },
+            "content": "OIB:",
+            "polygon": [
+              401,
+              415,
+              467,
+              415,
+              466,
+              454,
+              401,
+              453
+            ],
+            "confidence": 0.989
+          },
+          {
+            "span": {
+              "length": 11,
+              "offset": 95
+            },
+            "content": "16029174381",
+            "polygon": [
+              494,
+              416,
+              680,
+              418,
+              680,
+              457,
+              493,
+              454
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 107
+            },
+            "content": "Štorija",
+            "polygon": [
+              186,
+              507,
+              313,
+              510,
+              313,
+              549,
+              186,
+              547
+            ],
+            "confidence": 0.689
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 115
+            },
+            "content": "Storija",
+            "polygon": [
+              731,
+              515,
+              853,
+              516,
+              853,
+              556,
+              731,
+              555
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 1,
+              "offset": 123
+            },
+            "content": "1",
+            "polygon": [
+              876,
+              516,
+              888,
+              516,
+              888,
+              556,
+              875,
+              556
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 125
+            },
+            "content": "Datum:",
+            "polygon": [
+              186,
+              555,
+              289,
+              556,
+              289,
+              595,
+              186,
+              594
+            ],
+            "confidence": 0.996
+          },
+          {
+            "span": {
+              "length": 9,
+              "offset": 132
+            },
+            "content": "25.9.2020",
+            "polygon": [
+              313,
+              556,
+              472,
+              558,
+              472,
+              596,
+              312,
+              595
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 8,
+              "offset": 142
+            },
+            "content": "Vrijeme:",
+            "polygon": [
+              645,
+              559,
+              780,
+              560,
+              780,
+              601,
+              645,
+              601
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 151
+            },
+            "content": "17:13",
+            "polygon": [
+              806,
+              560,
+              891,
+              561,
+              891,
+              601,
+              806,
+              601
+            ],
+            "confidence": 0.997
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 157
+            },
+            "content": "Račun",
+            "polygon": [
+              186,
+              601,
+              275,
+              602,
+              275,
+              643,
+              185,
+              642
+            ],
+            "confidence": 0.993
+          },
+          {
+            "span": {
+              "length": 3,
+              "offset": 163
+            },
+            "content": "br:",
+            "polygon": [
+              295,
+              602,
+              342,
+              603,
+              342,
+              644,
+              294,
+              644
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 9,
+              "offset": 167
+            },
+            "content": "326/U02/1",
+            "polygon": [
+              366,
+              603,
+              522,
+              605,
+              522,
+              647,
+              366,
+              645
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 177
+            },
+            "content": "Artikl",
+            "polygon": [
+              184,
+              649,
+              292,
+              650,
+              292,
+              688,
+              184,
+              688
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 184
+            },
+            "content": "Cijena",
+            "polygon": [
+              452,
+              654,
+              559,
+              656,
+              559,
+              694,
+              452,
+              693
+            ],
+            "confidence": 0.993
+          },
+          {
+            "span": {
+              "length": 4,
+              "offset": 191
+            },
+            "content": "Kol.",
+            "polygon": [
+              609,
+              654,
+              678,
+              654,
+              678,
+              693,
+              609,
+              692
+            ],
+            "confidence": 0.99
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 196
+            },
+            "content": "Ukupno",
+            "polygon": [
+              732,
+              653,
+              839,
+              653,
+              839,
+              693,
+              732,
+              694
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 2,
+              "offset": 203
+            },
+            "content": "PG",
+            "polygon": [
+              858,
+              653,
+              894,
+              653,
+              894,
+              693,
+              858,
+              693
+            ],
+            "confidence": 0.997
+          },
+          {
+            "span": {
+              "length": 4,
+              "offset": 206
+            },
+            "content": "KAVA",
+            "polygon": [
+              178,
+              742,
+              251,
+              742,
+              251,
+              784,
+              177,
+              782
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 1,
+              "offset": 211
+            },
+            "content": "S",
+            "polygon": [
+              272,
+              742,
+              288,
+              743,
+              288,
+              784,
+              272,
+              784
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 8,
+              "offset": 213
+            },
+            "content": "MLIJEKOM",
+            "polygon": [
+              308,
+              743,
+              450,
+              745,
+              450,
+              786,
+              307,
+              784
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 222
+            },
+            "content": "13,00",
+            "polygon": [
+              472,
+              745,
+              558,
+              746,
+              558,
+              787,
+              472,
+              786
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 4,
+              "offset": 228
+            },
+            "content": "1,00",
+            "polygon": [
+              614,
+              747,
+              682,
+              747,
+              682,
+              787,
+              614,
+              788
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 233
+            },
+            "content": "13,00",
+            "polygon": [
+              773,
+              748,
+              859,
+              748,
+              859,
+              789,
+              773,
+              789
+            ],
+            "confidence": 0.997
+          },
+          {
+            "span": {
+              "length": 1,
+              "offset": 239
+            },
+            "content": "H",
+            "polygon": [
+              878,
+              748,
+              897,
+              748,
+              897,
+              789,
+              878,
+              789
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 241
+            },
+            "content": "Ukupno",
+            "polygon": [
+              174,
+              841,
+              391,
+              845,
+              391,
+              887,
+              173,
+              884
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 1,
+              "offset": 248
+            },
+            "content": ":",
+            "polygon": [
+              409,
+              845,
+              421,
+              845,
+              421,
+              887,
+              408,
+              887
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 250
+            },
+            "content": "13.00",
+            "polygon": [
+              616,
+              845,
+              784,
+              845,
+              784,
+              887,
+              616,
+              885
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 2,
+              "offset": 256
+            },
+            "content": "kn",
+            "polygon": [
+              825,
+              846,
+              893,
+              846,
+              893,
+              887,
+              825,
+              887
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 9,
+              "offset": 259
+            },
+            "content": "Operater:",
+            "polygon": [
+              173,
+              892,
+              338,
+              895,
+              338,
+              936,
+              172,
+              936
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 269
+            },
+            "content": "VedranG",
+            "polygon": [
+              769,
+              895,
+              896,
+              896,
+              896,
+              937,
+              769,
+              936
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 277
+            },
+            "content": "Vrsta",
+            "polygon": [
+              170,
+              993,
+              263,
+              994,
+              263,
+              1035,
+              169,
+              1034
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 283
+            },
+            "content": "poreza",
+            "polygon": [
+              284,
+              995,
+              393,
+              996,
+              393,
+              1035,
+              284,
+              1035
+            ],
+            "confidence": 0.997
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 290
+            },
+            "content": "Stopa%",
+            "polygon": [
+              464,
+              992,
+              573,
+              993,
+              572,
+              1035,
+              464,
+              1035
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 8,
+              "offset": 297
+            },
+            "content": "Osnovica",
+            "polygon": [
+              593,
+              993,
+              736,
+              994,
+              736,
+              1035,
+              593,
+              1035
+            ],
+            "confidence": 0.993
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 306
+            },
+            "content": "Iznos",
+            "polygon": [
+              807,
+              996,
+              897,
+              996,
+              897,
+              1035,
+              807,
+              1034
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 3,
+              "offset": 312
+            },
+            "content": "PDV",
+            "polygon": [
+              167,
+              1041,
+              225,
+              1042,
+              225,
+              1084,
+              167,
+              1083
+            ],
+            "confidence": 0.992
+          },
+          {
+            "span": {
+              "length": 3,
+              "offset": 316
+            },
+            "content": "25%",
+            "polygon": [
+              245,
+              1042,
+              302,
+              1042,
+              302,
+              1084,
+              245,
+              1084
+            ],
+            "confidence": 0.987
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 320
+            },
+            "content": "25.00",
+            "polygon": [
+              481,
+              1042,
+              574,
+              1043,
+              574,
+              1083,
+              481,
+              1083
+            ],
+            "confidence": 0.997
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 326
+            },
+            "content": "10.40",
+            "polygon": [
+              648,
+              1044,
+              737,
+              1044,
+              737,
+              1084,
+              648,
+              1084
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 4,
+              "offset": 332
+            },
+            "content": "2.60",
+            "polygon": [
+              825,
+              1045,
+              898,
+              1045,
+              898,
+              1085,
+              825,
+              1085
+            ],
+            "confidence": 0.989
+          },
+          {
+            "span": {
+              "length": 36,
+              "offset": 337
+            },
+            "content": "ZKI:043bb05ab8d54535eddca9eb43fc71f1",
+            "polygon": [
+              165,
+              1143,
+              826,
+              1143,
+              826,
+              1187,
+              165,
+              1187
+            ],
+            "confidence": 0.952
+          },
+          {
+            "span": {
+              "length": 40,
+              "offset": 374
+            },
+            "content": "JIR:7b6e8de5-9122-427a-a0e2-1bd2c10b7308",
+            "polygon": [
+              164,
+              1195,
+              902,
+              1196,
+              902,
+              1239,
+              163,
+              1239
+            ],
+            "confidence": 0.935
+          },
+          {
+            "span": {
+              "length": 5,
+              "offset": 415
+            },
+            "content": "Način",
+            "polygon": [
+              161,
+              1302,
+              255,
+              1301,
+              255,
+              1350,
+              161,
+              1349
+            ],
+            "confidence": 0.996
+          },
+          {
+            "span": {
+              "length": 9,
+              "offset": 421
+            },
+            "content": "plaćanja:",
+            "polygon": [
+              275,
+              1301,
+              439,
+              1300,
+              439,
+              1349,
+              275,
+              1350
+            ],
+            "confidence": 0.987
+          },
+          {
+            "span": {
+              "length": 8,
+              "offset": 431
+            },
+            "content": "Gotovina",
+            "polygon": [
+              755,
+              1302,
+              903,
+              1303,
+              903,
+              1345,
+              755,
+              1344
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 6,
+              "offset": 440
+            },
+            "content": "HVALA!",
+            "polygon": [
+              419,
+              1408,
+              633,
+              1407,
+              633,
+              1451,
+              419,
+              1451
+            ],
+            "confidence": 0.983
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 447
+            },
+            "content": "Remaris",
+            "polygon": [
+              362,
+              1516,
+              494,
+              1515,
+              494,
+              1557,
+              361,
+              1558
+            ],
+            "confidence": 0.995
+          },
+          {
+            "span": {
+              "length": 2,
+              "offset": 455
+            },
+            "content": "v.",
+            "polygon": [
+              515,
+              1515,
+              546,
+              1514,
+              546,
+              1557,
+              515,
+              1557
+            ],
+            "confidence": 0.994
+          },
+          {
+            "span": {
+              "length": 7,
+              "offset": 458
+            },
+            "content": "2.34.90",
+            "polygon": [
+              572,
+              1514,
+              702,
+              1514,
+              702,
+              1556,
+              571,
+              1557
+            ],
+            "confidence": 0.997
+          }
+        ],
+        "height": 1600,
+        "pageNumber": 1
+      }
+    ],
+    "styles": [],
+    "tables": [
+      {
+        "cells": [
+          {
+            "kind": "columnHeader",
+            "spans": [
+              {
+                "length": 13,
+                "offset": 177
+              }
+            ],
+            "content": "Artikl\nCijena",
+            "rowIndex": 0,
+            "columnIndex": 0,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  168,
+                  638,
+                  585,
+                  640,
+                  584,
+                  719,
+                  165,
+                  716
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "kind": "columnHeader",
+            "spans": [
+              {
+                "length": 4,
+                "offset": 191
+              }
+            ],
+            "content": "Kol.",
+            "rowIndex": 0,
+            "columnIndex": 1,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  585,
+                  640,
+                  706,
+                  640,
+                  706,
+                  720,
+                  584,
+                  719
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "kind": "columnHeader",
+            "spans": [
+              {
+                "length": 9,
+                "offset": 196
+              }
+            ],
+            "content": "Ukupno PG",
+            "rowIndex": 0,
+            "columnIndex": 2,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  706,
+                  640,
+                  907,
+                  641,
+                  909,
+                  721,
+                  706,
+                  720
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 21,
+                "offset": 206
+              }
+            ],
+            "content": "KAVA S MLIJEKOM 13,00",
+            "rowIndex": 1,
+            "columnIndex": 0,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  165,
+                  716,
+                  584,
+                  719,
+                  584,
+                  816,
+                  160,
+                  813
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 4,
+                "offset": 228
+              }
+            ],
+            "content": "1,00",
+            "rowIndex": 1,
+            "columnIndex": 1,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  584,
+                  719,
+                  706,
+                  720,
+                  706,
+                  817,
+                  584,
+                  816
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 7,
+                "offset": 233
+              }
+            ],
+            "content": "13,00 H",
+            "rowIndex": 1,
+            "columnIndex": 2,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  706,
+                  720,
+                  909,
+                  721,
+                  911,
+                  818,
+                  706,
+                  817
+                ],
+                "pageNumber": 1
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "length": 63,
+            "offset": 177
+          }
+        ],
+        "rowCount": 2,
+        "columnCount": 3,
+        "boundingRegions": [
+          {
+            "polygon": [
+              166,
+              644,
+              907,
+              644,
+              906,
+              793,
+              165,
+              792
+            ],
+            "pageNumber": 1
+          }
+        ]
+      },
+      {
+        "cells": [
+          {
+            "kind": "columnHeader",
+            "spans": [
+              {
+                "length": 12,
+                "offset": 277
+              }
+            ],
+            "content": "Vrsta poreza",
+            "rowIndex": 0,
+            "columnIndex": 0,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  149,
+                  957,
+                  428,
+                  960,
+                  428,
+                  1037,
+                  149,
+                  1037
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "kind": "columnHeader",
+            "spans": [
+              {
+                "length": 15,
+                "offset": 290
+              }
+            ],
+            "content": "Stopa% Osnovica",
+            "rowIndex": 0,
+            "columnSpan": 2,
+            "columnIndex": 1,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  428,
+                  960,
+                  773,
+                  960,
+                  773,
+                  1039,
+                  428,
+                  1037
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "kind": "columnHeader",
+            "spans": [
+              {
+                "length": 5,
+                "offset": 306
+              }
+            ],
+            "content": "Iznos",
+            "rowIndex": 0,
+            "columnIndex": 3,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  773,
+                  960,
+                  915,
+                  962,
+                  915,
+                  1039,
+                  773,
+                  1039
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 7,
+                "offset": 312
+              }
+            ],
+            "content": "PDV 25%",
+            "rowIndex": 1,
+            "columnIndex": 0,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  149,
+                  1037,
+                  428,
+                  1037,
+                  428,
+                  1114,
+                  149,
+                  1114
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 5,
+                "offset": 320
+              }
+            ],
+            "content": "25.00",
+            "rowIndex": 1,
+            "columnIndex": 1,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  428,
+                  1037,
+                  581,
+                  1038,
+                  581,
+                  1115,
+                  428,
+                  1114
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 5,
+                "offset": 326
+              }
+            ],
+            "content": "10.40",
+            "rowIndex": 1,
+            "columnIndex": 2,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  581,
+                  1038,
+                  773,
+                  1039,
+                  773,
+                  1115,
+                  581,
+                  1115
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          {
+            "spans": [
+              {
+                "length": 4,
+                "offset": 332
+              }
+            ],
+            "content": "2.60",
+            "rowIndex": 1,
+            "columnIndex": 3,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  773,
+                  1039,
+                  915,
+                  1039,
+                  915,
+                  1116,
+                  773,
+                  1115
+                ],
+                "pageNumber": 1
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "length": 59,
+            "offset": 277
+          }
+        ],
+        "rowCount": 2,
+        "columnCount": 4,
+        "boundingRegions": [
+          {
+            "polygon": [
+              160,
+              988,
+              905,
+              988,
+              905,
+              1091,
+              160,
+              1090
+            ],
+            "pageNumber": 1
+          }
+        ]
+      }
+    ],
+    "content": "0\nREBECA d.o.o.\nProlaz sestara Baković 1, Zagreb\nStorija\nProlaz sestara Baković 1, Zagreb\nOIB: 16029174381\nŠtorija\nStorija 1\nDatum: 25.9.2020\nVrijeme: 17:13\nRačun br: 326/U02/1\nArtikl\nCijena\nKol.\nUkupno PG\nKAVA S MLIJEKOM 13,00\n1,00\n13,00 H\nUkupno :\n13.00 kn\nOperater:\nVedranG\nVrsta poreza\nStopa% Osnovica\nIznos\nPDV 25%\n25.00\n10.40\n2.60\nZKI:043bb05ab8d54535eddca9eb43fc71f1\nJIR:7b6e8de5-9122-427a-a0e2-1bd2c10b7308\nNačin plaćanja:\nGotovina\nHVALA!\nRemaris v. 2.34.90",
+    "modelId": "prebuilt-invoice",
+    "documents": [
+      {
+        "spans": [
+          {
+            "length": 465,
+            "offset": 0
+          }
+        ],
+        "fields": {
+          "Items": {
+            "type": "array",
+            "valueArray": [
+              {
+                "type": "object",
+                "spans": [
+                  {
+                    "length": 34,
+                    "offset": 206
+                  }
+                ],
+                "content": "KAVA S MLIJEKOM 13,00\n1,00\n13,00 H",
+                "confidence": 0.942,
+                "valueObject": {
+                  "Amount": {
+                    "type": "currency",
+                    "spans": [
+                      {
+                        "length": 7,
+                        "offset": 233
+                      }
+                    ],
+                    "content": "13,00 H",
+                    "confidence": 0.939,
+                    "valueCurrency": {
+                      "amount": 13,
+                      "currencyCode": "HRK"
+                    },
+                    "boundingRegions": [
+                      {
+                        "polygon": [
+                          773,
+                          748,
+                          897,
+                          748,
+                          897,
+                          789,
+                          773,
+                          789
+                        ],
+                        "pageNumber": 1
+                      }
+                    ]
+                  },
+                  "Quantity": {
+                    "type": "number",
+                    "spans": [
+                      {
+                        "length": 4,
+                        "offset": 228
+                      }
+                    ],
+                    "content": "1,00",
+                    "confidence": 0.941,
+                    "valueNumber": 1,
+                    "boundingRegions": [
+                      {
+                        "polygon": [
+                          614,
+                          747,
+                          682,
+                          747,
+                          682,
+                          787,
+                          614,
+                          788
+                        ],
+                        "pageNumber": 1
+                      }
+                    ]
+                  },
+                  "UnitPrice": {
+                    "type": "currency",
+                    "spans": [
+                      {
+                        "length": 5,
+                        "offset": 222
+                      }
+                    ],
+                    "content": "13,00",
+                    "confidence": 0.937,
+                    "valueCurrency": {
+                      "amount": 13,
+                      "currencyCode": "HRK"
+                    },
+                    "boundingRegions": [
+                      {
+                        "polygon": [
+                          472,
+                          745,
+                          558,
+                          746,
+                          558,
+                          787,
+                          472,
+                          786
+                        ],
+                        "pageNumber": 1
+                      }
+                    ]
+                  },
+                  "Description": {
+                    "type": "string",
+                    "spans": [
+                      {
+                        "length": 15,
+                        "offset": 206
+                      }
+                    ],
+                    "content": "KAVA S MLIJEKOM",
+                    "confidence": 0.937,
+                    "valueString": "KAVA S MLIJEKOM",
+                    "boundingRegions": [
+                      {
+                        "polygon": [
+                          178,
+                          741,
+                          451,
+                          745,
+                          450,
+                          787,
+                          177,
+                          783
+                        ],
+                        "pageNumber": 1
+                      }
+                    ]
+                  }
+                },
+                "boundingRegions": [
+                  {
+                    "polygon": [
+                      177,
+                      740,
+                      897,
+                      748,
+                      897,
+                      792,
+                      177,
+                      783
+                    ],
+                    "pageNumber": 1
+                  }
+                ]
+              }
+            ]
+          },
+          "InvoiceId": {
+            "type": "string",
+            "spans": [
+              {
+                "length": 9,
+                "offset": 167
+              }
+            ],
+            "content": "326/U02/1",
+            "confidence": 0.971,
+            "valueString": "326/U02/1",
+            "boundingRegions": [
+              {
+                "polygon": [
+                  366,
+                  603,
+                  522,
+                  605,
+                  522,
+                  647,
+                  366,
+                  645
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          "VendorName": {
+            "type": "string",
+            "spans": [
+              {
+                "length": 13,
+                "offset": 2
+              }
+            ],
+            "content": "REBECA d.o.o.",
+            "confidence": 0.938,
+            "valueString": "REBECA d.o.o.",
+            "boundingRegions": [
+              {
+                "polygon": [
+                  419,
+                  227,
+                  643,
+                  229,
+                  643,
+                  268,
+                  419,
+                  266
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          "InvoiceDate": {
+            "type": "date",
+            "spans": [
+              {
+                "length": 9,
+                "offset": 132
+              }
+            ],
+            "content": "25.9.2020",
+            "valueDate": "2020-09-25",
+            "confidence": 0.971,
+            "boundingRegions": [
+              {
+                "polygon": [
+                  313,
+                  556,
+                  472,
+                  558,
+                  472,
+                  596,
+                  312,
+                  595
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          "VendorTaxId": {
+            "type": "string",
+            "spans": [
+              {
+                "length": 11,
+                "offset": 95
+              }
+            ],
+            "content": "16029174381",
+            "confidence": 0.947,
+            "valueString": "16029174381",
+            "boundingRegions": [
+              {
+                "polygon": [
+                  494,
+                  416,
+                  680,
+                  418,
+                  680,
+                  457,
+                  493,
+                  454
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          "InvoiceTotal": {
+            "type": "currency",
+            "spans": [
+              {
+                "length": 8,
+                "offset": 250
+              }
+            ],
+            "content": "13.00 kn",
+            "confidence": 0.929,
+            "valueCurrency": {
+              "amount": 13,
+              "currencyCode": "HRK",
+              "currencySymbol": "kn"
+            },
+            "boundingRegions": [
+              {
+                "polygon": [
+                  616,
+                  844,
+                  893,
+                  846,
+                  893,
+                  888,
+                  616,
+                  886
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          "VendorAddress": {
+            "type": "address",
+            "spans": [
+              {
+                "length": 32,
+                "offset": 16
+              }
+            ],
+            "content": "Prolaz sestara Baković 1, Zagreb",
+            "confidence": 0.893,
+            "valueAddress": {
+              "city": "Zagreb",
+              "road": "Prolaz sestara Baković",
+              "houseNumber": "1",
+              "streetAddress": "1 Prolaz sestara Baković"
+            },
+            "boundingRegions": [
+              {
+                "polygon": [
+                  262,
+                  271,
+                  821,
+                  274,
+                  821,
+                  319,
+                  262,
+                  316
+                ],
+                "pageNumber": 1
+              }
+            ]
+          },
+          "VendorAddressRecipient": {
+            "type": "string",
+            "spans": [
+              {
+                "length": 13,
+                "offset": 2
+              }
+            ],
+            "content": "REBECA d.o.o.",
+            "confidence": 0.938,
+            "valueString": "REBECA d.o.o.",
+            "boundingRegions": [
+              {
+                "polygon": [
+                  419,
+                  227,
+                  643,
+                  229,
+                  643,
+                  268,
+                  419,
+                  266
+                ],
+                "pageNumber": 1
+              }
+            ]
+          }
+        },
+        "docType": "invoice",
+        "confidence": 1,
+        "boundingRegions": [
+          {
+            "polygon": [
+              0,
+              0,
+              1200,
+              0,
+              1200,
+              1600,
+              0,
+              1600
+            ],
+            "pageNumber": 1
+          }
+        ]
+      }
+    ],
+    "apiVersion": "2024-11-30",
+    "contentFormat": "text",
+    "stringIndexType": "textElements"
+  },
+  "createdDateTime": "2026-08-27T09:11:30Z",
+  "lastUpdatedDateTime": "2026-08-27T09:11:33Z"
+}

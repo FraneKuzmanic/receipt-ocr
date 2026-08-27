@@ -105,3 +105,39 @@ describe("Azure field mapper", () => {
     });
   });
 });
+
+describe("dual-currency, tax id and totals lines (iteration 21)", () => {
+  it("takes the euro amount a post-adoption receipt asks for, not its kuna equivalent", async () => {
+    // The provider returned "UKUPNO HRK 136,68 kn"; the receipt asks for "ZA PLATITI 18,14 €".
+    const mapped = mapAnalyzeResult(await fixture("ina-racun-sladoled"));
+
+    expect(mapped.fields.total).toBe("18.14");
+    expect(mapped.fields.currency).toBe("EUR");
+  });
+
+  it("leaves a genuine kuna receipt alone", async () => {
+    const mapped = mapAnalyzeResult(await fixture("22559270"));
+
+    expect(mapped.fields.total).toBe("517.00");
+    expect(mapped.fields.currency).toBe("HRK");
+  });
+
+  it("reads the OIB rather than the VAT number printed above it", async () => {
+    // VendorTaxId is "HR27759560625"; the OIB one line below is 27759560625.
+    expect(mapAnalyzeResult(await fixture("ina-racun-sladoled")).fields.sellerOib).toBe(
+      "27759560625",
+    );
+  });
+
+  it("does not map a totals block as purchased items", async () => {
+    // "Osnovica bez PDV" and "Ukupno porez( 25%)" arrived as Items on a receipt with no lines.
+    expect(mapAnalyzeResult(await fixture("inareceipt")).fields.items ?? null).toBeNull();
+  });
+
+  it("keeps real line items", async () => {
+    const mapped = mapAnalyzeResult(await fixture("receiptEuroMistake"));
+
+    expect(mapped.fields.items).toHaveLength(6);
+    expect(mapped.fields.items?.[0]?.description).toBe("PIVO PAB 2L");
+  });
+});

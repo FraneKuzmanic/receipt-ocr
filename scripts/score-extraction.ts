@@ -172,5 +172,9 @@ function percentile(samples: readonly number[], ratio: number): number | null {
 }
 
 function equal(left: unknown, right: unknown): boolean {
+  // An absent optional field and an explicit null both mean "the receipt did not show this", so
+  // ground truth recording `"vatBreakdown": null` must not read as a miss against a mapper that
+  // simply left the key off.
+  if (left == null && right == null) return true;
   return JSON.stringify(left) === JSON.stringify(right);
 }

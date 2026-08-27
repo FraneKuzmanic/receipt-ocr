@@ -194,11 +194,30 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 18  | Extraction accuracy, reliability & processing speed | [plan](plans/extraction-accuracy-and-speed.md) | [history](history/18-extraction-accuracy-and-speed.md) |
 | 19  | Stale-bundle response contract & error visibility | _none — user reported a live failure and asked for a diagnosis, then a direct fix_ | [history](history/19-stale-bundle-response-contract.md) |
 | 20  | Items section density | _none — user asked for research, a recommendation, then a direct implementation_ | [history](history/20-items-section-density.md) |
+| 21  | Croatian receipt extraction accuracy | _none — user reported defects on named samples and asked for reproduction, analysis, then implementation_ | [history](history/21-extraction-accuracy-croatian-receipts.md) |
 
 Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
 amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region
 highlighting. Commit B added measured client-side downscaling, concurrent Azure/storage work,
 `failureReason` surfacing, and the offline accuracy/latency harness.
+
+**Amendment from iteration 21 — a scoring harness that silently skips an unmeasurable case reports
+the health of the corpus it kept, not of the product.** `score:extraction` scores a receipt only when
+both its recorded Azure response and its ground truth exist, and skips the expectation otherwise. Six
+of the seven receipts the user found defects on had ground truth but no recorded fixture, so they were
+never scored — while the harness reported 92% seller names and "VAT is the main follow-up". Recording
+the failing cases *first* was the highest-value step of the iteration, ahead of any individual fix.
+Two ground-truth files also proved wrong, caught by checking each VAT row against the receipt's own
+arithmetic; a corpus is evidence only once its expectations are verified rather than transcribed.
+
+**Amendment from iteration 21 — prefer the value a document is anchored to over the one a label
+promises.** Every wrong-value defect in this iteration came from trusting a label: `Vrijeme:` holding
+a ride duration, `Datum i vrijeme:` letting a date be parsed as a time, `VendorTaxId` returning the
+VAT number printed above the OIB, a VAT header sitting one column from its own data. The fixes all
+take the same shape — read the value from where the document structurally places it (beside the date,
+within the span the header covers), and verify it where verification exists (the OIB's MOD 11,10 check
+digit). Where no verification exists, as with JIR and ZKI, a wrong value cannot be detected at all,
+which is the argument for validating whatever *can* be validated.
 
 **Amendment from iteration 19 — `.strict()` belongs on requests, never on a response the browser
 parses.** Adding `failureReason` to the receipt detail response broke every browser tab that had been
