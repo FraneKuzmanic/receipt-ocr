@@ -1,8 +1,10 @@
 {
   "sellerName": "INA - INDUSTRIJA NAFTE, d.d.",
+  "sellerOib": "27759560625",
   "documentNumber": "160142-S006-1",
   "issueDate": "2023-07-16",
-  "total": "136.68",
-  "currency": "HRK",
+  "issueTime": "14:19:14",
+  "total": "18.14",
+  "currency": "EUR",
   "vatBreakdown": [{ "rate": "25.00", "taxableBase": "14.51", "vatAmount": "3.63" }]
 }

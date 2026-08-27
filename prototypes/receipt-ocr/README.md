@@ -553,16 +553,59 @@ response is retained separately for debugging. Failed, retryable calls can re-ru
 source object; malformed content, bad credentials and missing provider resources are non-retryable,
 while throttling, service faults, timeouts and network failures are retryable.
 
+Six deterministic rules were added in iteration 21, each earned from a real receipt in the corpus:
+
+- **The issue time is read beside the issue date, not from a label.** A clock time is matched only
+  with colon separators, because admitting `.` let `17.08.2026.` be stored as the time `17:08:20`.
+  A date-adjacent time (`21.02.2020,14:26:38`, `16.07.2023. u 14:19:14`) outranks a `Vrijeme:` label,
+  which on a taxi receipt holds the ride duration rather than the issue time.
+- **JIR and ZKI are collected past thermal-print noise.** The value may begin on the line below its
+  label and may itself wrap once; both are tolerated, then the result is validated strictly, so
+  tolerant scanning never widens what counts as an identifier.
+- **A VAT header cell may name two columns.** OCR merges `Stopa%` and `Osnovica` into one cell, so a
+  cell naming several roles hands the later ones to the columns that follow it. A role's value is
+  then accepted anywhere between its own header and the next — the span the label visually covers —
+  because a header and its column of numbers routinely drift apart by one column.
+- **Header terms match within one character**, so an OCR `osnavica` still names the taxable base, and
+  a recap's own total row is detected wherever in the row its label lands.
+- **A VAT rate discards a leading tax-group code** (`D1 25,00 %`, misread `01 25.00 %`, previously
+  became the rate `0125.00`) and a value outside 0-100 is reported unreadable rather than stored.
+- **A tax id is accepted only once it normalizes to a checksum-valid OIB.** `VendorTaxId` returns the
+  VAT number printed above the OIB on some receipts; stripping the `HR` prefix and verifying the
+  ISO 7064 MOD 11,10 check digit is what lets the labelled `OIB:` text win when it should.
+
+Two mapper corrections came with them: a receipt issued on or after **2023-01-01** showing both
+currencies takes the euro amount it asks for rather than the kuna equivalent the provider sometimes
+returns as the invoice total — which otherwise corrupts the total and the currency together, since
+both derive from that one field — and a totals block returned as `Items` no longer becomes purchased
+lines called "Osnovica bez PDV".
+
 Confidence is recorded per canonical field but never suppresses a readable value. The review flow can
 therefore highlight a low-confidence value later without forcing a person to retype it. Amounts and
 quantities are parsed from the provider's text `content`, never from `valueCurrency.amount` or
 `valueNumber`: those are JavaScript numbers and would lose the required decimal precision.
 
 `npm run score:extraction` replays recorded fixtures through the real mapper and warning pipeline,
-without an Azure call. The initial 13-fixture baseline after iteration 18 is 92.3% exact seller names,
-84.6% document numbers, and 100% date/total/currency where ground truth is recorded; 84.6% need no
-critical-field correction. VAT breakdown is exact for 3 of 10 labelled receipts and remains the main
-quality follow-up. The same corpus's recorded provider durations are p50 3 s and p95 5 s. A live warm
+without an Azure call. **A fixture is only scored when both its recorded Azure response and its
+ground-truth file exist**, and the harness silently skips an expectation whose fixture is missing —
+which is how eight receipts — including every one with a known defect — sat outside the corpus while
+it reported healthy numbers. Iteration 21 recorded them all, so **all 15 expectations are now scored**
+and the figures below cover every sample receipt rather than the ones that happened to pass.
+
+Document number, issue date, total and currency match exactly on all 15. Seller name is 14 of 15 and
+no critical-field correction is needed on 14 of 15; the single miss is one badly degraded photo whose
+seller line OCR reads as `fte bars\nANTIQUE"`. Of the supplementary fields, issue time is 7 of 7,
+seller OIB 1 of 1, and VAT breakdown 9 of 12.
+
+The remaining gaps are documented rather than smoothed over. JIR and ZKI sit at 1 of 2 because on one
+receipt OCR substitutes characters (`8`→`B`, `0`→`8`) inside an identifier carrying no checksum, so the
+value is surfaced for correction but cannot be verified or repaired — an OCR ceiling, not a mapping
+gap. Of the three VAT misses, one receipt states its recap as inline `label: value` pairs that neither
+the table mapper nor the line-oriented text fallback reads; one is the degraded photo, which loses a
+second rate; and one is a 0%-VAT receipt whose printed `Stopa 0% / Osnovica 100.00 / PDV 0.00` recap is
+now extracted faithfully while its ground truth still records "no VAT" — an open question about what a
+zero-rate recap should map to, not a defect. The same corpus's recorded provider durations are p50 3 s
+and p95 5 s. A live warm
 1,600 px upload measured 8.3 s inside the provider (1.2 s initial request, 7.1 s polling), so the PoC
 uses approximately **8 seconds warm** as its current UX baseline rather than the old 2-5 s aspiration.
 Render's separate 30-50 s free-tier cold start still applies before that work begins.

@@ -1,0 +1,9 @@
+{
+  "sellerName": "REBECA d.o.o.",
+  "documentNumber": "326/U02/1",
+  "issueDate": "2020-09-25",
+  "issueTime": "17:13",
+  "total": "13.00",
+  "currency": "HRK",
+  "vatBreakdown": [{ "rate": "25.00", "taxableBase": "10.40", "vatAmount": "2.60" }]
+}
