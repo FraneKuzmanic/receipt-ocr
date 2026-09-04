@@ -396,13 +396,39 @@ available with warnings outstanding.
 The original-source URL expires after 300 seconds. The source panel reloads it once after a failed
 image request and also offers a manual reload; it never displays or logs the signed URL.
 
-For image receipts, the review source panel draws provider-neutral, normalized quadrilateral
-outlines over fields that were read from the document. Colours match the form section; focusing a
-field raises its outline and clicking an outline focuses the field. The API returns page-relative
-fractions, so the browser does not receive provider coordinates or need to measure the image. The
-overlay is suppressed when the browser's rendered image ratio disagrees with the extracted page ratio
-(for example, after an EXIF orientation mismatch). PDF receipts retain their existing viewer with a
-translated notice because a browser PDF object cannot accept an overlay.
+The review source panel draws provider-neutral, normalized quadrilateral outlines over fields that
+were read from the document. Colours match the form section; focusing a field raises its outline and
+clicking an outline focuses the field. The API returns page-relative fractions, so the browser does
+not receive provider coordinates or need to measure the source. The overlay is suppressed when the
+rendered ratio disagrees with the extracted page ratio (for example, after an EXIF orientation
+mismatch), because an outline that cannot be proved to sit on its text is worse than none.
+
+**Photos and PDFs behave identically**, including zoom, pan, the desktop click-to-focus link and the
+phone's tap-to-inspect popover. They differ only in what is painted beneath the outlines:
+`SourceDocumentPanel` renders an `<img>`, `PdfSource` renders a `<canvas>`, and both mount the same
+`ZoomableSourceViewport`, which owns every pointer, wheel and zoom behaviour so the two paths cannot
+drift apart. No extraction, API, schema or database change was needed for PDFs — Azure reports page
+geometry in inches for a PDF and pixels for a photo, and `mapSourceRegions` has always divided by the
+page's own dimensions, which erases the distinction before it reaches the client. Highlighting
+therefore works retroactively on every PDF already stored.
+
+PDFs are rendered with **pdf.js**, loaded three ways that keep it off the critical path:
+
+- **Dynamically imported**, so a user who only photographs receipts never downloads it. It is about
+  150 KB plus a 390 KB worker gzipped, in a chunk of its own; the main bundle grows ~1.5 KB.
+- **The legacy build**, because the modern one calls `Uint8Array.prototype.toHex` and throws on
+  import in older browsers rather than degrading.
+- **Only once actually visible.** The review page mounts the source panel twice and hides one with
+  CSS. That is free for an `<img>`, but would fetch and parse a PDF twice, so `PdfSource` waits for
+  its box to intersect the viewport — which also defers the phone's copy until "Show receipt" is
+  opened.
+
+A page is rasterised once at 2.5x its displayed size (capped at 2600 px) and CSS-scaled from there,
+matching the image path rather than re-rendering per zoom step; text stays crisp to roughly 250%.
+Multi-page PDFs get a pager, hidden entirely for the single-page documents that are the norm, and
+focusing a field jumps to the page its outline is on. If the document cannot be rendered at all, the
+panel falls back to the browser's own PDF viewer with the translated "highlighting is not available"
+notice, so a failure degrades to the previous behaviour rather than to a broken panel.
 
 ### History and soft delete
 

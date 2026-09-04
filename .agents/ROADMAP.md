@@ -195,6 +195,7 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 19  | Stale-bundle response contract & error visibility | _none — user reported a live failure and asked for a diagnosis, then a direct fix_ | [history](history/19-stale-bundle-response-contract.md) |
 | 20  | Items section density | _none — user asked for research, a recommendation, then a direct implementation_ | [history](history/20-items-section-density.md) |
 | 21  | Croatian receipt extraction accuracy | _none — user reported defects on named samples and asked for reproduction, analysis, then implementation_ | [history](history/21-extraction-accuracy-croatian-receipts.md) |
+| 22  | PDF source-field highlighting | [plan](plans/pdf-source-field-highlighting.md) | [history](history/22-pdf-source-field-highlighting.md) |
 
 Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
 amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region
@@ -218,6 +219,28 @@ take the same shape — read the value from where the document structurally plac
 within the span the header covers), and verify it where verification exists (the OIB's MOD 11,10 check
 digit). Where no verification exists, as with JIR and ZKI, a wrong value cannot be detected at all,
 which is the argument for validating whatever *can* be validated.
+
+**Amendment from iteration 22 — a deferral's stated reason is the thing to re-read before repeating
+it.** The iteration 15 spec ruled PDF highlighting out, and that decision was routinely restated
+afterwards as "no overlay is possible over the native PDF viewer." Its actual argument was
+*sequencing*: the interaction model was unproven, so prove it on the cheap image path first.
+Iterations 15 and 16 did precisely that, which retired the reason — and the reason, not the verdict,
+is what should have been carried forward. The server side had in fact supported PDFs from the
+beginning: `mapSourceRegions` divides polygons by the page's own dimensions, so Azure's inches and
+pixels both normalise to the same fractions, and the two stored PDF fixtures already produced 17 and
+11 valid regions against a photo's 10. **Richer highlighting than the shipped feature had been
+sitting unused behind a decision whose justification had expired.** Re-read the *why* of a deferral
+before treating it as settled; a "no" recorded for a reason that no longer holds is not a decision,
+it is a stale cache.
+
+**Amendment from iteration 22 — CSS-hidden duplicate mounts are free for an `<img>` and expensive
+for anything else.** `ReviewPage` mounts the source panel twice, once for the phone disclosure and
+once for the desktop sidebar, and hides the wrong one with `lg:hidden` / `hidden lg:block`. A second
+`<img>` costs nothing because the browser serves it from cache, so this was invisible for seven
+iterations. A second PDF fetches, spawns a worker and parses the document again — measurable on a
+phone. `PdfSource` now waits for its own box to intersect the viewport before loading, which fixes
+the duplicate and additionally defers the phone's copy until "Show receipt" is opened. The general
+rule: a component whose mount has real cost must not rely on a CSS-hidden parent to stay idle.
 
 **Amendment from iteration 19 — `.strict()` belongs on requests, never on a response the browser
 parses.** Adding `failureReason` to the receipt detail response broke every browser tab that had been
