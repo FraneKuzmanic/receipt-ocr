@@ -443,6 +443,33 @@ node -e "const fs=require('fs'); const fx=new Set(fs.readdirSync('api/src/provid
 If this fails, upload that receipt once and record its raw provider response as a fixture — do not
 delete the expectation to make the check pass.
 
+### 6.20 pdf.js stays behind one module
+
+`client/src/review/pdfDocument.ts` is the only file allowed to know pdf.js exists — the same
+isolation the Azure adapter gets, applied to a rendering dependency. A second importer would also
+defeat the dynamic-import split that keeps 150 KB plus a 390 KB worker away from users who never
+open a PDF.
+
+```
+node -e "const{execSync}=require('child_process');const out=execSync('git grep -l --untracked pdfjs-dist -- client/src || true').toString().trim();const files=out?out.split(/\r?\n/):[];if(!files.includes('client/src/review/pdfDocument.ts'))throw new Error('check is looking in the wrong place: pdfDocument.ts does not import pdfjs-dist');const bad=files.filter(f=>f!=='client/src/review/pdfDocument.ts');if(bad.length)throw new Error('pdfjs-dist imported outside pdfDocument.ts: '+bad.join(', '));console.log('ok');"
+```
+
+Also confirm the production build keeps it lazy — the chunk must be reached by `import(...)` only:
+
+```
+npm run build; node -e "const fs=require('fs');const d='client/dist/assets';const chunk=fs.readdirSync(d).find(f=>/^pdf-.*\.js$/.test(f));if(!chunk)throw new Error('no separate pdf chunk: pdf.js was bundled into the entry');const idx=fs.readdirSync(d).filter(f=>/^index-.*\.js$/.test(f)).map(f=>fs.readFileSync(d+'/'+f,'utf8')).join('');if(!idx.includes('import(`./'+chunk+'`)')&&!idx.includes(\"import('./\"+chunk+\"')\"))throw new Error('pdf chunk is not dynamically imported');console.log('ok, lazy:',chunk);"
+```
+
+### 6.21 The client test setup never polyfills canvas
+
+jsdom implements no 2D context, so a canvas polyfill would let a PDF-rendering test pass while
+proving only that a blank element exists. Rendering is verified in a real browser (Phase 8.14) and
+nowhere else; the pure geometry lives in `pdfRender.ts` and is unit-tested there instead.
+
+```
+grep -Eiq "canvas" client/src/test/setup.ts && (echo 'canvas polyfill added to the client test setup' && exit 1) || echo ok
+```
+
 ---
 
 ## Phase 7: Supabase integration
@@ -770,8 +797,27 @@ identical. Focus a field near the top of the receipt and one near the bottom and
 recenters correctly for both — a transform that always centers the same point regardless of which
 field is active is a real failure mode here and will not be obvious from a single screenshot.
 
-Upload a PDF receipt and confirm its existing viewer is unchanged, that a translated
-"not available for PDF" note appears, and that nothing errors.
+Upload a PDF receipt and repeat **every check above on it** — since iteration 22 a PDF renders to a
+`<canvas>` and behaves exactly as a photo does, so a reduced PDF check is no longer the right test.
+Confirm additionally:
+
+- Exactly **one** `<canvas>` exists. The review page mounts the source panel twice and hides one with
+  CSS; two canvases means the lazy-visibility gate has regressed and every PDF is being fetched and
+  parsed twice.
+- At 390 px with the "Show receipt" disclosure still closed, **no** canvas exists at all — the phone
+  must not download the document until the user asks for it.
+- The canvas's rendered ratio matches its page's ratio, and the bitmap is wider than the CSS box
+  (roughly 2.5x), which is what keeps text crisp when zoomed.
+- Zoom to about 225% and confirm the text is sharp rather than a scaled blur, and that outlines
+  still sit on their words.
+- For a **multi-page** PDF: the pager appears, `Previous` is disabled on page 1, only the current
+  page's outlines are drawn, and focusing a field whose value is on another page switches to it.
+  For a **single-page** PDF the pager row must not render at all. No multi-page receipt exists in the
+  corpus; concatenate two fixtures with `pdf-lib`, which is already an API dependency.
+
+**Do not add a canvas polyfill to `client/src/test/setup.ts` to make any of this unit-testable.**
+jsdom paints nothing, so such a test would assert that a blank canvas exists — the exact
+false-confidence trap recorded in the iteration 12, 14 and 15 histories. Phase 6.21 guards it.
 
 Repeat the outline/strip checks in Croatian. Confirm `GET /api/receipts/:id/regions` is not called
 for another user's receipt (cross-user 404 is proven in `receipts.integration.ts`, not by hand here).
