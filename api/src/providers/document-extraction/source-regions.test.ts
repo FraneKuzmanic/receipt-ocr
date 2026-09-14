@@ -1,11 +1,19 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import type { AnalyzeResultOutput } from "@azure-rest/ai-document-intelligence";
-import { mapSourceRegions } from "./source-regions.js";
+import { mapSourceRegions, mapStoredSourceRegions } from "./source-regions.js";
 
 async function fixture(name: string): Promise<AnalyzeResultOutput> {
   const raw = JSON.parse(
     await readFile(new URL(`./fixtures/${name}.json`, import.meta.url), "utf8"),
+  ) as { analyzeResult?: AnalyzeResultOutput };
+  if (raw.analyzeResult === undefined) throw new Error(`Fixture ${name} has no analyze result.`);
+  return raw.analyzeResult;
+}
+
+async function secondaryFixture(name: string): Promise<AnalyzeResultOutput> {
+  const raw = JSON.parse(
+    await readFile(new URL(`./fixtures/secondary/${name}.json`, import.meta.url), "utf8"),
   ) as { analyzeResult?: AnalyzeResultOutput };
   if (raw.analyzeResult === undefined) throw new Error(`Fixture ${name} has no analyze result.`);
   return raw.analyzeResult;
@@ -85,5 +93,37 @@ describe("source region projection", () => {
       await readFile(new URL("./fixtures/mapper-edge-cases.json", import.meta.url), "utf8"),
     ) as { invoice: AnalyzeResultOutput };
     expect(mapSourceRegions(raw.invoice)).toEqual({ pages: [], regions: [] });
+  });
+
+  it("outlines each field from the model that actually supplied its value", async () => {
+    const [primary, secondary] = await Promise.all([
+      fixture("lira_trogir"),
+      secondaryFixture("lira_trogir"),
+    ]);
+    const stored = {
+      analyzeResult: primary,
+      secondaryAnalyzeResult: secondary,
+      fieldModels: { items: "secondary", vatBreakdown: "secondary", issueTime: "secondary" },
+    };
+
+    const merged = mapStoredSourceRegions(stored);
+    const itemRows = new Set(
+      merged.regions
+        .flatMap((region) => region.fields)
+        .filter((field) => field.startsWith("items."))
+        .map((field) => field.split(".")[1]),
+    );
+
+    // The receipt model reads four items here; the invoice model reads three, so projecting from
+    // the primary response alone could never outline the fourth row.
+    expect(itemRows).toEqual(new Set(["0", "1", "2", "3"]));
+    expect(mapSourceRegions(primary).regions.flatMap((r) => r.fields)).not.toContain(
+      "items.3.description",
+    );
+  });
+
+  it("falls back to the single stored response for a receipt read by one model", async () => {
+    const primary = await fixture("racuntaksi1");
+    expect(mapStoredSourceRegions({ analyzeResult: primary })).toEqual(mapSourceRegions(primary));
   });
 });

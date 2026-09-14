@@ -125,6 +125,11 @@ Each is owned by a specific task and must be resolved there, not earlier:
   **Resolved:** Azure Document Intelligence `2024-11-30` with `prebuilt-invoice`; record all
   confidence rather than discarding low-confidence values; use deterministic Croatian text fallbacks
   for fiscal identifiers and model gaps. See [history](history/07-azure-extraction-provider-canonical-mapper.md).
+  **Amended by iteration 23:** two prebuilt models now read every document —
+  `prebuilt-invoice` as primary, `prebuilt-receipt` as secondary — merged by a fixed per-field
+  precedence. PRD §4.7 rules out *mandatory* multi-model fallback orchestration, and §7.6 explicitly
+  defers "possible multi-model logic" to implementation, so this is the deferred decision being taken
+  rather than a scope breach. See [history](history/23-dual-model-extraction-merge.md).
 - ~~**QR decode library and Croatian fiscal QR payload format** → Task 08.~~
   **Resolved:** Azure Document Intelligence's free `barcodes` feature runs server-side in the existing
   `prebuilt-invoice` call; the parser accepts fiscal JIR/ZKI URLs plus an observed bare JIR UUID and
@@ -196,11 +201,26 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 20  | Items section density | _none — user asked for research, a recommendation, then a direct implementation_ | [history](history/20-items-section-density.md) |
 | 21  | Croatian receipt extraction accuracy | _none — user reported defects on named samples and asked for reproduction, analysis, then implementation_ | [history](history/21-extraction-accuracy-croatian-receipts.md) |
 | 22  | PDF source-field highlighting | [plan](plans/pdf-source-field-highlighting.md) | [history](history/22-pdf-source-field-highlighting.md) |
+| 23  | Dual-model extraction merge | _none — user asked for an investigation and recommendation, chose the approach, then asked for it_ | [history](history/23-dual-model-extraction-merge.md) |
 
 Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
 amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region
 highlighting. Commit B added measured client-side downscaling, concurrent Azure/storage work,
 `failureReason` surfacing, and the offline accuracy/latency harness.
+
+**Amendment from iteration 23 — provider confidence is not comparable across two models, so it must
+never arbitrate between them.** Choosing the more confident of two readings is the intuitive design
+and it is measurably wrong here. Over the sample corpus the invoice and receipt models disagreed on
+16 field readings; in 12 there was no comparable confidence at all, because the correct value came
+from a deterministic text fallback that carries none, and in the 4 where both reported a confidence
+the more confident model was wrong every time. All four were `sellerName`, where the receipt model is
+confidently certain that a venue's trading name is the seller. Selection is a fixed per-field
+precedence measured from win rates, guarded by `/validate` 6.22.
+
+**Amendment from iteration 23 — a second model must be additive, never load-bearing.** The secondary
+call runs concurrently, can never blank a value the primary read, and is logged and discarded on
+failure or timeout. That is what lets the same code run on a rate-limited free Azure tier, where the
+second call may simply not complete, without turning a throttle into a failed extraction.
 
 **Amendment from iteration 21 — a scoring harness that silently skips an unmeasurable case reports
 the health of the corpus it kept, not of the product.** `score:extraction` scores a receipt only when

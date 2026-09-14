@@ -34,4 +34,14 @@ describe("review form normalization", () => {
     expect(empty.vatBreakdown).toBeNull();
     expect(empty.items).toBeNull();
   });
+
+  it("saves a three-decimal quantity unchanged rather than as thousands", () => {
+    const item = { description: "Sprej", quantity: "3.000", unitPrice: "8.70", total: "26.10" };
+    const values = toFormValues({ items: [item] });
+    expect(toPatch(values).items).toEqual([item]);
+
+    values.items[0]!.quantity = "2,500";
+    values.items[0]!.unitPrice = "1,250";
+    expect(toPatch(values).items?.[0]).toMatchObject({ quantity: "2.500", unitPrice: "1250" });
+  });
 });

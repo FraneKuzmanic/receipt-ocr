@@ -2,6 +2,7 @@ import {
   parseAmount,
   parseIssueDate,
   parseIssueTime,
+  parseQuantity,
   type CanonicalReceiptFields,
 } from "@receipt/shared";
 
@@ -95,7 +96,7 @@ export function toPatch(values: ReviewFormValues): CanonicalReceiptFields {
     .filter((item) => Object.values(item).some((value) => value.trim() !== ""))
     .map((item) => ({
       description: nullableText(item.description),
-      quantity: nullableAmount(item.quantity),
+      quantity: item.quantity.trim() === "" ? null : parseQuantity(item.quantity),
       unitPrice: nullableAmount(item.unitPrice),
       total: nullableAmount(item.total),
     }));

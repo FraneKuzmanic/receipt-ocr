@@ -10,6 +10,8 @@ export {
   parseAmount,
 } from "./money.js";
 
+export { parseQuantity } from "./quantity.js";
+
 export { ISO_DATE_PATTERN, ISO_TIME_PATTERN, parseIssueDate, parseIssueTime } from "./datetime.js";
 
 export {

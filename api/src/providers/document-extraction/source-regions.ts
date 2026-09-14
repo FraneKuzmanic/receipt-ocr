@@ -266,6 +266,55 @@ function deduplicate(regions: SourceRegion[]): SourceRegion[] {
   return [...grouped.values()];
 }
 
+/**
+ * Projects regions for a receipt read by two models. Each field is outlined from the response that
+ * actually supplied its value, because the two models index their item and VAT rows independently
+ * — outlining a four-item list against the three rows the other model found would point every
+ * highlight at the wrong line.
+ */
+export function mapStoredSourceRegions(raw: unknown): SourceRegionsResponse {
+  const primary = storedAnalyzeResult(raw);
+  if (primary === null) return { pages: [], regions: [] };
+
+  const secondary = storedSecondaryAnalyzeResult(raw);
+  const fieldModels = storedFieldModels(raw);
+  const ownedBySecondary = (path: string): boolean =>
+    fieldModels[path.split(".")[0] ?? path] === "secondary";
+
+  const projected = mapSourceRegions(primary);
+  const regions = retain(projected.regions, (path) => !ownedBySecondary(path));
+  if (secondary !== null) {
+    regions.push(...retain(mapSourceRegions(secondary).regions, ownedBySecondary));
+  }
+
+  return sourceRegionsResponseSchema.parse({
+    pages: projected.pages,
+    regions: deduplicate(regions),
+  });
+}
+
+function retain(regions: readonly SourceRegion[], keep: (path: string) => boolean): SourceRegion[] {
+  return regions
+    .map((region) => ({ ...region, fields: region.fields.filter(keep) }))
+    .filter((region) => region.fields.length > 0);
+}
+
+function storedSecondaryAnalyzeResult(raw: unknown): AnalyzeResultOutput | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const result = (raw as Record<string, unknown>)["secondaryAnalyzeResult"];
+  return result !== null && typeof result === "object" && !Array.isArray(result)
+    ? (result as AnalyzeResultOutput)
+    : null;
+}
+
+function storedFieldModels(raw: unknown): Record<string, string> {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const models = (raw as Record<string, unknown>)["fieldModels"];
+  return models !== null && typeof models === "object" && !Array.isArray(models)
+    ? (models as Record<string, string>)
+    : {};
+}
+
 export function storedAnalyzeResult(raw: unknown): AnalyzeResultOutput | null {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
   const result = (raw as Record<string, unknown>)["analyzeResult"];

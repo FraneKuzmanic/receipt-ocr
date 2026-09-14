@@ -1,0 +1,12 @@
+{
+  "sellerName": "Lira Trogir",
+  "sellerOib": "73710835843",
+  "documentNumber": "19211-03-50070",
+  "issueDate": "2026-06-01",
+  "issueTime": "12:17",
+  "total": "33.10",
+  "currency": "EUR",
+  "vatBreakdown": [{ "rate": "25", "taxableBase": "26.48", "vatAmount": "6.62" }],
+  "jir": "58d14366-9037-4fd1-b6ee-ec4580d96136",
+  "zki": "8481a9c8879b2ca3d51555e24db9f772"
+}

@@ -13,7 +13,7 @@ import type {
 import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
 import { EURO_ADOPTION_DATE, findPayableEuroTotal, resolveCurrency } from "./currency.js";
 import { normalizeOib } from "./croatian.js";
-import { parseReceiptAmount, parseVatRate } from "./receipt-amount.js";
+import { parseReceiptAmount, parseReceiptQuantity, parseVatRate } from "./receipt-amount.js";
 import { findVatTable, mapVatTable, mapVatText } from "./vat-tables.js";
 import { LOW_CONFIDENCE_THRESHOLD, type ExtractionFieldMetadata } from "./types.js";
 
@@ -252,7 +252,9 @@ function assignTime(
   canonical: "issueTime",
   field: DocumentFieldOutput | undefined,
 ): void {
-  const value = parseIssueTime(field?.valueTime ?? field?.content);
+  // The printed text wins over the provider's normalized `valueTime`, which pads a receipt that
+  // shows "12:17" to "12:17:00". Padding a second the receipt never printed invents data.
+  const value = parseIssueTime(field?.content) ?? parseIssueTime(field?.valueTime);
   if (value === null) {
     recordUnreadable(unreadableFields, canonical, field);
     return;
@@ -283,7 +285,7 @@ function mapItems(field: DocumentFieldOutput | undefined): ReceiptItem[] | null 
       const values = entry.valueObject ?? {};
       return {
         description: first(values, ITEM_CELL_ALIASES.description)?.content ?? null,
-        quantity: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.quantity)?.content),
+        quantity: parseReceiptQuantity(first(values, ITEM_CELL_ALIASES.quantity)?.content),
         unitPrice: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.unitPrice)?.content),
         total: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.total)?.content),
       };
