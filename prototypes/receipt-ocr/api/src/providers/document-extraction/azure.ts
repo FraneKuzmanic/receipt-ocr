@@ -1,7 +1,6 @@
+import { setTimeout as delay } from "node:timers/promises";
 import DocumentIntelligence, {
-  getLongRunningPoller,
   isUnexpected,
-  type AnalyzeOperationOutput,
   type AnalyzeResultOutput,
   type DocumentIntelligenceClient,
 } from "@azure-rest/ai-document-intelligence";
@@ -28,6 +27,11 @@ import {
 } from "./types.js";
 
 export const AZURE_API_VERSION = "2024-11-30";
+
+// Azure answers every status poll with a multi-second `retry-after` (7 counting down for the invoice
+// model, 4 for the receipt model), and the SDK's poller obeys it over its own interval, so a result
+// ready in 2–3 s was collected at ~7 s. Status polls are free GETs, well within S0's rate limit.
+const POLL_INTERVAL_MS = 500;
 
 interface AzureSettings {
   readonly endpoint: string;
@@ -188,29 +192,40 @@ async function analyzeWithAzure(
   analyzeMs: number;
 }> {
   const uploadStartedAt = Date.now();
+  // Raw bytes rather than a base64 JSON body, which is a third larger — and both models upload the
+  // same document at once.
   const initial = await client.path("/documentModels/{modelId}:analyze", modelId).post({
-    contentType: "application/json",
-    body: { base64Source: input.bytes.toString("base64") },
+    contentType: "application/octet-stream",
+    body: input.bytes,
     queryParameters: { locale: settings.locale, features: ["barcodes"] },
     abortSignal: signal,
   });
   const uploadMs = Date.now() - uploadStartedAt;
   if (isUnexpected(initial)) throw classifyAzureFailure(initial.status);
 
+  const resultId = new URL(initial.headers["operation-location"]).pathname.split("/").at(-1);
+  if (!resultId) throw new ExtractionError("provider_unavailable", true);
+
   const analyzeStartedAt = Date.now();
-  const completed = await getLongRunningPoller(client, initial, {
-    intervalInMs: 500,
-  }).pollUntilDone({ abortSignal: signal });
-  const operation = completed.body as AnalyzeOperationOutput;
-  if (operation.status !== "succeeded" || operation.analyzeResult === undefined) {
-    throw new ExtractionError("provider_rejected", false);
+  for (;;) {
+    await delay(POLL_INTERVAL_MS, undefined, { signal });
+    const poll = await client
+      .path("/documentModels/{modelId}/analyzeResults/{resultId}", modelId, resultId)
+      .get({ abortSignal: signal });
+    if (isUnexpected(poll)) throw classifyAzureFailure(poll.status);
+
+    const operation = poll.body;
+    if (operation.status === "notStarted" || operation.status === "running") continue;
+    if (operation.status !== "succeeded" || operation.analyzeResult === undefined) {
+      throw new ExtractionError("provider_rejected", false);
+    }
+    return {
+      analyzeResult: operation.analyzeResult,
+      raw: operation,
+      uploadMs,
+      analyzeMs: Date.now() - analyzeStartedAt,
+    };
   }
-  return {
-    analyzeResult: operation.analyzeResult,
-    raw: operation,
-    uploadMs,
-    analyzeMs: Date.now() - analyzeStartedAt,
-  };
 }
 
 function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | null {

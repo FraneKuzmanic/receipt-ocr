@@ -172,6 +172,60 @@ had never been tested together, so everything below ran against the combined tre
 Still not run: the Phase 8 browser journeys. No live `lira_trogir` photo was available locally, so
 its four-item outlines are proven by the fixture-based `source-regions.test.ts`, not in a browser.
 
+### Third session, 2026-09-14 — the two regressions the smoke test found, measured and fixed
+
+The second session committed and deployed with the smoke test's two findings listed as follow-ups.
+The user rightly rejected that: the iteration's purpose was better accuracy **without** giving up
+speed, so a possible regression in either is a blocker to measure, not a gap to note. Both were
+investigated against the pre-iteration behaviour.
+
+**Quantities: a real regression on 3 of 14 receipts, caused by taking `items` whole.** Replaying both
+models' recorded responses showed the lists identical on 9 receipts, the receipt model better on 2
+(`lira_trogir`; `26515835`, where the invoice model listed two subtotal lines as purchases), and the
+invoice model better on 3 — both PDFs and the taxi screenshot, where the receipt model returns each
+row's total with no quantity or unit price. Fix: `fillItemCells` borrows an empty cell from the other
+model **only when both read the same rows** (equal length, equal line total per row), and records it
+as `items.N.cell` in `fieldModels`; `mapStoredSourceRegions` now honours that per-path entry, so the
+borrowed cell is still outlined from the response that read it. Corpus result: 104 → 111 item cells,
+and no receipt loses a cell the invoice model alone produced other than the two false subtotal rows.
+
+**Latency: not caused by the second model — a pre-existing polling defect the second model made
+visible.** A live A/B (invoice-only vs both models, alternating order, all 14 samples) put the
+combination at a median 8.3 s against 7.7 s — the difference entirely the doubled upload. But every
+call waited a fixed ~7.1 s (invoice) or ~4.1 s (receipt) after upload regardless of document, while
+Azure's own timestamps showed 1–3 s of analysis. `@azure/core-lro` replaces its `intervalInMs` with
+the response's `retry-after`, and Azure sends `retry-after: 7` counting down (4 for the receipt
+model). Polling every 250 ms showed results ready at 2.3–6.5 s and 1.8–4.0 s. Iteration 18 had
+measured exactly this ("7.1 s polling") and adopted 8 s as the baseline without finding the cause.
+Fix: `analyzeWithAzure` polls `analyzeResults/{resultId}` on its own 500 ms interval, and uploads raw
+bytes instead of a base64 JSON body (a third smaller; the screenshot's upload went 8.0 → 5.7 s).
+
+Measured live, before = the pre-iteration path (invoice only, SDK poller, base64), after = the
+production provider, two rounds over all 14 samples:
+
+| | Before | After |
+| --- | --- | --- |
+| Median | 8.0 s | **5.7 s** |
+| p90 | 12.1 s | 11.5 s |
+| Receipts faster | — | 13 of 14 |
+
+The exception was the 3.5 MB 10 MP original (17.4 → 20.9 s), whose two concurrent uploads compete on
+a home uplink; downscaled to the 1,600 px the client actually sends, three rounds went 9.1–9.8 s →
+5.4–7.2 s. The receipt model contributed on all 31 "after" runs, which also exercised the new polling
+code end to end against Azure.
+
+| Check | Result |
+| --- | --- |
+| `npm run typecheck` | Pass |
+| `npm test` | Pass: 51 files, **518 tests** |
+| `npm run score:extraction` | Identical to the table above on every scored field |
+| `oxlint` / `prettier --end-of-line auto` on changed files | Pass |
+| `/validate` 6.6, 6.22 | Pass |
+
+Not re-run: `npm run test:integration`, which passed in the second session — this round changed no
+route, and the regions route's integration case projects an empty stored result the change does not
+touch.
+
 **Two pre-existing failures found and deliberately not fixed**, because neither is caused by this
 change and fixing them would bury it in unrelated diff:
 
@@ -211,12 +265,12 @@ change and fixing them would bury it in unrelated diff:
   resolution affects field detection in ways worth a separate look.
 - **`inareceipt`'s JIR/ZKI remain OCR-corrupted** and `primjer1-hr-nopdv`'s 0%-VAT recap still has no
   agreed canonical mapping — both carried over from iteration 21.
-- **Found by the live smoke test: taking `items` whole from one model can drop the other's
-  quantities.** On `Screenshot_20190705-1907152` the receipt model returns three items with no
-  `Quantity` at all, so the merged items show empty quantities that the invoice model had read. The
-  merge picks the whole list because the two models index rows independently; filling a cell from the
-  other model would need row alignment, which was not built. Invisible to `score:extraction`, because
-  items have no ground truth.
-- **Found by the live smoke test: wall-clock extraction took 10.8 s and 14.9 s** on the two samples,
-  well above PRD §11.4's 2–5 s target. Where the time goes (the slower model, the poll interval, or
-  upload) was not measured.
+- ~~**Taking `items` whole from one model can drop the other's quantities.**~~ **Resolved in the
+  third session below.**
+- ~~**Wall-clock extraction took 10.8 s and 14.9 s.**~~ **Resolved in the third session below —
+  extraction is now faster than before this iteration.**
+- **Upload remains the variable part of latency.** Both models still upload the document separately;
+  Azure offers no way to analyse one upload with two models. A `urlSource` pointing at the stored
+  object would remove the API's upload entirely but make the Azure call wait for the Storage write,
+  which iteration 18 deliberately runs concurrently. Not measured; only worth it if production uploads
+  from Render prove slow.

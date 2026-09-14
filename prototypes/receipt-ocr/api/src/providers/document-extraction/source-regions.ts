@@ -278,8 +278,10 @@ export function mapStoredSourceRegions(raw: unknown): SourceRegionsResponse {
 
   const secondary = storedSecondaryAnalyzeResult(raw);
   const fieldModels = storedFieldModels(raw);
+  // An item cell filled from the other model is recorded under its full path, which wins over the
+  // model that supplied the rest of the list.
   const ownedBySecondary = (path: string): boolean =>
-    fieldModels[path.split(".")[0] ?? path] === "secondary";
+    (fieldModels[path] ?? fieldModels[path.split(".")[0] ?? path]) === "secondary";
 
   const projected = mapSourceRegions(primary);
   const regions = retain(projected.regions, (path) => !ownedBySecondary(path));

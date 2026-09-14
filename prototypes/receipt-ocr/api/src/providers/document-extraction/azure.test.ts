@@ -3,14 +3,38 @@ import type {
   AnalyzeResultOutput,
   DocumentIntelligenceClient,
 } from "@azure-rest/ai-document-intelligence";
-import { getLongRunningPoller } from "@azure-rest/ai-document-intelligence";
 import { classifyAzureFailure, createAzureProvider } from "./azure.js";
 import { ExtractionError } from "./types.js";
 
-vi.mock("@azure-rest/ai-document-intelligence", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@azure-rest/ai-document-intelligence")>();
-  return { ...actual, getLongRunningPoller: vi.fn() };
-});
+/** A client whose submit is accepted and whose status polls return `statuses` in order. */
+function fakeAzure(statuses: Array<"running" | "succeeded">) {
+  const post = vi.fn().mockResolvedValue({
+    status: "202",
+    headers: {
+      "operation-location":
+        "https://example.test/documentintelligence/documentModels/prebuilt-invoice/analyzeResults/result-1?api-version=2024-11-30",
+    },
+    request: {
+      url: "https://example.test/documentModels/prebuilt-invoice:analyze",
+      method: "POST",
+    },
+  });
+  let polls = 0;
+  const get = vi.fn(async () => {
+    const status = statuses[Math.min(polls++, statuses.length - 1)];
+    return {
+      status: "200",
+      headers: {},
+      body: status === "succeeded" ? { status, analyzeResult } : { status },
+      request: {
+        url: "https://example.test/documentModels/prebuilt-invoice/analyzeResults/result-1",
+        method: "GET",
+      },
+    };
+  });
+  const path = vi.fn(() => ({ post, get }));
+  return { post, get, path, client: { path } as unknown as DocumentIntelligenceClient };
+}
 
 const analyzeResult: AnalyzeResultOutput = {
   apiVersion: "2024-11-30",
@@ -152,58 +176,43 @@ describe("Azure extraction provider", () => {
     });
   });
 
-  it("passes the same abort signal used for the request into the long-running poll", async () => {
-    const post = vi.fn().mockResolvedValue({
-      status: "202",
-      headers: {},
-      request: {
-        url: "https://example.test/documentModels/prebuilt-invoice:analyze",
-        method: "POST",
-      },
+  it("uploads raw bytes and polls the result itself with the request's abort signal", async () => {
+    const azure = fakeAzure(["running", "succeeded"]);
+    const provider = createAzureProvider({
+      client: azure.client,
+      settings: { secondaryModelId: "" },
     });
-    const fakeClient = { path: () => ({ post }) } as unknown as DocumentIntelligenceClient;
-    const pollUntilDone = vi
-      .fn()
-      .mockResolvedValue({ body: { status: "succeeded", analyzeResult } });
-    vi.mocked(getLongRunningPoller).mockReturnValue({ pollUntilDone } as never);
+    const bytes = Buffer.from("receipt");
+    const result = await provider.extract({ bytes, contentType: "image/jpeg" });
 
-    const provider = createAzureProvider({ client: fakeClient });
-    await provider.extract({ bytes: Buffer.from("receipt"), contentType: "image/jpeg" });
-
-    const requestOptions = post.mock.calls[0]![0] as {
+    const requestOptions = azure.post.mock.calls[0]![0] as {
       abortSignal: AbortSignal;
+      body: unknown;
+      contentType: string;
       queryParameters: { features: string[] };
     };
-    const requestSignal = requestOptions.abortSignal;
+    expect(requestOptions.body).toBe(bytes);
+    expect(requestOptions.contentType).toBe("application/octet-stream");
     expect(requestOptions.queryParameters.features).toEqual(["barcodes"]);
-    expect(pollUntilDone).toHaveBeenCalledWith({ abortSignal: requestSignal });
+    // A running status is polled again rather than treated as a result, on the operation Azure named.
+    expect(azure.get).toHaveBeenCalledTimes(2);
+    expect(azure.path).toHaveBeenCalledWith(
+      "/documentModels/{modelId}/analyzeResults/{resultId}",
+      "prebuilt-invoice",
+      "result-1",
+    );
+    for (const [options] of azure.get.mock.calls as unknown as Array<
+      [{ abortSignal: AbortSignal }]
+    >) {
+      expect(options.abortSignal).toBe(requestOptions.abortSignal);
+    }
+    expect(result.fields.total).toBe("8.08");
   });
 
   it("aborts a poll that outlives the configured timeout as a retryable failure", async () => {
-    const post = vi.fn().mockResolvedValue({
-      status: "202",
-      headers: {},
-      request: {
-        url: "https://example.test/documentModels/prebuilt-invoice:analyze",
-        method: "POST",
-      },
-    });
-    const fakeClient = { path: () => ({ post }) } as unknown as DocumentIntelligenceClient;
-    // A real, un-mocked SDK poll rejects once its abortSignal fires; this mirrors that so the
-    // regression this guards against — the signal never reaching pollUntilDone — actually hangs.
-    const pollUntilDone = vi.fn(
-      (options?: { abortSignal?: AbortSignal }) =>
-        new Promise((_resolve, reject) => {
-          options?.abortSignal?.addEventListener("abort", () => {
-            const error = new Error("The operation was aborted.");
-            error.name = "AbortError";
-            reject(error);
-          });
-        }),
-    );
-    vi.mocked(getLongRunningPoller).mockReturnValue({ pollUntilDone } as never);
-
-    const provider = createAzureProvider({ client: fakeClient, settings: { timeoutMs: 20 } });
+    // An operation that never finishes: only the timeout's abort signal can end the polling loop.
+    const azure = fakeAzure(["running"]);
+    const provider = createAzureProvider({ client: azure.client, settings: { timeoutMs: 20 } });
 
     await expect(
       provider.extract({ bytes: Buffer.from("receipt"), contentType: "image/jpeg" }),
