@@ -1,4 +1,4 @@
-import type { CanonicalReceiptFields } from "@receipt/shared";
+import { amountsEqual, type CanonicalReceiptFields, type ReceiptItem } from "@receipt/shared";
 import type { ExtractionFieldMetadata } from "./types.js";
 
 /**
@@ -17,6 +17,8 @@ import type { ExtractionFieldMetadata } from "./types.js";
 export const SECONDARY_PREFERRED_FIELDS: readonly string[] = ["issueTime", "vatBreakdown", "items"];
 
 export type FieldModel = "primary" | "secondary";
+
+const FILLABLE_ITEM_CELLS = ["description", "quantity", "unitPrice"] as const;
 
 export interface ModelExtraction {
   readonly fields: CanonicalReceiptFields;
@@ -69,6 +71,17 @@ export function mergeExtractions(
     }
   }
 
+  const itemsModel = fieldModels["items"];
+  if (secondary !== null && itemsModel !== undefined) {
+    const other = itemsModel === "primary" ? secondary : primary;
+    fields["items"] = fillItemCells(
+      fields["items"] as ReceiptItem[],
+      other.fields.items,
+      itemsModel === "primary" ? "secondary" : "primary",
+      fieldModels,
+    );
+  }
+
   // A field is only unreadable if whichever model won still could not read it; a value recovered
   // from the other model is a value, not a failure.
   const unreadableFields = [
@@ -81,4 +94,38 @@ export function mergeExtractions(
     unreadableFields,
     fieldModels,
   };
+}
+
+/**
+ * The two models index item rows independently, so a cell can be taken from the other model only
+ * when both provably read the same rows: the same number of rows, each with the same line total.
+ * Then an empty quantity, unit price or description is filled from the matching row — the receipt
+ * model often returns a row's total without its quantity, which the invoice model did read. When the
+ * rows do not line up (one model merged or split a row), nothing is borrowed, because a cell from a
+ * different row is a wrong value rather than a missing one. Filled cells are recorded per path so
+ * source highlighting outlines them from the model that read them.
+ */
+function fillItemCells(
+  items: readonly ReceiptItem[],
+  otherItems: readonly ReceiptItem[] | null | undefined,
+  otherModel: FieldModel,
+  fieldModels: Record<string, FieldModel>,
+): ReceiptItem[] {
+  if (!otherItems || otherItems.length !== items.length) return [...items];
+  const aligned = items.every((item, index) => {
+    const otherTotal = otherItems[index]?.total;
+    return item.total != null && otherTotal != null && amountsEqual(item.total, otherTotal);
+  });
+  if (!aligned) return [...items];
+
+  return items.map((item, index) => {
+    const filled = { ...item };
+    for (const cell of FILLABLE_ITEM_CELLS) {
+      const value = otherItems[index]?.[cell];
+      if (filled[cell] != null || value == null) continue;
+      filled[cell] = value;
+      fieldModels[`items.${index}.${cell}`] = otherModel;
+    }
+    return filled;
+  });
 }

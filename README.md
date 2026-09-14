@@ -581,6 +581,18 @@ read, and never fails an extraction** — if its call errors or times out, the w
 the primary result stands unchanged. Setting `AZURE_DI_SECONDARY_MODEL_ID` empty disables the second
 call entirely.
 
+**Item cells are filled across models only when both read the same rows.** The receipt model often
+returns a row's total without its quantity or unit price, which the invoice model did read — both PDF
+samples and the taxi screenshot lost quantities when `items` was taken whole. When the two lists
+have the same length and every row carries the same line total, an empty `description`, `quantity`
+or `unitPrice` is filled from the matching row and recorded in `fieldModels` under its full path
+(`items.0.quantity`), so highlighting outlines it from the model that read it. When the rows do not
+line up — `lira_trogir`, where the invoice model merged two rows — nothing is borrowed, because a
+cell from a different row is a wrong value, not a missing one. Across the corpus this keeps every
+item value the invoice model alone produced (104 → 111 quantity, unit-price and total cells); the one
+receipt with fewer cells is `26515835`, where the invoice model had listed two `MEĐUZBROJ` subtotal
+lines as purchases.
+
 **Selection is deliberately not a comparison of provider confidence**, which is the intuitive design
 and does not work. Over the corpus the two models disagreed on 16 field readings. A comparable
 confidence existed for only four of them — the correct value often comes from a deterministic text
@@ -684,10 +696,28 @@ the table mapper nor the line-oriented text fallback reads; one is the degraded 
 second rate; and one is a 0%-VAT receipt whose printed `Stopa 0% / Osnovica 100.00 / PDV 0.00` recap is
 now extracted faithfully while its ground truth still records "no VAT" — an open question about what a
 zero-rate recap should map to, not a defect. The same corpus's recorded provider durations are p50 3 s
-and p95 5 s. A live warm
-1,600 px upload measured 8.3 s inside the provider (1.2 s initial request, 7.1 s polling), so the PoC
-uses approximately **8 seconds warm** as its current UX baseline rather than the old 2-5 s aspiration.
-Render's separate 30-50 s free-tier cold start still applies before that work begins.
+and p95 5 s.
+
+**Polling is on the provider's own 500 ms interval, never Azure's `retry-after`.** Azure answers each
+status poll with a multi-second `retry-after` — 7, counting down, for the invoice model and 4 for the
+receipt model — and the SDK's `getLongRunningPoller` obeys it over its own `intervalInMs`. Iteration
+18 measured the consequence ("7.1 s polling") and adopted 8 s as the baseline, but polling every
+250 ms showed the results were ready after 2–6.5 s (invoice) and 2–4 s (receipt): the wait was the
+header, not the analysis. `analyzeWithAzure` therefore polls the `analyzeResults` operation itself,
+and uploads raw bytes rather than a base64 JSON body a third larger, which matters because both
+models upload the same document at once. Measured live against the S0 resource, two rounds over all
+14 samples, alternating order:
+
+| | Before (invoice model only, SDK poller, base64) | After (both models, own polling, raw bytes) |
+| --- | --- | --- |
+| Median | 8.0 s | **5.7 s** |
+| p90 | 12.1 s | 11.5 s |
+| Faster per receipt | — | 13 of 14 |
+
+The one slower receipt was a 3.5 MB, 10 MP original uploaded twice over a home connection; at the
+1,600 px size the client actually uploads it went from 9.1–9.8 s to 5.4–7.2 s. Upload is the
+remaining variable — from Render it leaves a datacenter link rather than a home uplink. Render's
+separate 30–50 s free-tier cold start still applies before any of this begins.
 
 ### QR decoding
 

@@ -82,6 +82,54 @@ describe("mergeExtractions", () => {
     expect(merged.unreadableFields).toEqual(["total"]);
   });
 
+  it("fills an empty item cell from the other model when both read the same rows", () => {
+    const merged = mergeExtractions(
+      model({
+        items: [
+          { description: "Primjer usluge", quantity: "1", unitPrice: "100.00", total: "100.00" },
+        ],
+      }),
+      model({
+        items: [{ description: "Primjer usluge", quantity: null, unitPrice: null, total: "100" }],
+      }),
+    );
+
+    expect(merged.fields.items).toEqual([
+      { description: "Primjer usluge", quantity: "1", unitPrice: "100.00", total: "100" },
+    ]);
+    expect(merged.fieldModels).toMatchObject({
+      items: "secondary",
+      "items.0.quantity": "primary",
+      "items.0.unitPrice": "primary",
+    });
+    expect(merged.fieldModels["items.0.description"]).toBeUndefined();
+  });
+
+  it("borrows no cell when the models read different rows", () => {
+    const threeRows = [
+      { description: "merged", quantity: "3.000", unitPrice: "0.85", total: "1.70" },
+      { description: "empty", quantity: null, unitPrice: null, total: null },
+      { description: "third", quantity: "2.000", unitPrice: "1.65", total: "2.00" },
+    ];
+    const fourRows = [
+      { description: "a", quantity: null, unitPrice: "8.70", total: "26.10" },
+      { description: "b", quantity: "2.000", unitPrice: "0.85", total: "1.70" },
+      { description: "c", quantity: "2.000", unitPrice: "1.65", total: "3.30" },
+      { description: "d", quantity: "1.000", unitPrice: "2.00", total: "2.00" },
+    ];
+    expect(
+      mergeExtractions(model({ items: threeRows }), model({ items: fourRows })).fields.items,
+    ).toEqual(fourRows);
+
+    const differentTotal = [{ description: "x", quantity: null, unitPrice: null, total: "5.00" }];
+    const merged = mergeExtractions(
+      model({ items: [{ description: "x", quantity: "7", unitPrice: null, total: "6.00" }] }),
+      model({ items: differentTotal }),
+    );
+    expect(merged.fields.items).toEqual(differentTotal);
+    expect(Object.keys(merged.fieldModels)).toEqual(["items"]);
+  });
+
   it("returns the primary reading unchanged when the second model is unavailable", () => {
     const merged = mergeExtractions(
       model({ sellerName: "REBECA d.o.o.", issueTime: "17:13" }),

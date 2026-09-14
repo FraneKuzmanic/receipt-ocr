@@ -1,7 +1,18 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import type { AnalyzeResultOutput } from "@azure-rest/ai-document-intelligence";
+import { mapAnalyzeResult } from "./azure-fields.js";
+import { mergeExtractions, type ModelExtraction } from "./merge.js";
 import { mapSourceRegions, mapStoredSourceRegions } from "./source-regions.js";
+
+function readModel(analyzeResult: AnalyzeResultOutput): ModelExtraction {
+  const mapped = mapAnalyzeResult(analyzeResult);
+  return {
+    fields: mapped.fields,
+    metadata: mapped.fieldMetadata,
+    unreadableFields: mapped.unreadableFields,
+  };
+}
 
 async function fixture(name: string): Promise<AnalyzeResultOutput> {
   const raw = JSON.parse(
@@ -119,6 +130,30 @@ describe("source region projection", () => {
     expect(itemRows).toEqual(new Set(["0", "1", "2", "3"]));
     expect(mapSourceRegions(primary).regions.flatMap((r) => r.fields)).not.toContain(
       "items.3.description",
+    );
+  });
+
+  it("outlines an item cell filled from the other model from that model's response", async () => {
+    const [primary, secondary] = await Promise.all([
+      fixture("primjer1-hr-nopdv"),
+      secondaryFixture("primjer1-hr-nopdv"),
+    ]);
+    const merged = mergeExtractions(readModel(primary), readModel(secondary));
+    expect(merged.fields.items).toEqual([
+      expect.objectContaining({ quantity: "1", unitPrice: "100.00" }),
+    ]);
+
+    const fields = mapStoredSourceRegions({
+      analyzeResult: primary,
+      secondaryAnalyzeResult: secondary,
+      fieldModels: merged.fieldModels,
+    }).regions.flatMap((region) => region.fields);
+    // The receipt model supplies the row but read no quantity; the outline must still appear.
+    expect(fields).toEqual(
+      expect.arrayContaining(["items.0.description", "items.0.quantity", "items.0.unitPrice"]),
+    );
+    expect(mapSourceRegions(secondary).regions.flatMap((r) => r.fields)).not.toContain(
+      "items.0.quantity",
     );
   });
 
