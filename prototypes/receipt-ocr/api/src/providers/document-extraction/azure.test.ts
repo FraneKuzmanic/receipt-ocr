@@ -3,11 +3,11 @@ import type {
   AnalyzeResultOutput,
   DocumentIntelligenceClient,
 } from "@azure-rest/ai-document-intelligence";
-import { classifyAzureFailure, createAzureProvider } from "./azure.js";
+import { classifyAzureFailure, createAzureProvider, SECONDARY_GRACE_MS } from "./azure.js";
 import { ExtractionError } from "./types.js";
 
 /** A client whose submit is accepted and whose status polls return `statuses` in order. */
-function fakeAzure(statuses: Array<"running" | "succeeded">) {
+function fakeAzure(statuses: Array<"running" | "succeeded" | "failed">) {
   const post = vi.fn().mockResolvedValue({
     status: "202",
     headers: {
@@ -217,6 +217,52 @@ describe("Azure extraction provider", () => {
     await expect(
       provider.extract({ bytes: Buffer.from("receipt"), contentType: "image/jpeg" }),
     ).rejects.toMatchObject({ retryable: true, reason: "provider_unavailable" });
+  });
+
+  it("keeps a failed operation retryable, as the SDK poller did", async () => {
+    const azure = fakeAzure(["running", "failed"]);
+    const provider = createAzureProvider({
+      client: azure.client,
+      settings: { secondaryModelId: "" },
+    });
+
+    await expect(
+      provider.extract({ bytes: Buffer.from("receipt"), contentType: "image/jpeg" }),
+    ).rejects.toMatchObject({ retryable: true, reason: "provider_unavailable" });
+  });
+
+  it("stops waiting for a stalled second model shortly after the primary result", async () => {
+    vi.useFakeTimers();
+    try {
+      let secondarySignal: AbortSignal | undefined;
+      const provider = createAzureProvider({
+        settings: { modelId: "prebuilt-invoice", secondaryModelId: "prebuilt-receipt" },
+        analyze: (_input, signal, modelId) => {
+          if (modelId === "prebuilt-invoice") {
+            return Promise.resolve({ analyzeResult, raw: { status: "succeeded", analyzeResult } });
+          }
+          secondarySignal = signal;
+          return new Promise((_resolve, reject) =>
+            signal.addEventListener("abort", () => reject(new Error("aborted"))),
+          );
+        },
+      });
+
+      const pending = provider.extract({
+        bytes: Buffer.from("receipt"),
+        contentType: "image/jpeg",
+      });
+      await vi.advanceTimersByTimeAsync(SECONDARY_GRACE_MS - 1);
+      expect(secondarySignal?.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+
+      const result = await pending;
+      expect(secondarySignal?.aborted).toBe(true);
+      expect(result.fields.total).toBe("8.08");
+      expect(result.metadata.secondaryModelId).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("extracts fiscal QR data and strips inline barcode markers before text fallbacks", async () => {

@@ -236,7 +236,71 @@ change and fixing them would bury it in unrelated diff:
   mismatch: the files are CRLF on disk while Prettier's configured `endOfLine` expects otherwise.
   `prettier --check --end-of-line auto` passes. This needs one deliberate normalization commit.
 
+### Fourth session, 2026-09-14 — independent validation and four fixes
+
+The committed iteration was validated against its own documentation: typecheck, all 518 tests and
+`score:extraction` reproduced the recorded results, and a live upload of `gradanin-gotovina-pos.jpg`
+through the local stack was checked from storage to browser. It reached review in 6.8 s. Both
+responses and `fieldModels` were stored, and the regions endpoint returned 26 outlines, 16 of them
+projected from the secondary response. The review page drew all 26, and focusing the taxable base
+raised the outline on the printed recap's `300,00`. Every item row matched the printed receipt. The
+disposable user and its stored object were removed.
+
+Replaying the fixtures also confirmed that the secondary's `issueTime` does not undo iteration 21's
+taxi-receipt fix: the receipt model reads `racuntaksi1` as `23:59:47`.
+
+Four defects were found and fixed:
+
+- **A `failed` Azure operation had become non-retryable.** The custom poller mapped it to
+  `provider_rejected`, which the UI presents as "upload another receipt" with no Retry. The SDK poller
+  it replaced threw on `failed`, which the provider classified as retryable `provider_unavailable`.
+  Restored, with a test.
+- **A stalled secondary delayed every extraction to the full timeout.** Both calls shared one abort
+  controller and the result awaited both, so a hung receipt-model call cost up to 60 s on Render. The
+  secondary now has its own controller, still aborted by the overall timeout, and is abandoned
+  `SECONDARY_GRACE_MS` (10 s) after the primary returns. Tested with fake timers. 5 s was first
+  proposed and rejected by the user: it was reasoned from analysis times rather than measured, and a
+  too-short grace silently discards the secondary's fields, while a long one costs latency only when
+  a call genuinely stalls. The actual gap between the two calls' completions is unmeasured.
+- **The README's setup silently disabled the second model.** `.env.example` ships
+  `AZURE_DI_SECONDARY_MODEL_ID=` blank, and `??` treated blank as "disabled". Blank now means the
+  default, as it does for `AZURE_DI_MODEL_ID`; `none` disables the call. Render sets the value
+  explicitly, so production was never affected.
+- **The README contradicted the score.** It said JIR/ZKI "1 of 2" beside "1 of 3", described three VAT
+  misses where there are four, and quoted p95 5 s where the harness reports 8 s. It also omitted that
+  2 of the 16 scored receipts have no secondary fixture and are scored invoice-only.
+
+Rewriting the VAT paragraph from the actual per-receipt misses corrected this file's own "VAT 9/12 →
+9/13" reading. `inareceipt`'s inline recap is now read by the secondary, but its rate is dropped
+because the receipt model returns `25%)`, a trailing-punctuation case the `25%:` fix did not cover.
+`receiptWithTaxMistake` moved from a match to a formatting miss (`25` against ground truth `25.00`,
+for a receipt that prints `25%`).
+
+**The `25%)` rate was then fixed at the user's request.** The `25%:` fix had stripped only a trailing
+`%`/`:` in the shared amount cleaner. Generalizing it there was rejected, because a trailing `)` is
+meaningful to money: `(12,50)` is a negative amount. Instead `parseVatRate` cuts the value at its
+percent sign, since nothing after `%` belongs to a rate. `score:extraction`: VAT breakdown **9/13 →
+10/13**, with `inareceipt` fully matching; every other field unchanged. The grace period, first set to
+5 s, was raised to 10 s at the user's direction (see above).
+
+| Check | Result |
+| --- | --- |
+| `npm run typecheck` | Pass |
+| `npx vitest run --project api` | Pass: 20 files, **195 tests** (+3); full `npm test` was 518 before the change |
+| `npm run score:extraction` | VAT breakdown 10/13 (was 9/13); all other fields unchanged |
+| `oxlint` / `prettier --end-of-line auto` on changed files | Pass |
+| Config resolution | Unset and blank → `prebuilt-receipt`; `none` → disabled; a custom id passes through |
+| `/validate` 6.6 | Pass |
+
+Not re-run: `npm run build` (no client change) and integration tests (no route change).
+
 ## Known gaps / follow-ups
+
+- ~~**`inareceipt`'s VAT rate is dropped** because the receipt model returns `25%)`.~~ **Resolved in
+  the fourth session.**
+- **The gap between the two models' completion times is unmeasured**, so `SECONDARY_GRACE_MS` (10 s)
+  is a judgement, not a measurement. Large uploads, which compete for one uplink, are the likeliest
+  case to exceed it; a secondary cut short only logs a warning, so it would lose accuracy silently.
 
 - ~~**A quantity of `3,000` is read as `3000`, not `3`.**~~ **Resolved 2026-09-14, and not by the
   locale rule proposed here.** The corpus disproved that rule: `screenshot-20190705-1907152` prints

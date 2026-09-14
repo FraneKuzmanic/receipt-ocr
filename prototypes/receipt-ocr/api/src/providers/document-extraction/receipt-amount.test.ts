@@ -42,4 +42,11 @@ describe("VAT rate parsing (iteration 21)", () => {
     expect(parseVatRate("25%:")).toBe("25");
     expect(parseReceiptAmount("26,48:")).toBe("26.48");
   });
+
+  it("ignores whatever follows the percent sign, such as a closing bracket", () => {
+    expect(parseVatRate("25%)")).toBe("25");
+    expect(parseVatRate("D1 25,00 %)")).toBe("25.00");
+    // A bracketed negative amount is still money, not a rate with trailing text.
+    expect(parseReceiptAmount("(12,50)")).toBe("-12.50");
+  });
 });

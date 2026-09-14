@@ -98,7 +98,12 @@ const parsed: Config = {
     process.env["AZURE_DOCUMENT_INTELLIGENCE_KEY"],
   ),
   AZURE_DI_MODEL_ID: process.env["AZURE_DI_MODEL_ID"] || "prebuilt-invoice",
-  AZURE_DI_SECONDARY_MODEL_ID: process.env["AZURE_DI_SECONDARY_MODEL_ID"] ?? "prebuilt-receipt",
+  // Blank means the default, like every other optional setting, because `.env.example` ships it blank;
+  // `none` is the explicit way to turn the second call off.
+  AZURE_DI_SECONDARY_MODEL_ID:
+    process.env["AZURE_DI_SECONDARY_MODEL_ID"] === "none"
+      ? ""
+      : process.env["AZURE_DI_SECONDARY_MODEL_ID"] || "prebuilt-receipt",
   AZURE_DI_LOCALE: process.env["AZURE_DI_LOCALE"] || "hr-HR",
   EXTRACTION_TIMEOUT_MS: readCount(
     "EXTRACTION_TIMEOUT_MS",
