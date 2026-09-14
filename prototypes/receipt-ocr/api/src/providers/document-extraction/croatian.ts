@@ -110,8 +110,14 @@ export function findIssueTime(content: string): CroatianMatch | null {
   return dateAdjacentTime(content) ?? labelledTime(content);
 }
 
+/**
+ * The label pattern also matches the "račun" inside "računa:", whose following "a" then satisfies
+ * the value group. A document number always carries a digit, so requiring one discards that
+ * capture and leaves the field missing rather than filled with a letter (PRD §7.7).
+ */
 export function findDocumentNumber(content: string): CroatianMatch | null {
-  return capture(content, DOCUMENT_NUMBER);
+  const match = capture(content, DOCUMENT_NUMBER);
+  return match === null || !/[0-9]/.test(match.value) ? null : match;
 }
 
 function dateAdjacentTime(content: string): CroatianMatch | null {

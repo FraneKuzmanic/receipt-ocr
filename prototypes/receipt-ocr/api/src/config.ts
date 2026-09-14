@@ -21,6 +21,8 @@ export interface Config {
   readonly AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: string;
   readonly AZURE_DOCUMENT_INTELLIGENCE_KEY: string;
   readonly AZURE_DI_MODEL_ID: string;
+  /** Second model merged into the first; empty disables the second call entirely. */
+  readonly AZURE_DI_SECONDARY_MODEL_ID: string;
   readonly AZURE_DI_LOCALE: string;
   readonly EXTRACTION_TIMEOUT_MS: number;
   readonly MAX_UPLOAD_BYTES: number;
@@ -96,6 +98,7 @@ const parsed: Config = {
     process.env["AZURE_DOCUMENT_INTELLIGENCE_KEY"],
   ),
   AZURE_DI_MODEL_ID: process.env["AZURE_DI_MODEL_ID"] || "prebuilt-invoice",
+  AZURE_DI_SECONDARY_MODEL_ID: process.env["AZURE_DI_SECONDARY_MODEL_ID"] ?? "prebuilt-receipt",
   AZURE_DI_LOCALE: process.env["AZURE_DI_LOCALE"] || "hr-HR",
   EXTRACTION_TIMEOUT_MS: readCount(
     "EXTRACTION_TIMEOUT_MS",

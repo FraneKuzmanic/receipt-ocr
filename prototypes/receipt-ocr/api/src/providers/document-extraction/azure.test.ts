@@ -67,6 +67,76 @@ describe("Azure extraction provider", () => {
     expect(result.qr).toBeNull();
   });
 
+  it("keeps the primary reading when the second model fails", async () => {
+    const provider = createAzureProvider({
+      settings: { modelId: "prebuilt-invoice", secondaryModelId: "prebuilt-receipt" },
+      analyze: async (_input, _signal, modelId) => {
+        if (modelId === "prebuilt-receipt") throw new ExtractionError("provider_unavailable", true);
+        return { analyzeResult, raw: { status: "succeeded", analyzeResult } };
+      },
+    });
+
+    const result = await provider.extract({
+      bytes: Buffer.from("receipt"),
+      contentType: "image/jpeg",
+    });
+
+    expect(result.fields.total).toBe("8.08");
+    expect(result.metadata.secondaryModelId).toBeNull();
+  });
+
+  it("takes the second model's reading for the fields it reads better", async () => {
+    const receiptResult: AnalyzeResultOutput = {
+      ...analyzeResult,
+      modelId: "prebuilt-receipt",
+      documents: [
+        {
+          docType: "receipt.retailMeal",
+          spans: [],
+          confidence: 0.98,
+          fields: {
+            TransactionTime: { type: "time", content: "12:17", confidence: 0.98 },
+            TaxDetails: {
+              type: "array",
+              confidence: 0.97,
+              valueArray: [
+                {
+                  type: "object",
+                  valueObject: {
+                    Rate: { type: "string", content: "25%:", confidence: 0.96 },
+                    NetAmount: { type: "number", content: "26,48", confidence: 0.97 },
+                    Amount: { type: "number", content: "6,62", confidence: 0.97 },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    };
+
+    const provider = createAzureProvider({
+      settings: { modelId: "prebuilt-invoice", secondaryModelId: "prebuilt-receipt" },
+      analyze: async (_input, _signal, modelId) => {
+        const chosen = modelId === "prebuilt-receipt" ? receiptResult : analyzeResult;
+        return { analyzeResult: chosen, raw: { status: "succeeded", analyzeResult: chosen } };
+      },
+    });
+
+    const result = await provider.extract({
+      bytes: Buffer.from("receipt"),
+      contentType: "image/jpeg",
+    });
+
+    // The invoice model still owns identity; the receipt model supplies the VAT recap.
+    expect(result.fields.documentNumber).toBe("model-number");
+    expect(result.fields.vatBreakdown).toEqual([
+      { rate: "25", taxableBase: "26.48", vatAmount: "6.62" },
+    ]);
+    expect(result.metadata.fieldModels?.vatBreakdown).toBe("secondary");
+    expect(result.metadata.secondaryModelId).toBe("prebuilt-receipt");
+  });
+
   it("preserves provider failures", async () => {
     const provider = createAzureProvider({
       analyze: async () => {

@@ -3,12 +3,14 @@ import { basename, join } from "node:path";
 import type { AnalyzeResultOutput } from "@azure-rest/ai-document-intelligence";
 import type { CanonicalReceiptFields } from "@receipt/shared";
 import { mapAnalyzeResult } from "../api/src/providers/document-extraction/azure-fields.js";
+import { mergeExtractions } from "../api/src/providers/document-extraction/merge.js";
 import { applyTextFallbacks } from "../api/src/providers/document-extraction/azure.js";
 import { stripContentMarkers } from "../api/src/providers/document-extraction/content-markers.js";
 import { hasUnreadVatSignal } from "../api/src/providers/document-extraction/tax-signals.js";
 import { computeWarnings } from "../api/src/validation/warnings.js";
 
 const FIXTURES_DIR = "api/src/providers/document-extraction/fixtures";
+const SECONDARY_FIXTURES_DIR = "api/src/providers/document-extraction/fixtures/secondary";
 const EXPECTED_DIR = ".agents/fixtures/expected";
 const CRITICAL_FIELDS = ["sellerName", "documentNumber", "issueDate", "total", "currency"] as const;
 type CriticalField = (typeof CRITICAL_FIELDS)[number];
@@ -58,18 +60,20 @@ async function loadRows(): Promise<ScoreRow[]> {
     ) as RecordedOperation;
     if (fixture.analyzeResult === undefined) continue;
 
-    const mapped = mapAnalyzeResult(fixture.analyzeResult);
-    const fields = { ...mapped.fields };
-    applyTextFallbacks(
-      fields,
-      mapped.fieldMetadata,
-      stripContentMarkers(fixture.analyzeResult.content),
+    // Replay both models through the production merge, so the score measures what the API
+    // actually produces rather than the primary model in isolation.
+    const primary = readModel(fixture.analyzeResult);
+    const secondaryFixture = await loadSecondary(name);
+    const merged = mergeExtractions(
+      primary,
+      secondaryFixture === null ? null : readModel(secondaryFixture),
     );
+    const fields = merged.fields;
     // Replay the production warning pipeline too, rather than scoring a mapper-shaped copy.
     computeWarnings({
       fields,
       qr: null,
-      unreadable: mapped.unreadableFields,
+      unreadable: merged.unreadableFields,
       vatTextPresent: hasUnreadVatSignal(fixture.analyzeResult.content),
     });
     scored.push({ name: basename(name, ".json"), expected, fields });
@@ -143,6 +147,25 @@ function scoreSupplemental(scored: readonly ScoreRow[]) {
         { ...result, rate: result.total === 0 ? null : result.matched / result.total },
       ]),
   );
+}
+
+function readModel(analyzeResult: AnalyzeResultOutput) {
+  const mapped = mapAnalyzeResult(analyzeResult);
+  const fields = { ...mapped.fields };
+  const metadata = { ...mapped.fieldMetadata };
+  applyTextFallbacks(fields, metadata, stripContentMarkers(analyzeResult.content));
+  return { fields, metadata, unreadableFields: mapped.unreadableFields };
+}
+
+async function loadSecondary(name: string): Promise<AnalyzeResultOutput | null> {
+  try {
+    const fixture = JSON.parse(
+      await readFile(join(SECONDARY_FIXTURES_DIR, name), "utf8"),
+    ) as RecordedOperation;
+    return fixture.analyzeResult ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function scoreLatency() {

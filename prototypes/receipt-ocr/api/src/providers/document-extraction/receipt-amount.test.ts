@@ -37,4 +37,9 @@ describe("VAT rate parsing (iteration 21)", () => {
     expect(parseVatRate("-5")).toBeNull();
     expect(parseVatRate("nonsense")).toBeNull();
   });
+
+  it("reads a rate that carries its label's colon, as the receipt model returns it", () => {
+    expect(parseVatRate("25%:")).toBe("25");
+    expect(parseReceiptAmount("26,48:")).toBe("26.48");
+  });
 });

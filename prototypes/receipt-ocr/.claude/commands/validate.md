@@ -166,6 +166,14 @@ Current coverage and what each test protects:
 | `api/src/providers/document-extraction/vat-tables.test.ts` (Iteration 21) | The recap mapper against real OCR output: a merged `Stopa% Osnovica` header cell yields both columns, values found one column right of their header are still read, `PDV` heads an amount column, an OCR `osnavica` still matches, the recap's own total row is dropped wherever its label sits, and a recap Azure emitted no table for is read from text — while a VAT-exempt receipt still yields nothing |
 | `api/src/providers/document-extraction/receipt-amount.test.ts` (Iteration 21) | `parseVatRate` discards a leading tax-group code (`D1 25,00 %`, misread `01 25.00 %`) and reports a rate outside 0–100 as unreadable rather than storing `0125.00` |
 | `api/src/providers/document-extraction/azure-fields.test.ts` (Iteration 21) | A post-euro-adoption receipt takes the euro amount it asks for rather than the kuna equivalent the provider returned as `InvoiceTotal` — which corrupts total and currency together — while a genuine kuna receipt is untouched; the OIB wins over the VAT number printed above it; and a totals block returned as `Items` does not become purchased lines, while real items survive |
+| `api/src/providers/document-extraction/merge.test.ts` (Iteration 23) | **The two-model merge.** The primary model keeps identity fields; the secondary wins `issueTime`, `vatBreakdown` and `items`; either may fill a gap the other left empty; a secondary `null` can never blank a value the primary read; and an unreadable marker clears only when some model actually read the value. Also that a disabled/unavailable secondary returns the primary reading unchanged |
+| `api/src/providers/document-extraction/azure.test.ts` (Iteration 23) | **The second model is additive, never load-bearing.** A secondary call that throws leaves the primary result intact with `secondaryModelId: null`, and a secondary-preferred field (a `TaxDetails` recap arriving as `25%:`) reaches the canonical output with `fieldModels.vatBreakdown === "secondary"` |
+| `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 23) | **Highlighting follows the model that supplied the value.** `mapStoredSourceRegions` outlines all four `lira_trogir` item rows from the secondary response, which the primary response alone cannot do because it found only three; and a receipt stored from one model projects exactly as before |
+| `api/src/providers/document-extraction/croatian.test.ts` (Iteration 23) | A document number is never captured out of the word `računa`, while a real `Račun broj :` label still reads |
+| `api/src/providers/document-extraction/receipt-amount.test.ts` (Iteration 23) | A VAT rate carrying its label's colon (`25%:`, the receipt model's format) parses instead of being discarded |
+| `shared/src/quantity.test.ts` (Iteration 23) | **A quantity printed to three decimals is a decimal, not thousands** — `3,000` is `3.000` with either separator — while every other shape, including `1.000.000` and `1.234,5`, parses exactly as money does |
+| `api/src/providers/document-extraction/azure-fields.test.ts` (Iteration 23) | Replays the real receipts that shipped the bug: `lira_trogir`'s `3,000`/`2,000`/`1,000` and `screenshot-20190705-1907152`'s dot-separated `1.000` map to decimal quantities, while a `1,00` quantity is unchanged |
+| `client/src/review/reviewForm.test.ts` (Iteration 23) | **Saving does not undo it.** A stored `3.000` survives the form round trip, a typed `2,500` saves as `2.500`, and a unit price beside it still follows the money rule |
 | `client/src/review/ActiveRegionStrip.test.tsx` (Iteration 15) | The mobile crop strip renders only with a matching active field, a known region and a non-PDF, safe source; `cropTransform`'s output, reproduced through the same `scale ∘ translate` composition the browser applies, centers the region's centroid in the **strip's own viewport**, not the full receipt image — the previous formula centered the whole image regardless of which field was active, verified wrong only by measuring a real rendered page |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
@@ -468,6 +476,26 @@ nowhere else; the pure geometry lives in `pdfRender.ts` and is unit-tested there
 
 ```
 grep -Eiq "canvas" client/src/test/setup.ts && (echo 'canvas polyfill added to the client test setup' && exit 1) || echo ok
+```
+
+### 6.22 Model selection never falls back to comparing confidence
+
+Choosing the more confident of two models is the intuitive design and it is measurably wrong here:
+over the sample corpus the models disagreed on 16 field readings, a comparable confidence existed for
+only four of them, and in all four the more confident model was the wrong one. The merge is therefore
+a fixed per-field precedence. This guards the seductive "improvement" of reintroducing confidence.
+
+```
+node -e "const fs=require('fs'); const s=fs.readFileSync('api/src/providers/document-extraction/merge.ts','utf8'); if(/confidence\s*[<>]|confidence\s*>=|Math\.max\([^)]*confidence/.test(s)) throw new Error('the merge is comparing provider confidence across models; see README Extraction'); console.log('ok');"
+```
+
+### 6.23 Every scored receipt still has its primary fixture
+
+`score:extraction` now merges a primary and an optional secondary response. A secondary fixture with
+no primary would be silently ignored, quietly removing a receipt from the corpus.
+
+```
+node -e "const fs=require('fs'); const dir='api/src/providers/document-extraction/fixtures'; const primary=new Set(fs.readdirSync(dir).filter(n=>n.endsWith('.json'))); const orphans=fs.existsSync(dir+'/secondary')?fs.readdirSync(dir+'/secondary').filter(n=>n.endsWith('.json')&&!primary.has(n)):[]; if(orphans.length) throw new Error('secondary fixture with no primary: '+orphans.join(', ')); console.log('ok');"
 ```
 
 ---

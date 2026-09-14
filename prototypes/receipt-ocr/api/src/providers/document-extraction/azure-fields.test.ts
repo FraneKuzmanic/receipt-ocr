@@ -141,3 +141,24 @@ describe("dual-currency, tax id and totals lines (iteration 21)", () => {
     expect(mapped.fields.items?.[0]?.description).toBe("PIVO PAB 2L");
   });
 });
+
+describe("item quantities", () => {
+  it("reads a quantity printed to three decimals as a decimal, with either separator", async () => {
+    // lira_trogir prints "3,000" and screenshot prints "1.000"; both were read as thousands.
+    const lira = mapAnalyzeResult(await fixture("secondary/lira_trogir"));
+    expect(lira.fields.items?.map((item) => item.quantity)).toEqual([
+      "3.000",
+      "2.000",
+      "2.000",
+      "1.000",
+    ]);
+
+    const screenshot = mapAnalyzeResult(await fixture("screenshot-20190705-1907152"));
+    expect(screenshot.fields.items?.map((item) => item.quantity)).toContain("1.000");
+  });
+
+  it("leaves two-decimal and whole quantities as they were", async () => {
+    const mapped = mapAnalyzeResult(await fixture("receiptEuroMistake"));
+    expect(mapped.fields.items?.[0]?.quantity).toBe("1.00");
+  });
+});

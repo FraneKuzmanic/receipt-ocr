@@ -124,4 +124,11 @@ describe("OIB validation (iteration 21)", () => {
     expect(hasFiscalMarkings("OIB: 12345678901")).toBe(true);
     expect(hasFiscalMarkings("Receipt total 10.00")).toBe(false);
   });
+
+  it('never reads a document number out of the word "računa"', () => {
+    // "Datum izdavanja računa:" satisfies the label pattern, whose value group then captured the
+    // trailing "a". A document number always carries a digit, so this must stay missing.
+    expect(findDocumentNumber("Datum izdavanja\nračuna: 1.06.2026")).toBeNull();
+    expect(findDocumentNumber("Račun broj : 19211-03-50070")?.value).toBe("19211-03-50070");
+  });
 });

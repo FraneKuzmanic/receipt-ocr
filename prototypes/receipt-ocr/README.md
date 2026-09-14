@@ -557,11 +557,43 @@ exports as `"100.50"`.
 ### Extraction
 
 The API starts Azure Document Intelligence before the private Storage write completes, then continues
-the extraction asynchronously after returning `201`. It uses API version `2024-11-30` and the
-`prebuilt-invoice` model. Recorded runs over seven supplied
-examples (six photos and one PDF) found seller, document number and total in all seven; the issue date
-in six, with labelled Croatian text as the fallback; and symbol-backed currency in four. The receipt
-model was retained only in the comparison harness because it does not expose a document-number field.
+the extraction asynchronously after returning `201`. It uses API version `2024-11-30`.
+
+**Two prebuilt models read every document, and their readings are merged per field.**
+`prebuilt-invoice` is the primary and `prebuilt-receipt` the secondary; the two calls run
+concurrently, so the wall clock is the slower call rather than their sum. Neither model is better
+everywhere, which is why one was not simply chosen over the other — measured over the sample corpus:
+
+- **The invoice model reads identity better.** Seller name 11/13 against the receipt model's 7/13,
+  document number 12/13 against 7/13, and it is the only one of the two that reads a PDF invoice's
+  issue date reliably. The receipt model returns a venue's trading name where the receipt's legal
+  entity is wanted — `Kavana Wagner` for `Milenij hoteli`, `CINIA` for `INA`.
+- **The receipt model reads the transaction better.** It returns a `TransactionTime` where the
+  invoice model returns none, a `TaxDetails` recap carrying the taxable base that the invoice
+  model's table geometry loses, and line items whose columns stay on their own row. On
+  `lira_trogir` the invoice model returns three items with one row's quantity attached to another
+  row's unit price, while the receipt model returns all four correctly.
+
+`api/src/providers/document-extraction/merge.ts` holds the precedence: `issueTime`, `vatBreakdown`
+and `items` take the secondary model first, every other field takes the primary first, and either
+model may fill a gap the other left empty. **A second model can never blank a value the first one
+read, and never fails an extraction** — if its call errors or times out, the warning is logged and
+the primary result stands unchanged. Setting `AZURE_DI_SECONDARY_MODEL_ID` empty disables the second
+call entirely.
+
+**Selection is deliberately not a comparison of provider confidence**, which is the intuitive design
+and does not work. Over the corpus the two models disagreed on 16 field readings. A comparable
+confidence existed for only four of them — the correct value often comes from a deterministic text
+fallback, which carries no confidence at all — and in all four the more confident model was the
+wrong one. Azure's confidences are per-model and uncalibrated, so comparing them across two models
+compares two different scales.
+
+Both raw responses are retained. The stored `raw_provider_result` keeps the primary operation at the
+top level, so anything already reading `analyzeResult` still works, and adds
+`secondaryAnalyzeResult` plus a `fieldModels` map recording which model won each field. Source-region
+highlighting reads that map and outlines each field from the response that actually supplied it,
+because the two models index their item and VAT rows independently — outlining a four-item list
+against the other model's three rows would point every highlight at the wrong line.
 
 Every request enables Azure's free `barcodes` feature. It adds QR data without changing the mapped
 field values; Azure's inline `:barcode:`/layout markers are stripped before Croatian text fallbacks run
@@ -600,7 +632,20 @@ Six deterministic rules were added in iteration 21, each earned from a real rece
   VAT number printed above the OIB on some receipts; stripping the `HR` prefix and verifying the
   ISO 7064 MOD 11,10 check digit is what lets the labelled `OIB:` text win when it should.
 
-Two mapper corrections came with them: a receipt issued on or after **2023-01-01** showing both
+Three further corrections came from adopting the second model, each a defect the single-model path
+had been masking:
+
+- **A time is never padded with seconds the receipt did not print.** The mapper preferred Azure's
+  normalized `valueTime`, which returns `12:17:00` for a receipt showing `12:17`; the printed
+  `content` now wins and `valueTime` is only the fallback.
+- **A document number is never read out of the word `računa`.** The label pattern matches the
+  `račun` inside `Datum izdavanja računa:`, whose trailing `a` then satisfied the value group. A
+  document number always carries a digit, so a capture without one is discarded and the field stays
+  missing (PRD §7.7) instead of reading `a`.
+- **A VAT rate may arrive carrying its label's colon.** The receipt model returns `25%:`, which the
+  rate parser rejected outright, silently costing the taxable base it came with.
+
+Two earlier mapper corrections still apply: a receipt issued on or after **2023-01-01** showing both
 currencies takes the euro amount it asks for rather than the kuna equivalent the provider sometimes
 returns as the invoice total — which otherwise corrupts the total and the currency together, since
 both derive from that one field — and a totals block returned as `Items` no longer becomes purchased
@@ -611,17 +656,25 @@ therefore highlight a low-confidence value later without forcing a person to ret
 quantities are parsed from the provider's text `content`, never from `valueCurrency.amount` or
 `valueNumber`: those are JavaScript numbers and would lose the required decimal precision.
 
-`npm run score:extraction` replays recorded fixtures through the real mapper and warning pipeline,
-without an Azure call. **A fixture is only scored when both its recorded Azure response and its
-ground-truth file exist**, and the harness silently skips an expectation whose fixture is missing —
-which is how eight receipts — including every one with a known defect — sat outside the corpus while
-it reported healthy numbers. Iteration 21 recorded them all, so **all 15 expectations are now scored**
-and the figures below cover every sample receipt rather than the ones that happened to pass.
+`npm run score:extraction` replays recorded fixtures through the real mapper, **the production merge**
+and the warning pipeline, without an Azure call. It reads the primary response from
+`fixtures/<name>.json` and the secondary from `fixtures/secondary/<name>.json`, so the score measures
+what the API actually produces rather than one model in isolation. **A fixture is only scored when
+both its recorded Azure response and its ground-truth file exist**, and the harness silently skips an
+expectation whose fixture is missing — which is how eight receipts, including every one with a known
+defect, once sat outside the corpus while it reported healthy numbers.
 
-Document number, issue date, total and currency match exactly on all 15. Seller name is 14 of 15 and
-no critical-field correction is needed on 14 of 15; the single miss is one badly degraded photo whose
-seller line OCR reads as `fte bars\nANTIQUE"`. Of the supplementary fields, issue time is 7 of 7,
-seller OIB 1 of 1, and VAT breakdown 9 of 12.
+Over the 16 scored receipts: issue date 15/15 and total 16/16 match exactly, document number and
+currency 15/16, seller name 14/16, and no critical-field correction is needed on 14 of 16. Of the
+supplementary fields, **issue time is 8 of 8** — the merge's clearest win, since the invoice model
+returns no time at all for `lira_trogir` — VAT breakdown 9 of 13, seller OIB 1 of 2, and JIR and ZKI
+1 of 3 each.
+
+The corpus deliberately includes its own worst cases. `receipt123` is a badly degraded photo whose
+seller line OCR reads as `fte bars\nANTIQUE"`, and `lira_trogir` is photographed with its left edge
+cropped, so the printed labels reach OCR as `KI` and `IR` rather than `ZKI` and `JIR` and the
+identifier fallbacks cannot anchor to them. A corpus of clean scans reports the health of the scans
+rather than of the product.
 
 The remaining gaps are documented rather than smoothed over. JIR and ZKI sit at 1 of 2 because on one
 receipt OCR substitutes characters (`8`→`B`, `0`→`8`) inside an identifier carrying no checksum, so the
@@ -787,8 +840,13 @@ passed in. That turns "money is never a JS float" from a convention into a runti
 **Known limitation — the `1.234` ambiguity.** A single separator with exactly three digits after it
 is genuinely ambiguous: `"1.234"` and `"1,234"` could each be 1234 or 1.234. Both resolve to
 **1234**, because a thousands group is far more common on a receipt than a three-decimal price. This
-is a deliberate, lossy judgement call and it will occasionally be wrong — a weight in kilograms is
-the realistic case. Watch for it during real-receipt testing.
+is a deliberate, lossy judgement call for **money**.
+
+**Line-item quantities resolve it the other way.** POS systems print quantities to three decimals —
+`3,000` for three pieces, `1.250` for a weight — while a four-digit count is rare, so
+`parseQuantity` (`shared/src/quantity.ts`) reads that one shape as a decimal and defers to
+`parseAmount` for everything else. Extraction and the review form's save both use it; before it
+existed, a receipt's `3,000` was stored as 3000 and a correct `3.000` became 3000 again on save.
 
 ### Dates and times
 
@@ -974,7 +1032,8 @@ first.
 | `WEB_ORIGIN`                           | `http://localhost:5173` | CORS allow-list origin   |
 | `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | —                       | **Required at startup**, server-only |
 | `AZURE_DOCUMENT_INTELLIGENCE_KEY`      | —                       | **Required at startup**, server-only |
-| `AZURE_DI_MODEL_ID`                    | `prebuilt-invoice`       | Azure model id           |
+| `AZURE_DI_MODEL_ID`                    | `prebuilt-invoice`       | Primary Azure model id   |
+| `AZURE_DI_SECONDARY_MODEL_ID`          | `prebuilt-receipt`       | Second model merged into the first; set empty to disable the second call |
 | `AZURE_DI_LOCALE`                      | `hr-HR`                  | Azure locale hint        |
 | `EXTRACTION_TIMEOUT_MS`                | `90000`                  | Azure extraction timeout in milliseconds |
 | `SUPABASE_URL`                         | —                       | **Required at startup**  |

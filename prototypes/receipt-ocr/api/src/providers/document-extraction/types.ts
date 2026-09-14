@@ -21,6 +21,10 @@ export interface ExtractionFieldMetadata {
 export interface ExtractionMetadata {
   readonly provider: string;
   readonly modelId: string;
+  /** The merged second model, or null when it was disabled or unavailable for this document. */
+  readonly secondaryModelId?: string | null;
+  /** Which model supplied each populated canonical field. */
+  readonly fieldModels?: Record<string, "primary" | "secondary">;
   readonly apiVersion: string;
   readonly analyzedAt: string;
   readonly latencyMs: number;

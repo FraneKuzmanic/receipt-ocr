@@ -1,4 +1,4 @@
-import { compareAmounts, parseAmount } from "@receipt/shared";
+import { compareAmounts, parseAmount, parseQuantity } from "@receipt/shared";
 
 const TRAILING_TAX_CLASS = /\s+[A-Za-zČĆŽŠĐčćžšđ]$/u;
 const TRAILING_ANNOTATION = /[*#]+$/;
@@ -8,16 +8,24 @@ const LEADING_GROUP_CODE = /^[A-Za-zČĆŽŠĐčćžšđ0-9]{1,3}[\s.]+(?=\d)/u;
 
 /** Normalizes receipt-specific OCR noise before the canonical money parser validates it. */
 export function parseReceiptAmount(raw: string | null | undefined): string | null {
-  if (raw === null || raw === undefined) return null;
+  return raw === null || raw === undefined ? null : parseAmount(stripReceiptNoise(raw));
+}
 
-  const cleaned = raw
-    .trim()
-    .replace(/%+$/, "")
-    .replace(TRAILING_TAX_CLASS, "")
-    .replace(TRAILING_ANNOTATION, "")
-    .trim();
+/** A line-item quantity, where `3,000` means three rather than three thousand. */
+export function parseReceiptQuantity(raw: string | null | undefined): string | null {
+  return raw === null || raw === undefined ? null : parseQuantity(stripReceiptNoise(raw));
+}
 
-  return parseAmount(cleaned);
+function stripReceiptNoise(raw: string): string {
+  return (
+    raw
+      .trim()
+      // A label's colon rides along on a recap cell the receipt model returns as "25%:".
+      .replace(/[%:]+$/, "")
+      .replace(TRAILING_TAX_CLASS, "")
+      .replace(TRAILING_ANNOTATION, "")
+      .trim()
+  );
 }
 
 /**
