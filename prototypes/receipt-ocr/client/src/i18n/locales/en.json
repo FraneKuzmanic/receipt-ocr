@@ -220,6 +220,7 @@
     "vat_arithmetic_mismatch": "The VAT amounts do not add up to the total.",
     "qr_total_mismatch": "The total differs from the amount in the receipt's QR code.",
     "qr_datetime_mismatch": "The date or time differs from the receipt's QR code.",
+    "qr_jir_mismatch": "The JIR differs from the one in the receipt's QR code. Check it against the receipt.",
     "document_quality": "The image is hard to read. Check the values carefully.",
     "vat_present_but_unread": "This receipt shows VAT information we could not read. Check the VAT section against the receipt."
   },

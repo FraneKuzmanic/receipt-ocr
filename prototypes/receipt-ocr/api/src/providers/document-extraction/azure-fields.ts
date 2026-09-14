@@ -11,6 +11,7 @@ import type {
   DocumentFieldOutput,
 } from "@azure-rest/ai-document-intelligence";
 import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
+import { stripContentMarkers } from "./content-markers.js";
 import { EURO_ADOPTION_DATE, findPayableEuroTotal, resolveCurrency } from "./currency.js";
 import { normalizeOib } from "./croatian.js";
 import { parseReceiptAmount, parseReceiptQuantity, parseVatRate } from "./receipt-amount.js";
@@ -167,12 +168,19 @@ function assignText(
   field: DocumentFieldOutput | undefined,
 ): void {
   if (!field?.content) return;
+  const content = singleLine(field.content);
   // OCR opens a gap around the separators of a document number: "49781/001/ 1".
   fields[canonical] =
-    canonical === "documentNumber"
-      ? field.content.replaceAll(/\s*([-/])\s*/gu, "$1")
-      : field.content;
+    canonical === "documentNumber" ? content.replaceAll(/\s*([-/])\s*/gu, "$1") : content;
   metadataByField[canonical] = metadata(field);
+}
+
+/**
+ * OCR returns a value wrapped across the lines it was printed on. A canonical text value is one
+ * line: a single-line input silently deletes the breaks, gluing "Trogir\nObrt" into "TrogirObrt".
+ */
+function singleLine(text: string): string {
+  return text.replaceAll(/\s*\n\s*/gu, " ");
 }
 
 /**
@@ -188,10 +196,10 @@ function applyEuroDenomination(
   const issueDate = fields.issueDate;
   if (fields.currency !== "HRK" || issueDate == null || issueDate < EURO_ADOPTION_DATE) return;
 
-  const payable = findPayableEuroTotal(content);
+  const payable = findPayableEuroTotal(stripContentMarkers(content).text);
   if (payable === null) return;
 
-  fields.total = payable;
+  fields.total = payable.value;
   fields.currency = "EUR";
   metadataByField.total = { confidence: null, source: "text" };
   metadataByField.currency = { confidence: null, source: "text" };
@@ -283,8 +291,9 @@ function mapItems(field: DocumentFieldOutput | undefined): ReceiptItem[] | null 
   const items = field.valueArray
     .map((entry) => {
       const values = entry.valueObject ?? {};
+      const description = first(values, ITEM_CELL_ALIASES.description)?.content;
       return {
-        description: first(values, ITEM_CELL_ALIASES.description)?.content ?? null,
+        description: description === undefined ? null : singleLine(description),
         quantity: parseReceiptQuantity(first(values, ITEM_CELL_ALIASES.quantity)?.content),
         unitPrice: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.unitPrice)?.content),
         total: parseReceiptAmount(first(values, ITEM_CELL_ALIASES.total)?.content),

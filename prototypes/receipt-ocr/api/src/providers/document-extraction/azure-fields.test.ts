@@ -162,3 +162,21 @@ describe("item quantities", () => {
     expect(mapped.fields.items?.[0]?.quantity).toBe("1.00");
   });
 });
+
+describe("text wrapped across printed lines", () => {
+  it("joins a wrapped value with a space instead of keeping the line break", async () => {
+    // A single-line input deletes a line break, which glued these into "rgovinaLira Trogir" and
+    // "papir100-2000" on the review form.
+    const lira = mapAnalyzeResult(await fixture("secondary/lira_trogir"));
+    expect(lira.fields.sellerName).toBe("rgovina Lira Trogir");
+    expect(lira.fields.items?.map((item) => item.description)).toEqual([
+      "NEXT sprej boja 2u1",
+      "Sait vodobrusni papir 100-2000",
+      "3M vodobrusni papir P2500 erfect-it",
+      "SCH x-way traka srebrna",
+    ]);
+
+    const address = mapAnalyzeResult(await fixture("images")).fields.sellerAddress;
+    expect(address).toBe("5269 Prospect San Jose CA 95129");
+  });
+});

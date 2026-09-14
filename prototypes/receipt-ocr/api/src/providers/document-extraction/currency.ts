@@ -1,7 +1,7 @@
 import { parseAmount } from "@receipt/shared";
 import type { DocumentFieldOutput } from "@azure-rest/ai-document-intelligence";
 import { stripContentMarkers } from "./content-markers.js";
-import { findIssueDate, hasFiscalMarkings } from "./croatian.js";
+import { findIssueDate, hasFiscalMarkings, type CroatianMatch } from "./croatian.js";
 
 const AMOUNT = "\\d+(?:[.,]\\d+)*";
 const TOKEN = "(?:\\b(?:kn|hrk|eur|usd|gbp)\\b|€|\\$|£)";
@@ -29,16 +29,20 @@ const PAYABLE_EURO_AMOUNT = /(\d[\d.,]*)\s*(?:€|\bEUR\b)/iu;
  * Finds the euro amount a dual-currency receipt actually asks for. After euro adoption Croatian
  * receipts still print a kuna equivalent, and the provider sometimes returns that line as the
  * invoice total — which silently corrupts both the total and the currency, since both derive
- * from the same field.
+ * from the same field. Offsets are into the marker-stripped text, so the amount the value was read
+ * from can be outlined on the source rather than the kuna line the provider pointed at.
  */
-export function findPayableEuroTotal(content: string): string | null {
-  const text = stripContentMarkers(content).text;
+export function findPayableEuroTotal(text: string): CroatianMatch | null {
   const label = PAYABLE_LABEL.exec(text);
   if (label === null) return null;
 
   const from = label.index + label[0].length;
   const amount = PAYABLE_EURO_AMOUNT.exec(text.slice(from, from + 40));
-  return amount === null ? null : parseAmount(amount[1]);
+  const value = amount === null ? null : parseAmount(amount[1]);
+  if (amount === null || value === null) return null;
+
+  const start = from + amount.index;
+  return { value, start, end: start + amount[0].length };
 }
 
 export function resolveCurrency(input: ResolveCurrencyInput): CurrencyResolution | null {
