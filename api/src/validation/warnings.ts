@@ -62,6 +62,16 @@ export function computeWarnings(input: WarningInput): ReceiptWarning[] {
     warnings.push({ code: "qr_datetime_mismatch", field: "issueDate" });
   }
 
+  // A JIR carries no checksum, so an OCR misread is invisible except against the QR code, whose
+  // error correction makes it the reliable copy of the same identifier.
+  if (
+    input.qr?.jir != null &&
+    !isMissing(input.fields.jir) &&
+    input.qr.jir.toLowerCase() !== input.fields.jir!.trim().toLowerCase()
+  ) {
+    warnings.push({ code: "qr_jir_mismatch", field: "jir" });
+  }
+
   // document_quality remains deliberately unproduced: Task 08 found no reliable server-side signal.
   // See .agents/history/08-qr-decoding-validation-warnings-engine.md for the recorded evidence.
   return warnings;

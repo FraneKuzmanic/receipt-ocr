@@ -147,6 +147,32 @@ describe("QR total warnings", () => {
   });
 });
 
+describe("QR JIR warnings", () => {
+  it("flags an OCR-misread JIR and clears it when the value is corrected", () => {
+    // receipt123: OCR read "61985013-…-380919701be5" where the QR code holds "b19e5e13-…-3a0919701be5".
+    const qr = fiscalQr({ jir: "b19e5e13-0388-4284-9be9-3a0919701be5" });
+    const misread = computeWarnings({
+      fields: { ...completeFields, jir: "61985013-0388-4284-9De9-380919701be5" },
+      qr,
+    });
+    const corrected = computeWarnings({
+      fields: { ...completeFields, jir: "B19E5E13-0388-4284-9BE9-3A0919701BE5" },
+      qr,
+    });
+
+    expect(warningsByCode(misread, "qr_jir_mismatch")).toEqual([
+      { code: "qr_jir_mismatch", field: "jir" },
+    ]);
+    expect(warningsByCode(corrected, "qr_jir_mismatch")).toEqual([]);
+  });
+
+  it("stays silent when either side has no JIR to compare", () => {
+    const fields = { ...completeFields, jir: "61985013-0388-4284-9De9-380919701be5" };
+    expect(computeWarnings({ fields, qr: fiscalQr({ jir: null }) })).toEqual([]);
+    expect(computeWarnings({ fields: completeFields, qr: fiscalQr() })).toEqual([]);
+  });
+});
+
 describe("QR datetime warnings", () => {
   it("compares dates and minute precision without inventing seconds", () => {
     expect(computeWarnings({ fields: completeFields, qr: fiscalQr() })).toEqual([]);

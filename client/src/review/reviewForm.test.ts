@@ -44,4 +44,22 @@ describe("review form normalization", () => {
     values.items[0]!.unitPrice = "1,250";
     expect(toPatch(values).items?.[0]).toMatchObject({ quantity: "2.500", unitPrice: "1250" });
   });
+
+  it("shows a value stored with line breaks as one spaced line", () => {
+    // Stored before extraction joined wrapped lines; an <input> would delete the breaks outright.
+    const values = toFormValues({
+      sellerAddress: "Kneza Trpimira 197, Trogir\nObrt Lira vl. Lidija Radevenjić",
+      items: [
+        {
+          description: "Sait vodobrusni papir\n'100-2000",
+          quantity: null,
+          unitPrice: null,
+          total: null,
+        },
+      ],
+    });
+
+    expect(values.sellerAddress).toBe("Kneza Trpimira 197, Trogir Obrt Lira vl. Lidija Radevenjić");
+    expect(values.items[0]?.description).toBe("Sait vodobrusni papir '100-2000");
+  });
 });

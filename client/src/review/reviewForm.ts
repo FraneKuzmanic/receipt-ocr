@@ -26,8 +26,10 @@ export interface ReviewFormValues {
   items: Array<{ description: string; quantity: string; unitPrice: string; total: string }>;
 }
 
+// A single-line input deletes line breaks rather than rendering them, gluing "Trogir\nObrt" into
+// "TrogirObrt" — receipts extracted before the mapper joined wrapped lines still hold them.
 function text(value: string | null | undefined): string {
-  return value ?? "";
+  return (value ?? "").replaceAll(/\s*\n\s*/gu, " ");
 }
 
 export function toFormValues(receipt: CanonicalReceiptFields): ReviewFormValues {

@@ -221,6 +221,7 @@
     "vat_arithmetic_mismatch": "Iznosi PDV-a ne odgovaraju ukupnom iznosu.",
     "qr_total_mismatch": "Ukupan iznos razlikuje se od iznosa u QR kodu računa.",
     "qr_datetime_mismatch": "Datum ili vrijeme razlikuju se od QR koda računa.",
+    "qr_jir_mismatch": "JIR se razlikuje od JIR-a u QR kodu računa. Usporedite ga s računom.",
     "document_quality": "Sliku je teško očitati. Pažljivo provjerite vrijednosti.",
     "vat_present_but_unread": "Na računu postoji PDV koji nismo uspjeli pročitati. Provjerite odjeljak PDV-a prema računu."
   },

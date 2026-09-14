@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import type { AnalyzeResultOutput } from "@azure-rest/ai-document-intelligence";
+import type { SourceRegion } from "@receipt/shared";
 import { mapAnalyzeResult } from "./azure-fields.js";
 import { mergeExtractions, type ModelExtraction } from "./merge.js";
 import { mapSourceRegions, mapStoredSourceRegions } from "./source-regions.js";
@@ -28,6 +29,15 @@ async function secondaryFixture(name: string): Promise<AnalyzeResultOutput> {
   ) as { analyzeResult?: AnalyzeResultOutput };
   if (raw.analyzeResult === undefined) throw new Error(`Fixture ${name} has no analyze result.`);
   return raw.analyzeResult;
+}
+
+function contains(region: SourceRegion, point: { x: number; y: number }): boolean {
+  return (
+    point.x >= region.corners[0]!.x &&
+    point.x <= region.corners[2]!.x &&
+    point.y >= region.corners[0]!.y &&
+    point.y <= region.corners[2]!.y
+  );
 }
 
 describe("source region projection", () => {
@@ -155,6 +165,32 @@ describe("source region projection", () => {
     expect(mapSourceRegions(secondary).regions.flatMap((r) => r.fields)).not.toContain(
       "items.0.quantity",
     );
+  });
+
+  it("outlines a euro total replaced from text where the euro amount is printed", async () => {
+    // Both models return "136,68 kn" as the total; the mapper stores the "ZA PLATITI 18,14 €" amount.
+    const result = await fixture("ina-racun-sladoled");
+    const page = result.pages![0]!;
+    const centre = (content: string) => {
+      const polygon = page.words!.find((word) => word.content === content)!.polygon!;
+      const xs = polygon.filter((_, index) => index % 2 === 0);
+      const ys = polygon.filter((_, index) => index % 2 === 1);
+      return {
+        x: (Math.min(...xs) + Math.max(...xs)) / 2 / page.width!,
+        y: (Math.min(...ys) + Math.max(...ys)) / 2 / page.height!,
+      };
+    };
+    const totals = mapSourceRegions(result).regions.filter((region) =>
+      region.fields.includes("total"),
+    );
+    expect(totals).toEqual([
+      expect.objectContaining({
+        fields: expect.arrayContaining(["total", "currency"]),
+        origin: "text",
+      }),
+    ]);
+    expect(contains(totals[0]!, centre("18,14"))).toBe(true);
+    expect(contains(totals[0]!, centre("136,68"))).toBe(false);
   });
 
   it("falls back to the single stored response for a receipt read by one model", async () => {

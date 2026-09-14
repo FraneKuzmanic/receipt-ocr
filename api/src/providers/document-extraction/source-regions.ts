@@ -18,6 +18,7 @@ import {
   findOib,
   findZki,
 } from "./croatian.js";
+import { findPayableEuroTotal } from "./currency.js";
 import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
 import { findVatTable, mapVatTableRows } from "./vat-tables.js";
 
@@ -49,9 +50,13 @@ export function mapSourceRegions(analyzeResult: AnalyzeResultOutput): SourceRegi
   const regions: SourceRegion[] = [];
   const sourceFields = analyzeResult.documents?.[0]?.fields ?? {};
   const populated = new Set([...Object.keys(mapped.fields), ...mapped.unreadableFields]);
+  // A total replaced from the receipt's text must be outlined where that text is, not where the
+  // provider's own total field points: on a dual-currency receipt that is the kuna line.
+  const totalFromText = mapped.fieldMetadata.total?.source === "text";
 
   for (const field of SCALAR_FIELDS) {
     if (!populated.has(field)) continue;
+    if (totalFromText && (field === "total" || field === "currency")) continue;
     addFieldRegion(regions, first(sourceFields, FIELD_ALIASES[field]), field, dimensions);
   }
 
@@ -88,6 +93,20 @@ export function mapSourceRegions(analyzeResult: AnalyzeResultOutput): SourceRegi
       content.toSourceOffset(match.end),
       dimensions,
     );
+  }
+
+  const payable = totalFromText ? findPayableEuroTotal(content.text) : null;
+  if (payable !== null) {
+    for (const field of ["total", "currency"]) {
+      addTextRegion(
+        regions,
+        analyzeResult,
+        field,
+        content.toSourceOffset(payable.start),
+        content.toSourceOffset(payable.end),
+        dimensions,
+      );
+    }
   }
 
   return sourceRegionsResponseSchema.parse({ pages, regions: deduplicate(regions) });

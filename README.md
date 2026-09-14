@@ -673,7 +673,15 @@ Two earlier mapper corrections still apply: a receipt issued on or after **2023-
 currencies takes the euro amount it asks for rather than the kuna equivalent the provider sometimes
 returns as the invoice total — which otherwise corrupts the total and the currency together, since
 both derive from that one field — and a totals block returned as `Items` no longer becomes purchased
-lines called "Osnovica bez PDV".
+lines called "Osnovica bez PDV". That euro total is also **outlined where the euro amount is
+printed**: the provider's own total field points at the kuna line, so highlighting it showed
+`136,68 kn` beside a form reading `18.14`. A total replaced from text is projected from that text.
+
+**Text wrapped across printed lines is stored as one line.** OCR returns an address, a seller name
+or an item description with the line breaks it was printed with. The review form's single-line inputs
+delete those breaks rather than render them, which glued `Trogir\nObrt` into `TrogirObrt` and saved
+it that way. Extraction joins wrapped lines with a space; the form does the same when it loads, so
+receipts extracted before this rule display correctly without a backfill.
 
 Confidence is recorded per canonical field but never suppresses a readable value. The review flow can
 therefore highlight a low-confidence value later without forcing a person to retype it. Amounts and
@@ -932,12 +940,18 @@ than a rule a route has to remember. **Do not flatten the two tiers into one sch
 path it concerns. `api/src/validation/warnings.ts` computes the rules after extraction and can be
 reused by Task 09 when an editable field changes; warnings are codes, not server-rendered prose.
 
-The API currently produces seven informational checks: `missing_critical_field` (`sellerName`,
+The API currently produces eight informational checks: `missing_critical_field` (`sellerName`,
 `documentNumber`, `issueDate`, `total`, `currency`); `unparseable_date`/`unparseable_amount` when
 source text existed but could not normalize; `vat_arithmetic_mismatch` on a complete `vatBreakdown`;
 `vat_present_but_unread` when a non-exempt receipt shows a VAT recap that could not map to a VAT row;
-`qr_total_mismatch` on `total`; and `qr_datetime_mismatch` on `issueDate`. Incomplete VAT or QR data
-emits nothing rather than guessing.
+`qr_total_mismatch` on `total`; `qr_datetime_mismatch` on `issueDate`; and `qr_jir_mismatch` on `jir`.
+Incomplete VAT or QR data emits nothing rather than guessing.
+
+**The JIR check exists because a misread JIR is otherwise undetectable.** Unlike an OIB, a JIR has no
+check digit, so OCR substitutions produce a plausible identifier — `receipt123` extracted
+`61985013-…-380919701be5` where its QR code holds `b19e5e13-…-3a0919701be5`, and the value looked
+correct to a reviewer. The QR code's error correction makes it the reliable copy. The comparison
+ignores case and, like the other QR checks, only warns: the QR value never fills or replaces the field.
 
 **Only those five fields warn when they are empty, and that asymmetry is deliberate.** PRD §6.5 and
 Appendix A name seller name, document number, issue date, total and currency as the critical review
