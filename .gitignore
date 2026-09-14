@@ -4,3 +4,7 @@ AGENTS.md
 CONTEXT.md
 __pycache__/
 *.py[cod]
+.agents
+.claude
+skills-lock.json
+payslip_examples
