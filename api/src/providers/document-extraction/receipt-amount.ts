@@ -34,10 +34,13 @@ function stripReceiptNoise(raw: string): string {
  * flag an empty rate instead of presenting "0125.00" as if it were read (PRD §7.7).
  */
 export function parseVatRate(raw: string | null | undefined): string | null {
-  const direct = parseReceiptAmount(raw);
+  // A rate ends at its percent sign; whatever follows is surrounding text the model captured with
+  // it, such as the bracket closing "porez( 25%)".
+  const rate = raw?.split("%")[0];
+  const direct = parseReceiptAmount(rate);
   if (isRate(direct)) return direct;
 
-  const stripped = parseReceiptAmount((raw ?? "").replace(LEADING_GROUP_CODE, ""));
+  const stripped = parseReceiptAmount((rate ?? "").replace(LEADING_GROUP_CODE, ""));
   return isRate(stripped) ? stripped : null;
 }
 

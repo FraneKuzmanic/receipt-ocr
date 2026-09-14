@@ -33,6 +33,13 @@ export const AZURE_API_VERSION = "2024-11-30";
 // ready in 2–3 s was collected at ~7 s. Status polls are free GETs, well within S0's rate limit.
 const POLL_INTERVAL_MS = 500;
 
+// How long the secondary model may keep running once the primary has its result. The receipt model's
+// analysis measured 1.8–4.0 s and normally finishes first, so this only bites a stalled call — which
+// would otherwise hold every extraction until EXTRACTION_TIMEOUT_MS for an additive reading. Cutting
+// too early silently loses the secondary's fields, so this errs long; the gap between the two calls'
+// completions has not been measured.
+export const SECONDARY_GRACE_MS = 10_000;
+
 interface AzureSettings {
   readonly endpoint: string;
   readonly key: string;
@@ -86,15 +93,18 @@ export function createAzureProvider(
       const startedAt = Date.now();
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), settings.timeoutMs);
+      const secondaryController = new AbortController();
+      const abortSecondary = () => secondaryController.abort();
+      controller.signal.addEventListener("abort", abortSecondary, { once: true });
+      let graceTimer: ReturnType<typeof setTimeout> | undefined;
 
       try {
         // The two models run concurrently, so the wall clock is the slower call rather than their
         // sum. The secondary is strictly additive: any failure leaves the primary result intact.
-        const [response, secondaryResponse] = await Promise.all([
-          analyze(input, controller.signal, settings.modelId),
+        const secondaryPending =
           settings.secondaryModelId === ""
             ? Promise.resolve(null)
-            : analyze(input, controller.signal, settings.secondaryModelId).catch(
+            : analyze(input, secondaryController.signal, settings.secondaryModelId).catch(
                 (error: unknown) => {
                   logger.warn(
                     { err: error, modelId: settings.secondaryModelId },
@@ -102,8 +112,10 @@ export function createAzureProvider(
                   );
                   return null;
                 },
-              ),
-        ]);
+              );
+        const response = await analyze(input, controller.signal, settings.modelId);
+        graceTimer = setTimeout(abortSecondary, SECONDARY_GRACE_MS);
+        const secondaryResponse = await secondaryPending;
 
         const primary = readModel(response.analyzeResult);
         const secondary =
@@ -147,6 +159,7 @@ export function createAzureProvider(
         throw new ExtractionError("provider_unavailable", true, error);
       } finally {
         clearTimeout(timeout);
+        clearTimeout(graceTimer);
         // Both calls have settled on the success path; on the failure path this cancels whichever
         // model is still in flight rather than leaving it to poll against a lost extraction.
         controller.abort();
@@ -216,6 +229,11 @@ async function analyzeWithAzure(
 
     const operation = poll.body;
     if (operation.status === "notStarted" || operation.status === "running") continue;
+    // Azure reports transient service faults as a failed operation, so it stays retryable, as it was
+    // when the SDK poller threw on it.
+    if (operation.status === "failed") {
+      throw new ExtractionError("provider_unavailable", true, operation.error);
+    }
     if (operation.status !== "succeeded" || operation.analyzeResult === undefined) {
       throw new ExtractionError("provider_rejected", false);
     }

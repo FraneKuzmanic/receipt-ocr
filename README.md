@@ -578,8 +578,18 @@ everywhere, which is why one was not simply chosen over the other — measured o
 and `items` take the secondary model first, every other field takes the primary first, and either
 model may fill a gap the other left empty. **A second model can never blank a value the first one
 read, and never fails an extraction** — if its call errors or times out, the warning is logged and
-the primary result stands unchanged. Setting `AZURE_DI_SECONDARY_MODEL_ID` empty disables the second
-call entirely.
+the primary result stands unchanged. **Nor can it hold an extraction hostage:** once the primary has
+its result, the secondary gets `SECONDARY_GRACE_MS` (10 s) more and is then abandoned. The receipt
+model's analysis measured 1.8–4.0 s and normally finishes first, so this only affects a stalled call,
+which would otherwise have delayed every upload until `EXTRACTION_TIMEOUT_MS`. The value errs long on
+purpose: cutting a merely slow call loses its fields silently, while waiting costs latency only in the
+rare stall. How far the secondary can trail the primary — most likely on large uploads, which compete
+for the same uplink — has not been measured. Setting
+`AZURE_DI_SECONDARY_MODEL_ID` to `none` disables the second call entirely; left blank, it uses the
+default.
+
+An Azure operation that ends in the `failed` state is **retryable**: Azure reports transient service
+faults that way, and the SDK poller this provider replaced also treated it as retryable.
 
 **Item cells are filled across models only when both read the same rows.** The receipt model often
 returns a row's total without its quantity or unit price, which the invoice model did read — both PDF
@@ -654,8 +664,10 @@ had been masking:
   `račun` inside `Datum izdavanja računa:`, whose trailing `a` then satisfied the value group. A
   document number always carries a digit, so a capture without one is discarded and the field stays
   missing (PRD §7.7) instead of reading `a`.
-- **A VAT rate may arrive carrying its label's colon.** The receipt model returns `25%:`, which the
-  rate parser rejected outright, silently costing the taxable base it came with.
+- **A VAT rate may arrive carrying its label's punctuation.** The receipt model returns `25%:`, and
+  `25%)` from a recap printed as `porez( 25%)`, which the rate parser rejected outright. A rate now
+  ends at its percent sign. This is done in the rate parser rather than the shared amount cleaner,
+  where stripping a trailing `)` would break negative amounts written `(12,50)`.
 
 Two earlier mapper corrections still apply: a receipt issued on or after **2023-01-01** showing both
 currencies takes the euro amount it asks for rather than the kuna equivalent the provider sometimes
@@ -674,12 +686,14 @@ and the warning pipeline, without an Azure call. It reads the primary response f
 what the API actually produces rather than one model in isolation. **A fixture is only scored when
 both its recorded Azure response and its ground-truth file exist**, and the harness silently skips an
 expectation whose fixture is missing — which is how eight receipts, including every one with a known
-defect, once sat outside the corpus while it reported healthy numbers.
+defect, once sat outside the corpus while it reported healthy numbers. A missing *secondary*
+response is not skipped but scored as invoice-only: `31231822` and `racun-mobilna-trgovina` have no
+recorded receipt-model response, so 2 of the 16 scored receipts do not exercise the merge.
 
 Over the 16 scored receipts: issue date 15/15 and total 16/16 match exactly, document number and
 currency 15/16, seller name 14/16, and no critical-field correction is needed on 14 of 16. Of the
 supplementary fields, **issue time is 8 of 8** — the merge's clearest win, since the invoice model
-returns no time at all for `lira_trogir` — VAT breakdown 9 of 13, seller OIB 1 of 2, and JIR and ZKI
+returns no time at all for `lira_trogir` — VAT breakdown 10 of 13, seller OIB 1 of 2, and JIR and ZKI
 1 of 3 each.
 
 The corpus deliberately includes its own worst cases. `receipt123` is a badly degraded photo whose
@@ -688,15 +702,21 @@ cropped, so the printed labels reach OCR as `KI` and `IR` rather than `ZKI` and 
 identifier fallbacks cannot anchor to them. A corpus of clean scans reports the health of the scans
 rather than of the product.
 
-The remaining gaps are documented rather than smoothed over. JIR and ZKI sit at 1 of 2 because on one
-receipt OCR substitutes characters (`8`→`B`, `0`→`8`) inside an identifier carrying no checksum, so the
-value is surfaced for correction but cannot be verified or repaired — an OCR ceiling, not a mapping
-gap. Of the three VAT misses, one receipt states its recap as inline `label: value` pairs that neither
-the table mapper nor the line-oriented text fallback reads; one is the degraded photo, which loses a
-second rate; and one is a 0%-VAT receipt whose printed `Stopa 0% / Osnovica 100.00 / PDV 0.00` recap is
-now extracted faithfully while its ground truth still records "no VAT" — an open question about what a
-zero-rate recap should map to, not a defect. The same corpus's recorded provider durations are p50 3 s
-and p95 5 s.
+The remaining gaps are documented rather than smoothed over. JIR and ZKI sit at 1 of 3. On
+`inareceipt` OCR substitutes characters (`8`→`B`, `0`→`8`) inside an identifier carrying no checksum,
+so the value is surfaced for correction but cannot be verified or repaired — an OCR ceiling, not a
+mapping gap; on `lira_trogir` the cropped labels leave the fallbacks nothing to anchor to. The three
+VAT misses:
+
+- **`receipt123`**, the degraded photo, reads its second rate as `3.00` against ground truth `0.3`.
+- **`primjer1-hr-nopdv`** is a 0%-VAT receipt whose printed `Stopa 0% / Osnovica 100.00 / PDV 0.00`
+  recap is extracted faithfully while its ground truth still records "no VAT" — an open question about
+  what a zero-rate recap should map to, not a defect.
+- **`receiptWithTaxMistake`** reads the rate as `25` against ground truth `25.00`. The receipt prints
+  `25%`, so this is a formatting disagreement with the ground truth rather than a wrong value.
+
+The recorded provider durations — Azure's own timestamps on the primary responses — are p50 3 s and
+p95 8 s.
 
 **Polling is on the provider's own 500 ms interval, never Azure's `retry-after`.** Azure answers each
 status poll with a multi-second `retry-after` — 7, counting down, for the invoice model and 4 for the
@@ -1063,7 +1083,7 @@ first.
 | `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | —                       | **Required at startup**, server-only |
 | `AZURE_DOCUMENT_INTELLIGENCE_KEY`      | —                       | **Required at startup**, server-only |
 | `AZURE_DI_MODEL_ID`                    | `prebuilt-invoice`       | Primary Azure model id   |
-| `AZURE_DI_SECONDARY_MODEL_ID`          | `prebuilt-receipt`       | Second model merged into the first; set empty to disable the second call |
+| `AZURE_DI_SECONDARY_MODEL_ID`          | `prebuilt-receipt`       | Second model merged into the first; blank uses the default, `none` disables the second call |
 | `AZURE_DI_LOCALE`                      | `hr-HR`                  | Azure locale hint        |
 | `EXTRACTION_TIMEOUT_MS`                | `90000`                  | Azure extraction timeout in milliseconds |
 | `SUPABASE_URL`                         | —                       | **Required at startup**  |
