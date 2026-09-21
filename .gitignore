@@ -8,3 +8,11 @@ __pycache__/
 .claude
 skills-lock.json
 payslip_examples
+
+# Universal, so they are ignored from every branch regardless of which
+# prototype-level .gitignore happens to be checked out. Without node_modules
+# here, switching to a branch that lacks a prototype's own .gitignore surfaces
+# thousands of files - and, worse, that prototype's .env.
+node_modules/
+.env
+.bakeoff/
