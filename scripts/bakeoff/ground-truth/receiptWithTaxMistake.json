@@ -1,0 +1,18 @@
+{
+  "sellerOib": "16029174381",
+  "paymentMethod": "Gotovina",
+  "zki": "043bb05ab8d54535eddca9eb43fc71f1",
+  "jir": "7b6e8de5-9122-427a-a0e2-1bd2c10b7308",
+  "items": [
+    {
+      "description": "KAVA S MLIJEKOM",
+      "quantity": "1.00",
+      "unitPrice": "13.00",
+      "total": "13.00"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "subtotal left out: the only amount without VAT is the base inside the VAT recap, which is scored there."
+  ]
+}

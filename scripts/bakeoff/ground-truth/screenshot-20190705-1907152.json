@@ -1,0 +1,34 @@
+{
+  "sellerOib": "31918917420",
+  "issueTime": "03:04:11",
+  "subtotal": null,
+  "paymentMethod": "NOVČANICE",
+  "zki": "328bc110fca2f47431c4f098fa36f844",
+  "jir": null,
+  "items": [
+    {
+      "description": "VOZNJA PO TAKSIMETRU",
+      "quantity": "200.000",
+      "unitPrice": "1.00",
+      "total": "200.00"
+    },
+    {
+      "description": "VOZNJA PO TAKSIMETRU",
+      "quantity": "1.000",
+      "unitPrice": "1.00",
+      "total": "1.00"
+    },
+    {
+      "description": "VOZNJA PO TAKSIMETRU",
+      "quantity": "1.000",
+      "unitPrice": "1.00",
+      "total": "1.00"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "jir is null: the label 'JIR:' is printed with no value after it.",
+    "The payment method is printed inside the total's label: 'UKUPNO KN (NOVcANICE)'.",
+    "First item: quantity 200.000 at 1.00, printed run together as 'TAKSIMETRU200.000 KOM'."
+  ]
+}

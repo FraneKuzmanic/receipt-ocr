@@ -1,0 +1,83 @@
+{
+  "sellerOib": null,
+  "jir": null,
+  "zki": null,
+  "subtotal": "53.12",
+  "paymentMethod": "VISA",
+  "items": [
+    {
+      "description": "P BASIL",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "3.49"
+    },
+    {
+      "description": "DARKHORSE CABERNET SAUVIGNON",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "7.99"
+    },
+    {
+      "description": "THE PASS SAUVIGNON BLANC MARLB",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "7.99"
+    },
+    {
+      "description": "CRACKERS PITA SEA SALT",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "2.49"
+    },
+    {
+      "description": "PKG SPANISH CHEESE TAPAS SAMPL",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "3.99"
+    },
+    {
+      "description": "PKG MOZZARELLA SMOKED",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "2.99"
+    },
+    {
+      "description": "NUT TREK MIX HANDFUL SIMPLY AL",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "5.99"
+    },
+    {
+      "description": "JUST MANGO SLICES..",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "2.99"
+    },
+    {
+      "description": "SNACK SEAWEED STRIPS ROASTED",
+      "total": "5.94"
+    },
+    {
+      "description": "A-TOMATOES KUMATO BROWN 1 LB",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "3.49"
+    },
+    {
+      "description": "MINI MILK CHOCOLATE BAR",
+      "quantity": null,
+      "unitPrice": null,
+      "total": "1.79"
+    },
+    {
+      "description": "TOBLERONE BAR MILK 100 G",
+      "total": "3.98"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "A US receipt (Trader Joe's): no OIB, JIR or ZKI.",
+    "issueTime left out: it is printed twice in different forms ('19:32' and '07:32PM').",
+    "Ten items print no quantity or unit price (null: the arm must return none). Two print them on a second line in another form ('6OZ @ 0.99/OZ', '2GM @ 1.99/GM'); those two cells are left out."
+  ]
+}

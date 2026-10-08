@@ -1,0 +1,9 @@
+{
+  "sellerOib": "85092357159",
+  "subtotal": null,
+  "paymentMethod": "Gotovina",
+  "verifiedBy": null,
+  "notes": [
+    "items left out: 'Usluga: Prijevoz putnika' names the service but is not an item line with a quantity or an amount, so either answer is defensible."
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "sellerOib": "78796880101",
+  "paymentMethod": "Novčanice",
+  "zki": "d731f731e41e19b0c32856505415e584",
+  "jir": "c8403f99-e432-47fe-9a43-3685a48aec89",
+  "items": [
+    {
+      "description": "CLUB SENDVIČ PUREĆA PRSA",
+      "quantity": "2",
+      "unitPrice": "120.00",
+      "total": "240.00"
+    },
+    {
+      "description": "CROISSANT ČOKOLADA 100G",
+      "quantity": "1",
+      "unitPrice": "30.00",
+      "total": "30.00"
+    },
+    {
+      "description": "CROISSANT ŠUNKA SIR 95G",
+      "quantity": "2",
+      "unitPrice": "30.00",
+      "total": "60.00"
+    },
+    {
+      "description": "SOK JABUKA 0,2",
+      "quantity": "1",
+      "unitPrice": "38.00",
+      "total": "38.00"
+    },
+    {
+      "description": "COCA COLA 0,25",
+      "quantity": "1",
+      "unitPrice": "38.00",
+      "total": "38.00"
+    },
+    {
+      "description": "VODA GAZIRANA 0,25",
+      "quantity": "1",
+      "unitPrice": "35.00",
+      "total": "35.00"
+    },
+    {
+      "description": "CAPPUCINO VELIKI",
+      "quantity": "2",
+      "unitPrice": "38.00",
+      "total": "76.00"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "ZKI and JIR read from an enlarged crop of a 447 px wide photo; 0/8/9 are easy to confuse. Please check them character by character.",
+    "subtotal left out: the only amount without VAT is the base inside the VAT recap, which is scored there. (The recap's 'TOTAL: 440.92' is the sum of the bases.)"
+  ]
+}
