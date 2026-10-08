@@ -1,0 +1,48 @@
+{
+  "sellerOib": "79435261200",
+  "paymentMethod": "NOVCANICE I KOVANICE",
+  "jir": "ac12e053-3300-496a-8ad4-1bd2c10b0ec6",
+  "zki": "08a78e71e4e01080e6755ffe3bfdb1e6",
+  "items": [
+    {
+      "description": "PIVO PAB 2L",
+      "quantity": "1.00",
+      "unitPrice": "15.99",
+      "total": "15.99"
+    },
+    {
+      "description": "PIVO PAN RAD.2L",
+      "quantity": "1.00",
+      "unitPrice": "21.99",
+      "total": "21.99"
+    },
+    {
+      "description": "GROZDjE",
+      "quantity": "1.00",
+      "unitPrice": "12.74",
+      "total": "12.74"
+    },
+    {
+      "description": "RAJCICA SJECKANA",
+      "quantity": "1.00",
+      "unitPrice": "12.99",
+      "total": "12.99"
+    },
+    {
+      "description": "KELJ",
+      "quantity": "1.00",
+      "unitPrice": "11.99",
+      "total": "11.99"
+    },
+    {
+      "description": "HRANA RIAL PSI 3 KG",
+      "quantity": "1.00",
+      "unitPrice": "27.99",
+      "total": "27.99"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "subtotal left out: the only amount without VAT is the base inside the VAT recap, which is scored there."
+  ]
+}

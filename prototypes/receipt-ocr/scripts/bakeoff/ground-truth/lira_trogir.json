@@ -1,0 +1,31 @@
+{
+  "paymentMethod": "Novčanice",
+  "items": [
+    {
+      "quantity": "3.000",
+      "unitPrice": "8.70",
+      "total": "26.10"
+    },
+    {
+      "quantity": "2.000",
+      "unitPrice": "0.85",
+      "total": "1.70"
+    },
+    {
+      "quantity": "2.000",
+      "unitPrice": "1.65",
+      "total": "3.30"
+    },
+    {
+      "quantity": "1.000",
+      "unitPrice": "2.00",
+      "total": "2.00"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "All four item descriptions left out: each wraps onto a second line whose start is cut off by the photo's left edge.",
+    "'Način plaćanja: Novčanice' is taken; the receipt also prints 'Sredstvo plaćanja: Gotovina'.",
+    "subtotal left out: 'Osnovica za PDV 25%: 26,48' is the VAT base, scored in vatBreakdown."
+  ]
+}

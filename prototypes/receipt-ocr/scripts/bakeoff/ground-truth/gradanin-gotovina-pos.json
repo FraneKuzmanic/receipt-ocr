@@ -1,0 +1,31 @@
+{
+  "sellerOib": "90000000002",
+  "subtotal": "300.00",
+  "paymentMethod": "Gotovina",
+  "zki": "00000000000000000000000000000000",
+  "jir": "00000000-0000-0000-0000-000000000000",
+  "items": [
+    {
+      "description": "Elektroinstalacijski radovi",
+      "quantity": "4",
+      "unitPrice": "30.00",
+      "total": "150.00"
+    },
+    {
+      "description": "Zamjena razvodne ploče",
+      "quantity": "1",
+      "unitPrice": "145.00",
+      "total": "181.25"
+    },
+    {
+      "description": "Štemanje i sanacija zida nakon insta",
+      "quantity": "1",
+      "unitPrice": "35.00",
+      "total": "43.75"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "Item totals include 25% VAT while the unit prices do not (4 x 30,00 = 120,00 printed as 150,00). Copied as printed."
+  ]
+}

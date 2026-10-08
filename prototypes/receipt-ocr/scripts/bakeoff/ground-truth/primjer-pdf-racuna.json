@@ -1,0 +1,21 @@
+{
+  "sellerOib": null,
+  "jir": null,
+  "zki": null,
+  "issueTime": null,
+  "subtotal": null,
+  "paymentMethod": "Transakcijski račun",
+  "items": [
+    {
+      "description": "Smještaj — Apartman Demo, Ulica primjera 5, Split, 12.–19.07.2026.",
+      "quantity": "7",
+      "unitPrice": null,
+      "total": "630.00"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "sellerOib is null: the printed '12345678902' fails the OIB check digit (a synthetic sample).",
+    "No unit price is printed for the item."
+  ]
+}

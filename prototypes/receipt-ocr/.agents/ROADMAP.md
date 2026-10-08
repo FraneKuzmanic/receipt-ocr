@@ -203,6 +203,7 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 22  | PDF source-field highlighting | [plan](plans/pdf-source-field-highlighting.md) | [history](history/22-pdf-source-field-highlighting.md) |
 | 23  | Dual-model extraction merge | _none — user asked for an investigation and recommendation, chose the approach, then asked for it_ | [history](history/23-dual-model-extraction-merge.md) |
 | 24  | Demo-readiness review fixes | _none — user reported a full manual test run, asked for analysis, then the three recommended fixes_ | [history](history/24-demo-readiness-review-fixes.md) |
+| 25  | Input-mode experiment: OCR text vs the document itself, into an LLM (a measurement; the product is unchanged) | [plan](plans/input-modes-experiment.md) | [history](history/25-input-modes-experiment.md) · [result](research/input-modes.md) |
 
 Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
 amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region

@@ -1,0 +1,22 @@
+{
+  "issueDate": "2024-01-23",
+  "issueTime": "15:12",
+  "sellerOib": "62357811032",
+  "paymentMethod": "GOTOVINA",
+  "zki": "602b3d9defd5587af4de4b7f848a52c5",
+  "jir": "1193a137-a1f5-4085-9e1b-3a0919701a4f",
+  "items": [
+    {
+      "description": "LIMUN rfz",
+      "quantity": "2.092",
+      "unitPrice": "0.95",
+      "total": "1.99"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "issueDate added: the existing expected file has none, although '23.1.2024. 15:12' is printed.",
+    "subtotal left out: 'MEĐUZBROJ 1,99' is a running total including VAT, not an amount without VAT.",
+    "The item's quantity and unit price are printed on the line above it: 'Net 2,092kg x 0,95 EUR/kg'."
+  ]
+}
