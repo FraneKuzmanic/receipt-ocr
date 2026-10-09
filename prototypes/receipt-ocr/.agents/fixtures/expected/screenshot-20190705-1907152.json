@@ -1,7 +1,16 @@
 {
   "sellerName": "ZATON VELIKI JDOO",
+  "sellerAddress": "PINJI 29, 20235 DUBROVNIK",
+  "sellerOib": "31918917420",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "52-POSL2-1",
   "issueDate": "2019-06-27",
+  "issueTime": "03:04:11",
   "total": "202.00",
-  "currency": "HRK"
+  "currency": "HRK",
+  "paymentMethod": "cash",
+  "jir": null,
+  "zki": "328BC110FCA2F47431C4F098FA36F844"
 }

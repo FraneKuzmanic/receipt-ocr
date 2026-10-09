@@ -1,12 +1,23 @@
 {
-  "sellerName": "Lira Trogir",
+  "sellerName": "Obrt Lira vl. Lidija Radevenjić",
+  "sellerAddress": "Četvrt Ž. Dražojevića bb, Omiš",
   "sellerOib": "73710835843",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "19211-03-50070",
   "issueDate": "2026-06-01",
   "issueTime": "12:17",
   "total": "33.10",
   "currency": "EUR",
-  "vatBreakdown": [{ "rate": "25", "taxableBase": "26.48", "vatAmount": "6.62" }],
+  "paymentMethod": "cash",
   "jir": "58d14366-9037-4fd1-b6ee-ec4580d96136",
-  "zki": "8481a9c8879b2ca3d51555e24db9f772"
+  "zki": "8481a9c8879b2ca3d51555e24db9f772",
+  "vatBreakdown": [
+    {
+      "rate": "25",
+      "taxableBase": "26.48",
+      "vatAmount": "6.62"
+    }
+  ]
 }

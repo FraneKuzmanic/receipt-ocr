@@ -8,17 +8,19 @@ import {
   type SourceRegion,
   type SourceRegionsResponse,
 } from "@receipt/shared";
-import { mapAnalyzeResult } from "./azure-fields.js";
+import { mapAnalyzeResult, vatEntries } from "./azure-fields.js";
 import { stripContentMarkers } from "./content-markers.js";
 import {
   findDocumentNumber,
   findIssueDate,
   findIssueTime,
   findJir,
+  findLabelledOib,
   findOib,
   findZki,
 } from "./croatian.js";
 import { findPayableEuroTotal } from "./currency.js";
+import { findPaymentMethod } from "./payment-method.js";
 import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
 import { findVatTable, mapVatTableRows } from "./vat-tables.js";
 
@@ -33,7 +35,6 @@ const SCALAR_FIELDS = [
   "buyerOib",
   "documentNumber",
   "paymentMethod",
-  "subtotal",
   "total",
   "currency",
   "issueDate",
@@ -76,7 +77,8 @@ export function mapSourceRegions(analyzeResult: AnalyzeResultOutput): SourceRegi
 
   const content = stripContentMarkers(analyzeResult.content);
   for (const [field, match] of Object.entries({
-    sellerOib: findOib(content.text),
+    sellerOib: findOib(content.text) ?? findLabelledOib(content.text),
+    paymentMethod: findPaymentMethod(content.text),
     jir: findJir(content.text),
     zki: findZki(content.text),
     issueDate: findIssueDate(content.text),
@@ -175,7 +177,8 @@ function addVatRegions(
     return;
   }
 
-  for (const [index, entry] of field.valueArray.entries()) {
+  // The same filtered list the mapper built its rows from, so indices line up after a dropped row.
+  for (const [index, entry] of vatEntries(field).entries()) {
     const value = values[index];
     const cells = entry.valueObject ?? {};
     for (const name of Object.keys(VAT_CELL_ALIASES) as Array<keyof typeof VAT_CELL_ALIASES>) {

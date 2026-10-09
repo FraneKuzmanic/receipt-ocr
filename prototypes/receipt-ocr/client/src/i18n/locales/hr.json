@@ -94,6 +94,7 @@
     "pdfNextPage": "Sljedeća stranica",
     "lowConfidence": "Ovu vrijednost dodatno provjerite.",
     "addVat": "Dodajte redak PDV-a",
+    "addBuyer": "Dodaj kupca",
     "addItem": "Dodajte stavku",
     "removeRow": "Uklonite redak",
     "removeItem": "Uklonite stavku {{number}}",
@@ -117,7 +118,6 @@
       "documentNumber": "Broj računa",
       "issueDate": "Datum izdavanja",
       "issueTime": "Vrijeme izdavanja",
-      "subtotal": "Međuzbroj",
       "total": "Ukupno",
       "currency": "Valuta",
       "paymentMethod": "Način plaćanja",
@@ -218,12 +218,13 @@
     "missing_critical_field": "Ovo polje je prazno. Provjerite račun i popunite ga.",
     "unparseable_date": "Ovaj datum nije bilo moguće očitati. Usporedite ga s računom.",
     "unparseable_amount": "Ovaj iznos nije bilo moguće očitati. Usporedite ga s računom.",
-    "vat_arithmetic_mismatch": "Iznosi PDV-a ne odgovaraju ukupnom iznosu.",
+    "vat_arithmetic_mismatch": "Iznos PDV-a ne odgovara osnovici i stopi.",
     "qr_total_mismatch": "Ukupan iznos razlikuje se od iznosa u QR kodu računa.",
     "qr_datetime_mismatch": "Datum ili vrijeme razlikuju se od QR koda računa.",
     "qr_jir_mismatch": "JIR se razlikuje od JIR-a u QR kodu računa. Usporedite ga s računom.",
     "document_quality": "Sliku je teško očitati. Pažljivo provjerite vrijednosti.",
-    "vat_present_but_unread": "Na računu postoji PDV koji nismo uspjeli pročitati. Provjerite odjeljak PDV-a prema računu."
+    "vat_present_but_unread": "Na računu postoji PDV koji nismo uspjeli pročitati. Provjerite odjeljak PDV-a prema računu.",
+    "oib_checksum_invalid": "Ovaj OIB ne prolazi provjeru kontrolne znamenke. Usporedite ga s računom."
   },
   "upload": {
     "file_required": "Priložite jednu sliku računa ili PDF.",

@@ -51,6 +51,15 @@ describe("updateReceiptRequestSchema", () => {
     },
   );
 
+  it("rejects the removed subtotal field", () => {
+    // Schema v2 removed it. A tab still running the previous bundle sends it on Save and gets a
+    // 400 until it reloads; loosening this schema to spare it would also admit a forged userId.
+    const result = updateReceiptRequestSchema.safeParse({ total: "10.00", subtotal: "8.00" });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.code === "unrecognized_keys")).toBe(true);
+  });
+
   it("accepts an empty patch", () => {
     expect(updateReceiptRequestSchema.safeParse({}).success).toBe(true);
   });
@@ -153,10 +162,10 @@ describe("response DTOs", () => {
     const { userId: _userId, deletedAt: _deletedAt, ...exported } = baseReceipt;
 
     expect(
-      jsonExportResponseSchema.safeParse({ schemaVersion: 2, receipts: [exported] }).success,
+      jsonExportResponseSchema.safeParse({ schemaVersion: 1, receipts: [exported] }).success,
     ).toBe(false);
     expect(
-      jsonExportResponseSchema.safeParse({ schemaVersion: 1, receipts: [exported] }).success,
+      jsonExportResponseSchema.safeParse({ schemaVersion: 2, receipts: [exported] }).success,
     ).toBe(true);
   });
 
@@ -175,7 +184,7 @@ describe("response DTOs", () => {
   it("preserves trailing-zero money through the JSON export DTO", () => {
     const { userId: _userId, deletedAt: _deletedAt, ...exported } = baseReceipt;
 
-    const result = jsonExportResponseSchema.parse({ schemaVersion: 1, receipts: [exported] });
+    const result = jsonExportResponseSchema.parse({ schemaVersion: 2, receipts: [exported] });
 
     expect(result.receipts[0]?.total).toBe("100.50");
   });

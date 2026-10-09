@@ -357,6 +357,11 @@ while a value is half typed. React Hook Form performs that interaction validatio
 canonical Zod schema remains the server-boundary contract and is intentionally not used as a form
 resolver.
 
+**The buyer block is hidden unless a buyer was extracted.** Most retail receipts name no buyer, so
+three permanently empty inputs sat on nearly every review. The block opens by itself when any of
+buyer name, address or OIB has a value; otherwise a single **Add buyer** control reveals it. The
+hidden inputs stay registered with the form, so saving still sends them as empty.
+
 Every field that needs attention is marked the same way, by one `ReviewField` component: an amber
 border and background, a warning icon, a visible explanation, and `aria-describedby` linking the two.
 Two different signals raise it — a low-confidence reading, or a warning such as an empty critical
@@ -388,6 +393,14 @@ field names. Warnings still win over the generic low-confidence hint on the same
 the individual item cell and focusing a cell still raises its outline.
 
 The detail response exposes lowConfidenceFields, a provider-neutral list of canonical field names.
+**A field is listed only when the model itself read it with low confidence and nothing independent
+vouches for it.** A value read from the receipt's text, inferred from its date or taken from its QR
+code has no model confidence to be low, and a value the receipt's QR code agrees with (issue date,
+issue time, total, JIR) is confirmed whatever confidence the model attached to it. Before this rule
+the flag landed on a correct value 16 times out of 17 across the scored corpus — a date-inferred
+currency was stamped 0.5 on purpose, and a QR-confirmed date read at 0.57 was flagged anyway. The
+list is computed at read time from the current values, so receipts stored earlier lose their false
+flags too, and an edit that breaks agreement with the QR code brings the flag back.
 Inputs keep canonical strings after a save but accept Croatian and English locale formatting on entry.
 PATCH is allowed only in review and confirmed; it never changes status. Confirm moves only review to
 confirmed and is idempotent afterwards. Warnings are always informational, so confirmation remains
@@ -500,7 +513,7 @@ Asking for any other status returns `409 export_not_allowed`, so this is enforce
 merely hidden in the UI. Downloads are named from the receipt's own document number and issue date,
 with the untrusted OCR text reduced to a conservative safe set of filename characters.
 
-CSV v1 has one row per receipt and these columns, in order:
+The CSV has one row per receipt and these twenty columns, in order:
 
 ```text
 id
@@ -514,7 +527,6 @@ buyerOib
 documentNumber
 issueDate
 issueTime
-subtotal
 total
 currency
 vatBreakdown
@@ -526,7 +538,7 @@ createdAt
 updatedAt
 ```
 
-Line items are intentionally excluded from CSV v1. `vatBreakdown` is serialized as compact JSON in a
+`subtotal` was a column until export schema v2 removed the field (see Domain model). Line items are intentionally excluded from the CSV. `vatBreakdown` is serialized as compact JSON in a
 single CSV column so any number of VAT rates can round-trip without an arbitrary column cap. Empty
 canonical values export as empty CSV fields, never as `null` or guessed defaults.
 
@@ -544,10 +556,12 @@ JSON export returns this envelope:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "receipts": []
 }
 ```
+
+Version 2 differs from version 1 in one way, breaking for a consumer: `subtotal` no longer exists.
 
 Each JSON receipt uses canonical field names only, omits the caller's own `userId`, omits `deletedAt`
 because deleted rows are outside the export scope, preserves nested `vatBreakdown`, and includes
@@ -654,6 +668,36 @@ Six deterministic rules were added in iteration 21, each earned from a real rece
   VAT number printed above the OIB on some receipts; stripping the `HR` prefix and verifying the
   ISO 7064 MOD 11,10 check digit is what lets the labelled `OIB:` text win when it should.
 
+Iteration 26 added six more, after a run of all fourteen sample receipts through the deployed app
+found a problem on almost every one — most of them in this layer rather than in the models:
+
+- **The payment method is stored as printed, with a labelled text fallback.** The provider's
+  payment field is kept only when its wording names a payment method, judged against a vocabulary
+  (`Gotovina`, `NOVCANICE I KOVANICE`, `Transakcijski račun`, `kartica-MasterCard` …); a long word
+  may be one character off, which is what accepts the OCR `NONCANICE`. Wording that names no
+  method is not stored — on `lira_trogir` the provider returns the amount in words — and the value
+  printed after a `Način plaćanja` label is read instead, on the same line or the next, under the
+  same test. The field is free text in the review form, so a reviewer can enter anything. **A tender
+  line with no label (`GOTOVINA 2,00`, `UKUPNO KN (NOVCANICE)`) is deliberately not read**: without
+  the label, calling it the payment method is a guess.
+- **A consumption-tax row is not a VAT row.** `receipt123` prints `PNP 3,00 2,81 0,08` under its VAT
+  row; it is dropped from the breakdown, as is a tax entry none of whose cells could be read
+  (`racuntaksi1`). Source highlighting indexes rows through the same filtered list, so dropping a
+  row cannot shift an outline onto the wrong one.
+- **The QR code supplies the JIR.** A JIR has no check digit, so an OCR substitution yields a
+  plausible wrong value; the QR code carries error correction and is the reliable copy. At
+  extraction the QR's JIR replaces the printed reading. Only the JIR: the QR never fills the total,
+  date or time, and nothing here runs on a later save, so a user's edit is never overwritten.
+- **An OIB that fails its check digit is shown, with a warning, when no valid one exists.** A valid
+  OIB the model read still wins, then a valid labelled one, and only then the printed
+  `OIB: 12345678902` of `primjer-pdf-racuna`. An empty field gave a reviewer nothing to compare.
+- **A valid OIB the model read marks the receipt Croatian.** Currency inference needed the printed
+  label `OIB`, which `lira_trogir`'s cropped photo turns into `IB`; the checksum-valid tax id the
+  model returned is now evidence enough.
+- **A currency carries a confidence only when the model reported it.** One read from the receipt's
+  text used to borrow the total's confidence, and one inferred from the date was stamped below the
+  threshold on purpose; both flagged correct values as doubtful.
+
 Three further corrections came from adopting the second model, each a defect the single-model path
 had been masking:
 
@@ -698,11 +742,32 @@ defect, once sat outside the corpus while it reported healthy numbers. A missing
 response is not skipped but scored as invoice-only: `31231822` and `racun-mobilna-trgovina` have no
 recorded receipt-model response, so 2 of the 16 scored receipts do not exercise the merge.
 
-Over the 16 scored receipts: issue date 15/15 and total 16/16 match exactly, document number and
-currency 15/16, seller name 14/16, and no critical-field correction is needed on 14 of 16. Of the
-supplementary fields, **issue time is 8 of 8** — the merge's clearest win, since the invoice model
-returns no time at all for `lira_trogir` — VAT breakdown 10 of 13, seller OIB 1 of 2, and JIR and ZKI
-1 of 3 each.
+Over the 16 scored receipts, against ground truth the product owner verified on 2026-10-09: issue
+date, total and currency 16/16, document number 15/16, seller name 13/16, and no critical-field
+correction is needed on 13 of 16. Seller name is scored as the legal entity, which is why it is
+lower than the 14/16 recorded before: `lira_trogir` and `receipt123` return the venue, and
+`22559270` returns `d. o.o.` where the receipt prints `d.o.o.`. Of the
+supplementary fields: issue time 15/16, seller OIB 15/16, buyer OIB 15/16, buyer name and address
+14/16 each, seller address 11/16, JIR 13/16, ZKI 12/15, VAT breakdown 11/13 and payment method
+12/16. **Payment method is read on 9 of the 13 distinct receipts that print one**; the four misses
+are tender lines with no `Način plaćanja` label, which the rules deliberately do not read.
+
+The harness reports three more things, each twice — over every receipt, and over the five whose
+image is under 500 px wide, where OCR is weakest:
+
+- **Warnings**, compared per receipt with `.agents/fixtures/expected-warnings.json`. Zero are
+  unexpected and zero missing; before iteration 26 there were five false ones (two VAT mismatches, a
+  JIR mismatch the QR code could have prevented, and a missing currency).
+- **Low-confidence flags on correct values**: 9 of 16 judged flags. On the fields that had ground
+  truth before iteration 26 the same count went from 16 of 17 to 7 of 8. The ones that remain are
+  genuine low model confidences on values that happen to be right; removing those needs evidence
+  beyond the QR code and is a later step.
+- `sellerAddress`, `buyerName` and `buyerAddress` are compared ignoring case, spacing and
+  punctuation; every other field is exact.
+
+The scalar ground truth is the table in `.agents/fixtures/ground-truth-review.md`, verified by the
+product owner. Line items and VAT rows are a second pass and are not verified yet. A receipt with
+no buyer expects all three buyer fields empty, so a buyer the model invents is scored as a miss.
 
 The corpus deliberately includes its own worst cases. `receipt123` is a badly degraded photo whose
 seller line OCR reads as `fte bars\nANTIQUE"`, and `lira_trogir` is photographed with its left edge
@@ -752,7 +817,9 @@ separate 30–50 s free-tier cold start still applies before any of this begins.
 Azure supplies QR payloads server-side for JPEG, PNG, HEIF and PDF sources; no QR-decoding dependency
 or client image conversion is needed. The Croatian parser accepts fiscal URLs containing JIR or ZKI,
 and the observed bare-JIR UUID variant. It stores the decoded record in the private `qr_extraction`
-column and never uses it to fill, replace or overwrite canonical values.
+column. **One value is taken from it: the JIR, at extraction, before the user has seen the receipt**
+(see Extraction). Nothing else is filled from it, and it never overwrites a value after that —
+a later edit that disagrees with the QR code raises a warning instead.
 
 `izn` is comparable only when it contains `,` or `.`. A real receipt has `izn=199` while its total is
 `1,99 EUR`; interpreting it as `199.00` would manufacture a false mismatch. The raw payload remains
@@ -878,6 +945,29 @@ appear anywhere in it, and `shared/src/receipt.test.ts` fails the build if it do
 Zod schemas are the source of truth and the TypeScript types are inferred from them, so a schema and
 its type cannot drift.
 
+### Receipt schema v2
+
+One field changed in iteration 26, and the JSON export moved to `schemaVersion: 2` with it.
+
+**`subtotal` was removed.** It had no stable meaning: the provider returned the net amount on some
+receipts and a gross running total (`MEĐUZBROJ`) on others, and a Croatian receipt has no single
+line it corresponds to. The amounts that do have a meaning — each VAT row's taxable base — are in
+`vatBreakdown`. A field that is right on some receipts and wrong on others, with nothing on the
+receipt to check it against, costs a reviewer more than it gives.
+
+**`paymentMethod` stays free text.** Making it one of five category codes behind a select was built
+in this iteration and reverted before it shipped, at the product owner's direction: the wording
+varies by till vendor (`kartica-MasterCard`, `Bankovni prijenos, Kripto Test`) and a text box keeps
+what the receipt says. The categories survive only inside extraction, as the test for whether
+wording names a payment method at all, and in the scoring harness, whose ground truth records the
+method used rather than its wording.
+
+**Stored receipts are converted when read, with no migration.** `fromStoredFields` in
+`api/src/repositories/receipts.ts` drops a stored `subtotal` before the strict schema sees the row,
+for both the current values and the original machine extraction. A save rewrites the current values
+in the new shape; the original machine extraction is never rewritten and keeps being converted on
+read.
+
 ### Money is a string, never a number
 
 Canonical money is a plain decimal string — `"100.50"` — matching `^-?\d+(\.\d+)?$`: no grouping
@@ -940,22 +1030,33 @@ than a rule a route has to remember. **Do not flatten the two tiers into one sch
 path it concerns. `api/src/validation/warnings.ts` computes the rules after extraction and can be
 reused by Task 09 when an editable field changes; warnings are codes, not server-rendered prose.
 
-The API currently produces eight informational checks: `missing_critical_field` (`sellerName`,
+The API currently produces nine informational checks: `missing_critical_field` (`sellerName`,
 `documentNumber`, `issueDate`, `total`, `currency`); `unparseable_date`/`unparseable_amount` when
-source text existed but could not normalize; `vat_arithmetic_mismatch` on a complete `vatBreakdown`;
+source text existed but could not normalize; `vat_arithmetic_mismatch` on each VAT row whose amount
+does not follow from its own base and rate;
 `vat_present_but_unread` when a non-exempt receipt shows a VAT recap that could not map to a VAT row;
-`qr_total_mismatch` on `total`; `qr_datetime_mismatch` on `issueDate`; and `qr_jir_mismatch` on `jir`.
+`qr_total_mismatch` on `total`; `qr_datetime_mismatch` on `issueDate`; `qr_jir_mismatch` on `jir`; and
+`oib_checksum_invalid` on a seller or buyer OIB that fails its MOD 11,10 check digit.
 Incomplete VAT or QR data emits nothing rather than guessing.
+
+**The VAT check looks at one row at a time and never at the total.** `vatRowConsistent` in
+`shared/src/vat.ts` asks whether base × rate gives the VAT amount to the cent, and the warning is
+attached to that row's amount (`vatBreakdown.1.vatAmount`). The rule it replaced summed every base
+and VAT amount and compared the result with the receipt total — an identity a receipt does not have
+to satisfy. `22559270` prints a recap 0.90 short of its own total, and any receipt with a non-VAT
+charge fails it by construction, so the warning fired on receipts whose VAT was read perfectly.
 
 **The JIR check exists because a misread JIR is otherwise undetectable.** Unlike an OIB, a JIR has no
 check digit, so OCR substitutions produce a plausible identifier — `receipt123` extracted
 `61985013-…-380919701be5` where its QR code holds `b19e5e13-…-3a0919701be5`, and the value looked
 correct to a reviewer. The QR code's error correction makes it the reliable copy. The comparison
-ignores case and, like the other QR checks, only warns: the QR value never fills or replaces the field.
+ignores case. Since iteration 26 the QR code's JIR is taken at extraction, so a freshly extracted
+receipt no longer raises this warning; it now fires when a later edit, or a receipt stored before
+that change, disagrees with the QR code. It only warns — nothing is overwritten after extraction.
 
 **Only those five fields warn when they are empty, and that asymmetry is deliberate.** PRD §6.5 and
 Appendix A name seller name, document number, issue date, total and currency as the critical review
-fields; everything else — buyer details, seller and buyer OIB, issue time, subtotal, payment method,
+fields; everything else — buyer details, seller and buyer OIB, issue time, payment method,
 JIR, ZKI and line items — is secondary or optional and is legitimately absent from many real
 receipts. Warning on those would train the user to ignore warnings, and PRD §7.7's "missing stays
 missing" means a blank secondary field is a correct outcome, not a defect. So a receipt whose
@@ -968,6 +1069,13 @@ Warning **messages** live in the client locale files, not in `shared`, matching 
 above: the server emits a code, the client owns the human copy. Every code needs an `hr` and an `en`
 message, enforced by `client/src/i18n/warnings.test.ts` — `/validate` Phase 6.5 cannot catch this
 one, because the review form will render these with a template literal rather than a literal key.
+
+**Warnings are recomputed whenever a stored receipt is read.** `mapReceiptRow` passes the receipt's
+current fields, stored QR payload and extraction metadata through `computeStoredWarnings` for any
+receipt in `review` or `confirmed`, so history, detail and export all show warnings under the
+current rules. The copy persisted at extraction goes stale the moment a rule changes: receipts
+stored before the per-row VAT check kept showing a mismatch that check no longer raises. The
+`warnings` column is still written and still validated on read, but it is no longer what a user sees.
 
 Warnings are informational and must never block confirmation (PRD §7.8).
 
@@ -983,11 +1091,12 @@ type under the obvious name (`canonicalReceiptSchema` → `CanonicalReceipt`).
 | `shared/src/datetime.ts` | `ISO_DATE_PATTERN`, `ISO_TIME_PATTERN`, `parseIssueDate`, `parseIssueTime` |
 | `shared/src/warnings.ts` | `WARNING_CODES`, `warningCodeSchema`, `receiptWarningSchema` |
 | `shared/src/upload.ts` | `SOURCE_CONTENT_TYPES`, `sourceContentTypeSchema`, `UPLOAD_ERROR_CODES`, `uploadErrorCodeSchema` |
+| `shared/src/vat.ts` | `vatRowConsistent` |
 | `shared/src/receipt.ts` | `RECEIPT_STATUSES`, `receiptStatusSchema`, `vatBreakdownSchema`, `receiptItemSchema`, `canonicalReceiptFieldsSchema`, `canonicalReceiptSchema` |
 | `shared/src/api.ts` | `apiErrorResponseSchema`, `createReceiptResponseSchema`, `sourceDocumentResponseSchema`, `listReceiptsQuerySchema`, `listReceiptsResponseSchema`, `updateReceiptRequestSchema`, `confirmReceiptResponseSchema`, `EXPORT_FORMATS`, `EXPORT_SCHEMA_VERSION`, `exportFormatSchema`, `exportedReceiptSchema`, `jsonExportResponseSchema` |
 | `shared/src/health.ts` | `HEALTH_PATH`, `HealthResponse` |
 
-The export body is versioned with `schemaVersion: 1`. `GET /api/receipts/:id` returns
+The export body is versioned with `schemaVersion: 2`. `GET /api/receipts/:id` returns
 `canonicalReceiptSchema` plus `lowConfidenceFields`; JSON export returns the derived
 `exportedReceiptSchema` inside `jsonExportResponseSchema`.
 

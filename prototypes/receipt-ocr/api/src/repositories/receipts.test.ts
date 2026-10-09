@@ -138,6 +138,49 @@ describe("mapReceiptRow", () => {
     });
   });
 
+  it("reads a row stored under schema v1 without a migration", () => {
+    const receipt = mapReceiptRow(
+      receiptRow({
+        canonical_data: {
+          sellerName: "Seller",
+          subtotal: "80.40",
+          total: "100.50",
+          paymentMethod: "Novčanice",
+        },
+      }),
+    );
+
+    expect(receipt).not.toHaveProperty("subtotal");
+    expect(receipt.paymentMethod).toBe("Novčanice");
+    expect(receipt.total).toBe("100.50");
+  });
+
+  it("recomputes warnings from the stored evidence instead of trusting the stored copy", () => {
+    // Stored before the per-row VAT rule: a mismatch against the total that rule no longer raises.
+    const receipt = mapReceiptRow(
+      receiptRow({
+        canonical_data: {
+          sellerName: "Seller",
+          documentNumber: "1/1/1",
+          issueDate: "2022-06-26",
+          total: "517.00",
+          currency: "HRK",
+          vatBreakdown: [{ rate: "25", taxableBase: "60.08", vatAmount: "15.02" }],
+        },
+        warnings: [{ code: "vat_arithmetic_mismatch", field: "vatBreakdown" }],
+      }),
+    );
+
+    expect(receipt.warnings).toEqual([]);
+  });
+
+  it("leaves the stored warnings of a receipt that has not been extracted", () => {
+    // A processing or failed receipt has no fields yet; recomputing would warn on all five.
+    expect(
+      mapReceiptRow(receiptRow({ status: "processing", canonical_data: {} })).warnings,
+    ).toEqual([]);
+  });
+
   it("rejects invalid canonical JSON at the repository boundary", () => {
     expect(() => mapReceiptRow(receiptRow({ canonical_data: { total: 100.5 } }))).toThrowError(
       expect.objectContaining({ code: "invalid_data" }),

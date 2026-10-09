@@ -1,10 +1,23 @@
 {
   "sellerName": "INA - INDUSTRIJA NAFTE, d.d.",
+  "sellerAddress": "Zagreb, Av. V. Holjevca 10",
   "sellerOib": "27759560625",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "160142-S006-1",
   "issueDate": "2023-07-16",
   "issueTime": "14:19:14",
   "total": "18.14",
   "currency": "EUR",
-  "vatBreakdown": [{ "rate": "25.00", "taxableBase": "14.51", "vatAmount": "3.63" }]
+  "paymentMethod": "card",
+  "jir": "b044e5f9-727c-47a0-ae57-ec4580d9406a",
+  "zki": "ad29e09be271e25fe4dbfc88fad71c30",
+  "vatBreakdown": [
+    {
+      "rate": "25.00",
+      "taxableBase": "14.51",
+      "vatAmount": "3.63"
+    }
+  ]
 }

@@ -14,14 +14,17 @@ import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-alia
 import { stripContentMarkers } from "./content-markers.js";
 import { EURO_ADOPTION_DATE, findPayableEuroTotal, resolveCurrency } from "./currency.js";
 import { normalizeOib } from "./croatian.js";
+import { categorizePaymentMethod } from "./payment-method.js";
 import { parseReceiptAmount, parseReceiptQuantity, parseVatRate } from "./receipt-amount.js";
 import { findVatTable, mapVatTable, mapVatText } from "./vat-tables.js";
-import { LOW_CONFIDENCE_THRESHOLD, type ExtractionFieldMetadata } from "./types.js";
+import type { ExtractionFieldMetadata } from "./types.js";
 
 type Fields = Record<string, DocumentFieldOutput>;
 
 const TOTALS_DESCRIPTION =
   /^\s*(?:osnovica|ukupno|sveukupno|za\s+platiti|popust|porez|pdv|total|subtotal|vat)\b/iu;
+// Consumption tax (porez na potrošnju) is printed in the same recap as VAT and is not VAT.
+const CONSUMPTION_TAX = /^\s*(?:pnp|porez\s+na\s+potro[sš]nju)\b/iu;
 
 export interface MappedAnalyzeResult {
   readonly fields: CanonicalReceiptFields;
@@ -32,14 +35,7 @@ export interface MappedAnalyzeResult {
 }
 
 type TextField =
-  | "sellerName"
-  | "sellerAddress"
-  | "sellerOib"
-  | "buyerName"
-  | "buyerAddress"
-  | "buyerOib"
-  | "documentNumber"
-  | "paymentMethod";
+  "sellerName" | "sellerAddress" | "sellerOib" | "buyerName" | "buyerAddress" | "documentNumber";
 
 export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnalyzeResult {
   const document = analyzeResult.documents?.[0];
@@ -54,19 +50,24 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
     "sellerAddress",
     "buyerName",
     "buyerAddress",
-    "buyerOib",
     "documentNumber",
-    "paymentMethod",
   ] as const) {
     assignText(fields, fieldMetadata, canonical, first(sourceFields, FIELD_ALIASES[canonical]));
   }
-  assignAmount(
-    fields,
-    fieldMetadata,
-    unreadableFields,
-    "subtotal",
-    first(sourceFields, FIELD_ALIASES.subtotal),
-  );
+  // The buyer's OIB is shown as read even when its check digit fails (the warning says so); an
+  // "HR" prefix is dropped only when what remains is a valid OIB.
+  const buyerTaxId = first(sourceFields, FIELD_ALIASES.buyerOib);
+  if (buyerTaxId?.content) {
+    fields.buyerOib = normalizeOib(buyerTaxId.content) ?? singleLine(buyerTaxId.content);
+    fieldMetadata.buyerOib = metadata(buyerTaxId);
+  }
+  // Stored as printed, but only when the wording names a payment method. Anything else is left
+  // for the labelled text fallback: on `lira_trogir` the provider returns the amount in words here.
+  const paymentTerm = first(sourceFields, FIELD_ALIASES.paymentMethod);
+  if (paymentTerm?.content && categorizePaymentMethod(paymentTerm.content) !== null) {
+    fields.paymentMethod = singleLine(paymentTerm.content);
+    fieldMetadata.paymentMethod = metadata(paymentTerm);
+  }
   assignAmount(
     fields,
     fieldMetadata,
@@ -95,14 +96,19 @@ export function mapAnalyzeResult(analyzeResult: AnalyzeResultOutput): MappedAnal
     content: analyzeResult.content,
     field: totalField,
     issueDate: fields.issueDate,
+    // A checksum-valid OIB the model read marks the receipt Croatian even when the printed "OIB"
+    // label did not survive OCR: `lira_trogir` is cropped to "IB".
+    croatianTaxId:
+      normalizeOib(first(sourceFields, FIELD_ALIASES.sellerOib)?.content) !== null ||
+      normalizeOib(buyerTaxId?.content) !== null,
   });
   if (currency !== null) {
     fields.currency = currency.code;
+    // Only a currency the model itself reported carries the model's confidence. One read from the
+    // receipt's text or inferred from its date has no confidence of its own, and borrowing the
+    // total's (or inventing a low one) flagged correct values as doubtful.
     fieldMetadata.currency = {
-      confidence:
-        currency.source === "inferred"
-          ? LOW_CONFIDENCE_THRESHOLD - 0.2
-          : (totalField?.confidence ?? null),
+      confidence: currency.source === "model" ? (totalField?.confidence ?? null) : null,
       source: currency.source,
     };
   }
@@ -225,7 +231,7 @@ function assignAmount(
   fields: CanonicalReceiptFields,
   metadataByField: Record<string, ExtractionFieldMetadata>,
   unreadableFields: string[],
-  canonical: "subtotal" | "total",
+  canonical: "total",
   field: DocumentFieldOutput | undefined,
 ): void {
   const amount = parseAmount(field?.content);
@@ -273,17 +279,36 @@ function assignTime(
 
 function mapVatBreakdown(field: DocumentFieldOutput | undefined): VatBreakdown[] | null {
   if (field?.valueArray) {
-    return field.valueArray.map((entry) => {
-      const values = entry.valueObject ?? {};
-      return {
-        rate: parseVatRate(first(values, VAT_CELL_ALIASES.rate)?.content),
-        taxableBase: parseReceiptAmount(first(values, VAT_CELL_ALIASES.taxableBase)?.content),
-        vatAmount: parseReceiptAmount(first(values, VAT_CELL_ALIASES.vatAmount)?.content),
-      };
-    });
+    const rows = vatEntries(field).map(readVatEntry);
+    return rows.length > 0 ? rows : null;
   }
   const vatAmount = parseAmount(field?.content);
   return vatAmount === null ? null : [{ rate: null, taxableBase: null, vatAmount }];
+}
+
+/**
+ * The tax-recap entries that are VAT rows, in order. Two kinds are dropped: a consumption-tax row
+ * (`receipt123` prints "PNP 3,00 2,81 0,08" under its VAT row), and an entry none of whose cells
+ * could be read (`racuntaksi1`, not in the VAT system, returns its kuna total as a tax row).
+ *
+ * Source highlighting indexes rows through this same list, so an outline cannot land on a row the
+ * mapper dropped.
+ */
+export function vatEntries(field: DocumentFieldOutput | undefined): DocumentFieldOutput[] {
+  return (field?.valueArray ?? []).filter((entry) => {
+    if (CONSUMPTION_TAX.test(entry.valueObject?.["Description"]?.content ?? "")) return false;
+    const row = readVatEntry(entry);
+    return row.rate !== null || row.taxableBase !== null || row.vatAmount !== null;
+  });
+}
+
+function readVatEntry(entry: DocumentFieldOutput) {
+  const values = entry.valueObject ?? {};
+  return {
+    rate: parseVatRate(first(values, VAT_CELL_ALIASES.rate)?.content),
+    taxableBase: parseReceiptAmount(first(values, VAT_CELL_ALIASES.taxableBase)?.content),
+    vatAmount: parseReceiptAmount(first(values, VAT_CELL_ALIASES.vatAmount)?.content),
+  };
 }
 
 function mapItems(field: DocumentFieldOutput | undefined): ReceiptItem[] | null {

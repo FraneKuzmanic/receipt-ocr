@@ -94,6 +94,7 @@
     "pdfNextPage": "Next page",
     "lowConfidence": "This value may need extra checking.",
     "addVat": "Add VAT row",
+    "addBuyer": "Add buyer",
     "addItem": "Add item",
     "removeRow": "Remove row",
     "removeItem": "Remove item {{number}}",
@@ -117,7 +118,6 @@
       "documentNumber": "Receipt number",
       "issueDate": "Issue date",
       "issueTime": "Issue time",
-      "subtotal": "Subtotal",
       "total": "Total",
       "currency": "Currency",
       "paymentMethod": "Payment method",
@@ -217,12 +217,13 @@
     "missing_critical_field": "This field is empty. Check the receipt and fill it in.",
     "unparseable_date": "This date could not be read. Check it against the receipt.",
     "unparseable_amount": "This amount could not be read. Check it against the receipt.",
-    "vat_arithmetic_mismatch": "The VAT amounts do not add up to the total.",
+    "vat_arithmetic_mismatch": "This VAT amount does not match its base and rate.",
     "qr_total_mismatch": "The total differs from the amount in the receipt's QR code.",
     "qr_datetime_mismatch": "The date or time differs from the receipt's QR code.",
     "qr_jir_mismatch": "The JIR differs from the one in the receipt's QR code. Check it against the receipt.",
     "document_quality": "The image is hard to read. Check the values carefully.",
-    "vat_present_but_unread": "This receipt shows VAT information we could not read. Check the VAT section against the receipt."
+    "vat_present_but_unread": "This receipt shows VAT information we could not read. Check the VAT section against the receipt.",
+    "oib_checksum_invalid": "This OIB fails its check digit. Compare it with the receipt."
   },
   "upload": {
     "file_required": "Attach one receipt image or PDF.",

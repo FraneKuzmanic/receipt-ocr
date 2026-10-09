@@ -4,6 +4,7 @@ import {
   findIssueDate,
   findIssueTime,
   findJir,
+  findLabelledOib,
   findOib,
   findZki,
   hasFiscalMarkings,
@@ -118,6 +119,17 @@ describe("OIB validation (iteration 21)", () => {
 
   it("still finds a valid OIB later in the document", () => {
     expect(findOib("PDVbr: HR99999999999\nOIB: 27759560625")?.value).toBe("27759560625");
+  });
+
+  it("finds the labelled OIB whatever its check digit, as the last resort", () => {
+    // `primjer-pdf-racuna` prints an OIB that fails MOD 11,10; it is shown with a warning.
+    const content = "Ana Horvat\nOIB: 12345678902\nNačin plaćanja: Transakcijski račun";
+    const match = findLabelledOib(content);
+
+    expect(findOib(content)).toBeNull();
+    expect(match?.value).toBe("12345678902");
+    expect(content.slice(match!.start, match!.end)).toBe("12345678902");
+    expect(findLabelledOib("Receipt total 10.00")).toBeNull();
   });
 
   it("treats a shape-only OIB as Croatian fiscal evidence", () => {

@@ -35,6 +35,21 @@ describe("review form normalization", () => {
     expect(empty.items).toBeNull();
   });
 
+  it("carries the payment wording through the form, and an unset one as null", () => {
+    const values = toFormValues({ paymentMethod: "Transakcijski račun" });
+    expect(values.paymentMethod).toBe("Transakcijski račun");
+    expect(toPatch(values).paymentMethod).toBe("Transakcijski račun");
+
+    expect(toFormValues({}).paymentMethod).toBe("");
+    expect(toPatch(toFormValues({})).paymentMethod).toBeNull();
+  });
+
+  it("neither shows nor sends a subtotal", () => {
+    // The strict PATCH schema rejects the key outright, so sending it would fail every save.
+    expect(toFormValues({})).not.toHaveProperty("subtotal");
+    expect(toPatch(toFormValues({}))).not.toHaveProperty("subtotal");
+  });
+
   it("saves a three-decimal quantity unchanged rather than as thousands", () => {
     const item = { description: "Sprej", quantity: "3.000", unitPrice: "8.70", total: "26.10" };
     const values = toFormValues({ items: [item] });

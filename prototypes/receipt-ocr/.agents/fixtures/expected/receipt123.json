@@ -1,11 +1,22 @@
 {
-  "sellerName": "caffe bar ANTIQUE",
+  "sellerName": "DEMAGOGIJA d.o.o.",
+  "sellerAddress": "Domovinskog rata 26, 21000 Split",
+  "sellerOib": "90789920471",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "49781/001/1",
   "issueDate": "2025-07-30",
+  "issueTime": "14:17",
   "total": "23.80",
   "currency": "EUR",
+  "paymentMethod": "cash",
+  "jir": "b19e5e13-0388-4284-9be9-3a0919701be5",
   "vatBreakdown": [
-    { "rate": "25", "taxableBase": "18.97", "vatAmount": "4.74" },
-    { "rate": "0.3", "taxableBase": "2.81", "vatAmount": "0.08" }
+    {
+      "rate": "25.00",
+      "taxableBase": "18.97",
+      "vatAmount": "4.74"
+    }
   ]
 }

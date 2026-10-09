@@ -1,9 +1,23 @@
 {
   "sellerName": "AMPER, obrt za elektroinstalacijske radove",
+  "sellerAddress": "Ulica Svjetla 7, 10000 Zagreb",
+  "sellerOib": "90000000002",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "1/1/1",
   "issueDate": "2026-08-17",
   "issueTime": "10:30",
   "total": "375.00",
   "currency": "EUR",
-  "vatBreakdown": [{ "rate": "25.00", "taxableBase": "300.00", "vatAmount": "75.00" }]
+  "paymentMethod": "cash",
+  "jir": "00000000-0000-0000-0000-000000000000",
+  "zki": "00000000000000000000000000000000",
+  "vatBreakdown": [
+    {
+      "rate": "25.00",
+      "taxableBase": "300.00",
+      "vatAmount": "75.00"
+    }
+  ]
 }

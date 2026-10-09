@@ -9,11 +9,10 @@ const receipt: CanonicalReceipt = {
   sellerName: "Market Example",
   documentNumber: "381/1/2",
   issueDate: "2026-08-19",
-  subtotal: "80.40",
   vatBreakdown: [{ rate: "25", taxableBase: "80.40", vatAmount: "20.10" }],
   total: "100.50",
   currency: "EUR",
-  paymentMethod: "Card",
+  paymentMethod: "card",
   items: [{ description: "Bread", quantity: "1", unitPrice: "2.00", total: "2.00" }],
   warnings: [],
   createdAt: "2026-08-19T10:00:00.000Z",
@@ -30,6 +29,31 @@ describe("receipt export", () => {
     expect(csv.slice(1).split("\r\n")[0]).toBe(CSV_COLUMNS.join(","));
     expect(csv.slice(1)).toContain("\r\n");
     expect(csv.slice(1)).not.toMatch(/[^\r]\n/);
+  });
+
+  it("has the twenty documented v2 columns, with no subtotal", () => {
+    expect(CSV_COLUMNS).toEqual([
+      "id",
+      "status",
+      "sellerName",
+      "sellerAddress",
+      "sellerOib",
+      "buyerName",
+      "buyerAddress",
+      "buyerOib",
+      "documentNumber",
+      "issueDate",
+      "issueTime",
+      "total",
+      "currency",
+      "vatBreakdown",
+      "paymentMethod",
+      "jir",
+      "zki",
+      "confirmedAt",
+      "createdAt",
+      "updatedAt",
+    ]);
   });
 
   it("escapes CSV fields and serializes VAT breakdown as compact JSON", () => {
@@ -75,13 +99,14 @@ describe("receipt export", () => {
     const csv = toCsv([{ ...receipt, sellerName: null, vatBreakdown: null }]);
 
     expect(csv).toContain("\r\n00000000-0000-4000-8000-000000000001,confirmed,,");
-    expect(csv).toContain(",100.50,EUR,,Card,");
+    expect(csv).toContain(",100.50,EUR,,card,");
   });
 
-  it("wraps JSON export in schema version 1 and strips private owner/delete fields", () => {
+  it("wraps JSON export in schema version 2 and strips private owner/delete fields", () => {
     const exported = toJsonExport([receipt]);
 
-    expect(exported.schemaVersion).toBe(1);
+    expect(exported.schemaVersion).toBe(2);
+    expect(exported.receipts[0]?.paymentMethod).toBe("card");
     expect(exported.receipts[0]).toMatchObject({
       id: receipt.id,
       total: "100.50",

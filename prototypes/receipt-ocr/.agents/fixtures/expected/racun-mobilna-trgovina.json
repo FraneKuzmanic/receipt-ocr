@@ -1,8 +1,23 @@
 {
   "sellerName": "Semovcanka Nova j.d.o.o.",
+  "sellerAddress": "Semovci, S.Radica 127 A, 48350 Djurdjevac",
+  "sellerOib": "79435261200",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "22-1-1",
   "issueDate": "2020-02-21",
+  "issueTime": "14:26:38",
   "total": "103.69",
   "currency": "HRK",
-  "vatBreakdown": [{ "rate": "25.00", "taxableBase": "82.95", "vatAmount": "20.74" }]
+  "paymentMethod": "cash",
+  "jir": "ac12e053-3300-496a-8ad4-1bd2c10b0ec6",
+  "zki": "08a78e71e4e01080e6755ffe3bfdb1e6",
+  "vatBreakdown": [
+    {
+      "rate": "25.00",
+      "taxableBase": "82.95",
+      "vatAmount": "20.74"
+    }
+  ]
 }

@@ -54,7 +54,6 @@ export const canonicalReceiptFieldsSchema = z
     issueDate: z.iso.date().nullable().optional(),
     issueTime: z.iso.time().nullable().optional(),
 
-    subtotal: optionalAmount,
     vatBreakdown: z.array(vatBreakdownSchema).nullable().optional(),
     total: optionalAmount,
     // ISO 4217 shape only. Deliberately not an enum of known currencies: PRD Appendix A

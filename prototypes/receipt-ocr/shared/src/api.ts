@@ -169,7 +169,7 @@ export const EXPORT_FORMATS = ["csv", "json"] as const;
 export const exportFormatSchema = z.enum(EXPORT_FORMATS);
 export type ExportFormat = z.infer<typeof exportFormatSchema>;
 
-export const EXPORT_SCHEMA_VERSION = 1;
+export const EXPORT_SCHEMA_VERSION = 2;
 
 export const exportedReceiptSchema = canonicalReceiptSchema.omit({
   userId: true,

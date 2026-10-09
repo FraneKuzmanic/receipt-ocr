@@ -5,7 +5,7 @@ import {
 } from "@receipt/shared";
 import { describe, expect, it } from "vitest";
 import type { FiscalQrData } from "../providers/document-extraction/fiscal-qr.js";
-import { computeWarnings } from "./warnings.js";
+import { computeWarnings, qrCorroboratedFields } from "./warnings.js";
 
 const completeFields: CanonicalReceiptFields = {
   sellerName: "Seller",
@@ -84,18 +84,31 @@ describe("unparseable date and amount warnings", () => {
 });
 
 describe("VAT arithmetic warnings", () => {
-  it("checks complete VAT data exactly and skips incomplete data", () => {
-    const vatBreakdown = [{ rate: "5", taxableBase: "1.90", vatAmount: "0.09" }];
+  it("checks each row against its own base and rate, and names the row", () => {
+    const vatBreakdown = [
+      { rate: "5", taxableBase: "1.90", vatAmount: "0.09" },
+      { rate: "25", taxableBase: "100.00", vatAmount: "20.00" },
+    ];
 
-    expect(computeWarnings({ fields: { ...completeFields, total: "1.99", vatBreakdown } })).toEqual(
-      [],
-    );
+    expect(computeWarnings({ fields: { ...completeFields, vatBreakdown } })).toEqual([
+      { code: "vat_arithmetic_mismatch", field: "vatBreakdown.1.vatAmount" },
+    ]);
+  });
+
+  it("never compares the rows with the receipt total", () => {
+    // `22559270`: three consistent rows that the receipt itself prints 0.90 short of its total.
+    const vatBreakdown = [
+      { rate: "25", taxableBase: "60.08", vatAmount: "15.02" },
+      { rate: "25", taxableBase: "88.80", vatAmount: "22.20" },
+      { rate: "13", taxableBase: "292.04", vatAmount: "37.96" },
+    ];
+
     expect(
-      computeWarnings({ fields: { ...completeFields, total: "2.50", vatBreakdown } }),
-    ).toContainEqual({
-      code: "vat_arithmetic_mismatch",
-      field: "vatBreakdown",
-    });
+      computeWarnings({ fields: { ...completeFields, total: "517.00", vatBreakdown } }),
+    ).toEqual([]);
+  });
+
+  it("skips a row it does not have enough information to judge", () => {
     expect(
       computeWarnings({
         fields: {
@@ -105,6 +118,45 @@ describe("VAT arithmetic warnings", () => {
       }),
     ).toEqual([]);
     expect(computeWarnings({ fields: completeFields })).toEqual([]);
+  });
+});
+
+describe("OIB check-digit warnings", () => {
+  it("warns on a seller or buyer OIB that fails its check digit, and only then", () => {
+    expect(
+      computeWarnings({
+        fields: { ...completeFields, sellerOib: "12345678902", buyerOib: "12345678901" },
+      }),
+    ).toEqual([
+      { code: "oib_checksum_invalid", field: "sellerOib" },
+      { code: "oib_checksum_invalid", field: "buyerOib" },
+    ]);
+    expect(
+      computeWarnings({ fields: { ...completeFields, sellerOib: "27759560625", buyerOib: "" } }),
+    ).toEqual([]);
+    // The VAT-registration form of a valid OIB is the same identifier, as the mapper reads it.
+    expect(computeWarnings({ fields: { ...completeFields, sellerOib: "HR27759560625" } })).toEqual(
+      [],
+    );
+  });
+});
+
+describe("qrCorroboratedFields", () => {
+  it("lists exactly the fields the QR code carries and agrees with", () => {
+    const fields = { ...completeFields, jir: "18916F95-5787-4E7F-A190-3A091970CFA2" };
+
+    expect(qrCorroboratedFields(fields, fiscalQr())).toEqual([
+      "issueDate",
+      "issueTime",
+      "total",
+      "jir",
+    ]);
+    expect(qrCorroboratedFields({ ...fields, total: "132.70" }, fiscalQr())).not.toContain("total");
+    expect(qrCorroboratedFields(fields, fiscalQr({ total: null, issueTime: null }))).toEqual([
+      "issueDate",
+      "jir",
+    ]);
+    expect(qrCorroboratedFields(fields, null)).toEqual([]);
   });
 });
 

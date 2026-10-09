@@ -6,6 +6,8 @@ describe("region sections", () => {
     ["sellerName", "seller"],
     ["buyerOib", "buyer"],
     ["total", "receipt"],
+    ["paymentMethod", "receipt"],
+    ["subtotal", null],
     ["vatBreakdown.2.vatAmount", "vat"],
     ["items.4.unitPrice", "items"],
     ["unknown", null],

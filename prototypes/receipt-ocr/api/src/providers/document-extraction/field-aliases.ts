@@ -7,7 +7,6 @@ export const FIELD_ALIASES = {
   buyerOib: ["CustomerTaxId"],
   documentNumber: ["InvoiceId"],
   paymentMethod: ["PaymentTerm"],
-  subtotal: ["SubTotal", "Subtotal"],
   total: ["InvoiceTotal", "Total"],
   currency: ["InvoiceTotal", "Total"],
   issueDate: ["InvoiceDate", "TransactionDate"],

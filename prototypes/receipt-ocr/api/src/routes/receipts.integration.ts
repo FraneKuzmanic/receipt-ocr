@@ -335,7 +335,7 @@ describe("receipt source lifecycle against the hosted project", () => {
       .set("Authorization", `Bearer ${tokenA}`);
     expect(json.status).toBe(200);
     const body = jsonExportResponseSchema.parse(json.body);
-    expect(body.schemaVersion).toBe(1);
+    expect(body.schemaVersion).toBe(2);
     expect(body.receipts).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: exportedId, total: "100.50" })]),
     );

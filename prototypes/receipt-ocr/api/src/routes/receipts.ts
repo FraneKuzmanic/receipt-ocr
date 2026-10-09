@@ -13,7 +13,7 @@ import { authenticated } from "../middleware/require-auth.js";
 import { toCsv, toJsonExport } from "../export/receipts.js";
 import { ReceiptRepository } from "../repositories/receipts.js";
 import { extractReceipt } from "../services/receipt-extraction.js";
-import { computeWarnings } from "../validation/warnings.js";
+import { computeStoredWarnings, qrCorroboratedFields, storedQr } from "../validation/warnings.js";
 import {
   SOURCE_URL_TTL_SECONDS,
   createSourceSignedUrl,
@@ -28,7 +28,6 @@ import {
   LOW_CONFIDENCE_THRESHOLD,
   type DocumentExtractionProvider,
 } from "../providers/document-extraction/types.js";
-import { parseFiscalQr } from "../providers/document-extraction/fiscal-qr.js";
 import { mapStoredSourceRegions } from "../providers/document-extraction/source-regions.js";
 
 const idSchema = z.uuid();
@@ -123,7 +122,10 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
 
       res.json({
         ...receipt,
-        lowConfidenceFields: lowConfidenceFields(state.extractionMetadata),
+        lowConfidenceFields: lowConfidenceFields(
+          state.extractionMetadata,
+          qrCorroboratedFields(receipt, storedQr(state.qrExtraction)),
+        ),
         failureReason: failureReason(receipt.status, state.extractionMetadata),
         editedFields: editedFields(receipt, state.originalExtraction),
       });
@@ -149,18 +151,16 @@ export function createReceiptsRouter(extractionProvider: DocumentExtractionProvi
       const fields = { ...state.fields, ...body.data };
       const receipt = await repository.update(id.data, {
         canonicalData: fields,
-        warnings: computeWarnings({
-          fields,
-          qr: storedQr(state.qrExtraction),
-          unreadable: unreadableFields(state.extractionMetadata),
-          vatTextPresent: vatTextPresent(state.extractionMetadata),
-        }),
+        warnings: computeStoredWarnings(fields, state.qrExtraction, state.extractionMetadata),
       });
       if (receipt === null) throw new HttpError(404, "not_found");
 
       res.json({
         ...receipt,
-        lowConfidenceFields: lowConfidenceFields(state.extractionMetadata),
+        lowConfidenceFields: lowConfidenceFields(
+          state.extractionMetadata,
+          qrCorroboratedFields(receipt, storedQr(state.qrExtraction)),
+        ),
         failureReason: failureReason(receipt.status, state.extractionMetadata),
         editedFields: editedFields(receipt, state.originalExtraction),
       });
@@ -352,15 +352,34 @@ function failureReason(status: string, metadata: unknown): ReceiptFailureReason 
     : null;
 }
 
-export function lowConfidenceFields(metadata: unknown): string[] {
+/**
+ * The fields a reviewer is asked to double-check. A field is listed only when the model itself read
+ * it with low confidence and nothing independent vouches for it:
+ *
+ * - a value read from the receipt's text, inferred from its date or taken from its QR code has no
+ *   model confidence to be low, and flagging those marked correct values as doubtful;
+ * - a value the receipt's QR code agrees with is confirmed, whatever the model's confidence.
+ *
+ * Evaluated at read time against the current values, so a correction that breaks agreement with the
+ * QR code brings the flag back, and receipts stored before this rule lose their false flags too.
+ */
+export function lowConfidenceFields(
+  metadata: unknown,
+  corroborated: readonly string[] = [],
+): string[] {
   if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return [];
   const fields = (metadata as Record<string, unknown>)["fields"];
   if (fields === null || typeof fields !== "object" || Array.isArray(fields)) return [];
 
   return Object.entries(fields).flatMap(([field, value]) => {
     if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
-    const confidence = (value as Record<string, unknown>)["confidence"];
-    return typeof confidence === "number" && confidence < LOW_CONFIDENCE_THRESHOLD ? [field] : [];
+    const { confidence, source } = value as Record<string, unknown>;
+    return source === "model" &&
+      typeof confidence === "number" &&
+      confidence < LOW_CONFIDENCE_THRESHOLD &&
+      !corroborated.includes(field)
+      ? [field]
+      : [];
   });
 }
 
@@ -377,7 +396,6 @@ const EDITABLE_SCALAR_FIELDS = [
   "documentNumber",
   "issueDate",
   "issueTime",
-  "subtotal",
   "total",
   "currency",
   "paymentMethod",
@@ -393,23 +411,4 @@ export function editedFields(
   return EDITABLE_SCALAR_FIELDS.filter(
     (field) => (current[field] ?? null) !== (original[field] ?? null),
   );
-}
-
-function unreadableFields(metadata: unknown): string[] {
-  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return [];
-  const values = (metadata as Record<string, unknown>)["unreadableFields"];
-  return Array.isArray(values)
-    ? values.filter((value): value is string => typeof value === "string")
-    : [];
-}
-
-function vatTextPresent(metadata: unknown): boolean {
-  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return false;
-  return (metadata as Record<string, unknown>)["vatTextPresent"] === true;
-}
-
-function storedQr(value: unknown) {
-  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
-  const raw = (value as Record<string, unknown>)["raw"];
-  return typeof raw === "string" ? parseFiscalQr(raw) : null;
 }

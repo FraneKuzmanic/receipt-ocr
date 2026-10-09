@@ -113,11 +113,11 @@ describe("ReviewPage", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Changes saved");
   });
 
-  // Three codes were computed, persisted and returned by the API but rendered nowhere, because the
-  // form only looked up the field paths it happened to remember: `vat_arithmetic_mismatch` is
-  // emitted against the bare `vatBreakdown` path while the VAT fieldset only read indexed cells,
-  // and `subtotal`/`issueTime` had no lookup at all. Driving every code through the real engine's
-  // field paths is what keeps a future warning from going silently invisible.
+  // Codes were once computed, persisted and returned by the API but rendered nowhere, because the
+  // form only looked up the field paths it happened to remember: a warning on the bare
+  // `vatBreakdown` path was invisible while the VAT fieldset only read indexed cells, and
+  // `issueTime` had no lookup at all. Driving every code through the real engine's field paths is
+  // what keeps a future warning from going silently invisible.
   it("renders a message for every warning the engine can emit", async () => {
     mockedGetReceipt.mockResolvedValue({
       ...receipt,
@@ -127,8 +127,10 @@ describe("ReviewPage", () => {
         { code: "unparseable_date", field: "issueDate" },
         { code: "unparseable_date", field: "issueTime" },
         { code: "unparseable_amount", field: "total" },
-        { code: "unparseable_amount", field: "subtotal" },
-        { code: "vat_arithmetic_mismatch", field: "vatBreakdown" },
+        { code: "vat_arithmetic_mismatch", field: "vatBreakdown.0.vatAmount" },
+        { code: "vat_present_but_unread", field: "vatBreakdown" },
+        { code: "oib_checksum_invalid", field: "sellerOib" },
+        { code: "qr_jir_mismatch", field: "jir" },
         { code: "qr_total_mismatch", field: "total" },
         { code: "qr_datetime_mismatch", field: "issueDate" },
       ],
@@ -136,7 +138,20 @@ describe("ReviewPage", () => {
     renderPage();
 
     expect(
-      await screen.findByText("The VAT amounts do not add up to the total."),
+      await screen.findByText("This VAT amount does not match its base and rate."),
+    ).toBeInTheDocument();
+    // The per-row warning sits on its own cell, which is what makes that cell amber.
+    expect(screen.getByDisplayValue("0.25")).toHaveAttribute(
+      "aria-describedby",
+      "review-hint-vatBreakdown-0-vatAmount",
+    );
+    expect(
+      screen.getByText(
+        "This receipt shows VAT information we could not read. Check the VAT section against the receipt.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("This OIB fails its check digit. Compare it with the receipt."),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -148,6 +163,58 @@ describe("ReviewPage", () => {
         "This amount could not be read. Check it against the receipt. The total differs from the amount in the receipt's QR code.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("hides the buyer block when no buyer was extracted, behind an Add buyer control", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByDisplayValue("381/1/2");
+    expect(screen.queryByLabelText("Buyer name")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Buyer OIB")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Add buyer" }));
+
+    expect(screen.getByLabelText("Buyer name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Buyer address")).toBeInTheDocument();
+    expect(screen.getByLabelText("Buyer OIB")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add buyer" })).not.toBeInTheDocument();
+  });
+
+  it("shows the buyer block at once when any buyer value was extracted", async () => {
+    mockedGetReceipt.mockResolvedValue({ ...receipt, buyerName: "John Smith" });
+    renderPage();
+
+    expect(await screen.findByDisplayValue("John Smith")).toBeInTheDocument();
+    expect(screen.getByLabelText("Buyer OIB")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add buyer" })).not.toBeInTheDocument();
+  });
+
+  it("has no subtotal field", async () => {
+    renderPage();
+
+    await screen.findByDisplayValue("381/1/2");
+    expect(screen.queryByLabelText("Subtotal")).not.toBeInTheDocument();
+  });
+
+  it("shows the payment method as editable text and saves a changed one", async () => {
+    mockedGetReceipt.mockResolvedValue({ ...receipt, paymentMethod: "Gotovina" });
+    const user = userEvent.setup();
+    renderPage();
+
+    const input = await screen.findByLabelText("Payment method");
+    expect(input).toHaveValue("Gotovina");
+
+    await user.clear(input);
+    await user.type(input, "kartica-MasterCard");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => {
+      expect(mockedUpdateReceipt).toHaveBeenCalledWith(
+        receipt.id,
+        expect.objectContaining({ paymentMethod: "kartica-MasterCard" }),
+      );
+    });
   });
 
   it("allows confirmation while warnings remain", async () => {

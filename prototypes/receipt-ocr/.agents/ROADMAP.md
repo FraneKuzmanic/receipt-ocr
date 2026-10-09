@@ -6,7 +6,7 @@
 process ends here; further testing, iteration and hardening happen directly, driven by the user
 against the deployed prototype, rather than through another numbered roadmap task. Iterations since
 then are listed in §3 under "Iterations outside the numbered task list" — the most recent is
-**12, the UI shell and navigation rebuild**.
+**26, extraction layer fixes and receipt schema v2**.
 
 This roadmap divided the PRD into 11 sequential tasks. Each task was one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -204,6 +204,32 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 23  | Dual-model extraction merge | _none — user asked for an investigation and recommendation, chose the approach, then asked for it_ | [history](history/23-dual-model-extraction-merge.md) |
 | 24  | Demo-readiness review fixes | _none — user reported a full manual test run, asked for analysis, then the three recommended fixes_ | [history](history/24-demo-readiness-review-fixes.md) |
 | 25  | Input-mode experiment: OCR text vs the document itself, into an LLM (a measurement; the product is unchanged) | [plan](plans/input-modes-experiment.md) | [history](history/25-input-modes-experiment.md) · [result](research/input-modes.md) |
+| 26  | Extraction layer fixes and receipt schema v2 ("Plan A"; scalar ground truth verified by the product owner) | [plan](plans/extraction-layer-fixes-receipt-schema-v2.md) | [history](history/26-extraction-layer-fixes-receipt-schema-v2.md) |
+
+**Amendment from iteration 26 — `subtotal` is removed from the canonical receipt.** PRD §4.2 and §6.4
+list it; it is gone from the schema, the review form and both exports (JSON `schemaVersion: 2`). It
+had no stable meaning — net on some receipts, a gross running total on others — and nothing on a
+Croatian receipt to check it against. Stored rows are converted when read; there is no migration.
+
+**Decision from iteration 26 — payment method stays free text.** A five-category select (`cash`,
+`card`, `bank_transfer`, `cheque`, `other`) was built and then reverted before commit at the product
+owner's direction, in favour of a text box holding the wording the receipt prints. Extraction still
+stores the wording only when it names a payment method; wording that names none leaves the field
+empty (§5 rule 5). Do not reintroduce the select without a new decision.
+
+**Amendment from iteration 26 — Task 08's "QR is never merged into canonical values" is narrowed.**
+The QR code's JIR replaces the OCR reading at extraction, before the user has seen the receipt: a
+JIR has no check digit, so a misread is otherwise undetectable, and the QR code is the
+error-corrected copy of the same identifier. Nothing else is filled from the QR, and PRD §7.5's
+"must not silently overwrite a user-confirmed value" still holds — nothing runs on a later save.
+
+**Amendment from iteration 26 — a flag that fires on correct values teaches the user to ignore it.**
+Over the scored corpus the amber low-confidence flag was on a correct value 16 times out of 17, and
+five of the warnings produced were false. Each had a cause in our own layer: a confidence invented
+for an inferred value, one borrowed from a different field, a VAT rule checking an identity receipts
+do not satisfy. The scoring harness now counts unexpected warnings and flags on correct values, so
+this is measured rather than noticed by a reviewer; a signal is only worth showing if its absence
+means something.
 
 Iteration 18's two commits are complete. Commit A added currency resolution, VAT-table extraction,
 amount-noise normalization, the `vat_present_but_unread` warning and table-sourced source-region

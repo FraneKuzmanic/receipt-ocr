@@ -5,7 +5,7 @@ import { z } from "zod";
  * Task 08's; this module exists so the model, the API and the UI can already agree on the
  * vocabulary.
  *
- * These nine are derived from implemented warning rules. Adding a code speculatively would be
+ * These ten are derived from implemented warning rules. Adding a code speculatively would be
  * scaffolding for a rule nobody has written yet, and every
  * code costs two translations.
  */
@@ -19,6 +19,7 @@ export const WARNING_CODES = [
   "qr_jir_mismatch",
   "document_quality",
   "vat_present_but_unread",
+  "oib_checksum_invalid",
 ] as const;
 
 export const warningCodeSchema = z.enum(WARNING_CODES);

@@ -17,6 +17,8 @@ export interface ResolveCurrencyInput {
   readonly content: string;
   readonly field: DocumentFieldOutput | undefined;
   readonly issueDate: string | null | undefined;
+  /** The model read a checksum-valid OIB, whether or not its printed label survived OCR. */
+  readonly croatianTaxId?: boolean;
 }
 
 /** Croatia replaced the kuna with the euro on this date; a later kuna figure is informational. */
@@ -56,7 +58,7 @@ export function resolveCurrency(input: ResolveCurrencyInput): CurrencyResolution
   }
 
   const issueDate = input.issueDate ?? findIssueDate(content)?.value;
-  if (issueDate !== undefined && hasFiscalMarkings(content)) {
+  if (issueDate !== undefined && (hasFiscalMarkings(content) || input.croatianTaxId === true)) {
     return { code: issueDate < EURO_ADOPTION_DATE ? "HRK" : "EUR", source: "inferred" };
   }
 

@@ -22,7 +22,6 @@ export const CSV_COLUMNS = [
   "documentNumber",
   "issueDate",
   "issueTime",
-  "subtotal",
   "total",
   "currency",
   "vatBreakdown",
