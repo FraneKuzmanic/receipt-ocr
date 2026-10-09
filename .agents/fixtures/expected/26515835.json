@@ -1,7 +1,23 @@
 {
   "sellerName": "Eurospin Hrvatska d.o.o.",
+  "sellerAddress": "Jelačićev trg 7, 51000 Rijeka",
+  "sellerOib": "62357811032",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "10752/310012/2",
+  "issueDate": "2024-01-23",
+  "issueTime": "15:12",
   "total": "1.99",
   "currency": "EUR",
-  "vatBreakdown": [{ "rate": "05.00", "taxableBase": "01.90", "vatAmount": "00.09" }]
+  "paymentMethod": "cash",
+  "jir": "1193a137-a1f5-4085-9e1b-3a0919701a4f",
+  "zki": "602b3d9defd5587af4de4b7f848a52c5",
+  "vatBreakdown": [
+    {
+      "rate": "05.00",
+      "taxableBase": "01.90",
+      "vatAmount": "00.09"
+    }
+  ]
 }

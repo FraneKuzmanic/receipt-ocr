@@ -22,7 +22,6 @@ const DATA_FIELDS = [
   "documentNumber",
   "issueDate",
   "issueTime",
-  "subtotal",
   "vatBreakdown",
   "total",
   "currency",
@@ -53,7 +52,6 @@ describe("canonicalReceiptSchema", () => {
       documentNumber: "381/1/3",
       issueDate: "2026-08-17",
       issueTime: "14:30",
-      subtotal: "80.65",
       vatBreakdown: [{ rate: "25.00", taxableBase: "80.65", vatAmount: "20.16" }],
       total: "100.81",
       currency: "EUR",
@@ -107,6 +105,11 @@ describe("canonicalReceiptSchema", () => {
 
   it("rejects a currency that is not three characters", () => {
     expect(canonicalReceiptSchema.safeParse({ ...envelope, currency: "EURO" }).success).toBe(false);
+  });
+
+  it("no longer knows a subtotal", () => {
+    const result = canonicalReceiptSchema.safeParse({ ...envelope, subtotal: "80.65" });
+    expect(result.error?.issues.some((issue) => issue.code === "unrecognized_keys")).toBe(true);
   });
 
   it("rejects an unknown top-level key", () => {

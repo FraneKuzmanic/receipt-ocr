@@ -1,7 +1,16 @@
 {
   "sellerName": "TRADER JOE'S",
+  "sellerAddress": "5269 Prospect, San Jose CA 95129",
+  "sellerOib": null,
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "037200",
   "issueDate": "2017-02-24",
+  "issueTime": "19:32",
   "total": "54.52",
-  "currency": "USD"
+  "currency": "USD",
+  "paymentMethod": "card",
+  "jir": null,
+  "zki": null
 }

@@ -1,0 +1,9 @@
+{
+  "status": "Final for iteration 26: confirmed by the 2026-10-09 score run against the verified ground truth.",
+  "format": "receipt name -> the warnings it should produce, each as \"code:field\". A receipt not listed should produce none.",
+  "receipts": {
+    "lira_trogir": ["missing_critical_field:documentNumber"],
+    "primjer-pdf-racuna": ["oib_checksum_invalid:sellerOib"],
+    "primjer1-hr-nopdv": ["oib_checksum_invalid:buyerOib"]
+  }
+}

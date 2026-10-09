@@ -1,9 +1,16 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import type {
   AnalyzeResultOutput,
   DocumentIntelligenceClient,
 } from "@azure-rest/ai-document-intelligence";
-import { classifyAzureFailure, createAzureProvider, SECONDARY_GRACE_MS } from "./azure.js";
+import { computeWarnings } from "../../validation/warnings.js";
+import {
+  applyQrJir,
+  classifyAzureFailure,
+  createAzureProvider,
+  SECONDARY_GRACE_MS,
+} from "./azure.js";
 import { ExtractionError } from "./types.js";
 
 /** A client whose submit is accepted and whose status polls return `statuses` in order. */
@@ -59,6 +66,106 @@ const analyzeResult: AnalyzeResultOutput = {
     },
   ],
 };
+
+async function recorded(name: string): Promise<AnalyzeResultOutput> {
+  const raw = JSON.parse(
+    await readFile(new URL(`./fixtures/${name}.json`, import.meta.url), "utf8"),
+  ) as { analyzeResult: AnalyzeResultOutput };
+  return raw.analyzeResult;
+}
+
+/** Runs the real provider over a receipt's two recorded responses, with no network. */
+async function extractRecorded(name: string) {
+  const [primary, secondary] = await Promise.all([recorded(name), recorded(`secondary/${name}`)]);
+  const provider = createAzureProvider({
+    settings: { modelId: "prebuilt-invoice", secondaryModelId: "prebuilt-receipt" },
+    analyze: async (_input, _signal, modelId) => {
+      const result = modelId === "prebuilt-receipt" ? secondary : primary;
+      return { analyzeResult: result, raw: { status: "succeeded", analyzeResult: result } };
+    },
+  });
+  return provider.extract({ bytes: Buffer.from("receipt"), contentType: "image/jpeg" });
+}
+
+describe("the QR code supplies the JIR (iteration 26)", () => {
+  it("replaces an OCR-misread JIR with the one in the receipt's QR code", async () => {
+    // OCR read "61985013-…-380919701be5"; a JIR has no check digit, so nothing else can tell.
+    const result = await extractRecorded("receipt123");
+
+    expect(result.fields.jir).toBe("b19e5e13-0388-4284-9be9-3a0919701be5");
+    expect(result.metadata.fields.jir).toEqual({ confidence: null, source: "qr" });
+    expect(
+      computeWarnings({ fields: result.fields, qr: result.qr }).map((warning) => warning.code),
+    ).not.toContain("qr_jir_mismatch");
+  });
+
+  it("takes nothing but the JIR from the QR code", () => {
+    const fields = { total: "10.00", issueDate: "2026-01-01" };
+    const metadata = {};
+    applyQrJir(fields, metadata, {
+      raw: "x",
+      jir: "b19e5e13-0388-4284-9be9-3a0919701be5",
+      zki: null,
+      issueDate: "2025-07-30",
+      issueTime: "14:17",
+      total: "23.80",
+    });
+
+    expect(fields).toEqual({
+      total: "10.00",
+      issueDate: "2026-01-01",
+      jir: "b19e5e13-0388-4284-9be9-3a0919701be5",
+    });
+  });
+
+  it("leaves the fields alone when there is no QR code or it carries no JIR", () => {
+    const fields = { jir: "printed" };
+    applyQrJir(fields, {}, null);
+    applyQrJir(
+      fields,
+      {},
+      { raw: "x", jir: null, zki: null, issueDate: null, issueTime: null, total: null },
+    );
+
+    expect(fields.jir).toBe("printed");
+  });
+});
+
+describe("text fallbacks through the whole provider (iteration 26)", () => {
+  it("reads the labelled payment method where the model returned the amount in words", async () => {
+    const result = await extractRecorded("lira_trogir");
+
+    expect(result.fields.paymentMethod).toBe("Novčanice");
+    expect(result.metadata.fields.paymentMethod).toEqual({ confidence: null, source: "text" });
+    expect(result.fields.currency).toBe("EUR");
+  });
+
+  it("shows an OIB that fails its check digit when no valid one exists", async () => {
+    const result = await extractRecorded("primjer-pdf-racuna");
+
+    expect(result.fields.sellerOib).toBe("12345678902");
+    expect(result.metadata.fields.sellerOib).toEqual({ confidence: null, source: "text" });
+    expect(computeWarnings({ fields: result.fields, qr: result.qr })).toContainEqual({
+      code: "oib_checksum_invalid",
+      field: "sellerOib",
+    });
+  });
+
+  it("still prefers a valid OIB over the VAT number and over a misread labelled one", async () => {
+    expect((await extractRecorded("ina-racun-sladoled")).fields.sellerOib).toBe("27759560625");
+  });
+
+  it("raises no VAT warning on the receipts that used to fail the sum-against-total rule", async () => {
+    for (const name of ["receipt123", "22559270"]) {
+      const result = await extractRecorded(name);
+      const codes = computeWarnings({ fields: result.fields, qr: result.qr }).map(
+        (warning) => warning.code,
+      );
+      expect(codes).not.toContain("vat_arithmetic_mismatch");
+    }
+    expect((await extractRecorded("receipt123")).fields.vatBreakdown).toHaveLength(1);
+  });
+});
 
 describe("Azure extraction provider", () => {
   it.each([

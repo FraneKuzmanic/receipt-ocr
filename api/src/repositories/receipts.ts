@@ -13,6 +13,7 @@ import {
   type SourceContentType,
 } from "@receipt/shared";
 import type { Database, Json } from "../database.types.js";
+import { computeStoredWarnings } from "../validation/warnings.js";
 
 type ReceiptRow = Database["public"]["Tables"]["receipts"]["Row"];
 type ReceiptInsert = Database["public"]["Tables"]["receipts"]["Insert"];
@@ -197,11 +198,11 @@ export class ReceiptRepository {
     try {
       return {
         status: receiptStatusSchema.parse(data.status),
-        fields: canonicalReceiptFieldsSchema.parse(data.canonical_data),
+        fields: canonicalReceiptFieldsSchema.parse(fromStoredFields(data.canonical_data)),
         originalExtraction:
           data.original_extraction === null
             ? null
-            : canonicalReceiptFieldsSchema.parse(data.original_extraction),
+            : canonicalReceiptFieldsSchema.parse(fromStoredFields(data.original_extraction)),
         qrExtraction: data.qr_extraction,
         extractionMetadata: data.extraction_metadata,
       };
@@ -331,8 +332,14 @@ export class ReceiptRepository {
 
 export function mapReceiptRow(row: ReceiptRow): CanonicalReceipt {
   try {
-    const fields = canonicalReceiptFieldsSchema.parse(row.canonical_data);
-    const warnings = warningsSchema.parse(row.warnings);
+    const fields = canonicalReceiptFieldsSchema.parse(fromStoredFields(row.canonical_data));
+    // The stored copy is still validated, then superseded for a receipt that has been extracted:
+    // warnings follow the current rules, not the rules in force when the row was written.
+    const stored = warningsSchema.parse(row.warnings);
+    const warnings =
+      row.status === "review" || row.status === "confirmed"
+        ? computeStoredWarnings(fields, row.qr_extraction, row.extraction_metadata)
+        : stored;
 
     return canonicalReceiptSchema.parse({
       ...fields,
@@ -348,6 +355,17 @@ export function mapReceiptRow(row: ReceiptRow): CanonicalReceipt {
   } catch (error) {
     throw new ReceiptRepositoryError("invalid_data", error);
   }
+}
+
+/**
+ * Reads fields stored under receipt schema v1 as v2, so no stored row needs migrating: `subtotal`
+ * was removed, and the strict schema would reject a row that still carries it. Anything else is
+ * left for that schema to judge.
+ */
+export function fromStoredFields(value: Json | null): unknown {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return value;
+  const { subtotal: _subtotal, ...fields } = value;
+  return fields;
 }
 
 function normalizeTimestamp(value: string): string {

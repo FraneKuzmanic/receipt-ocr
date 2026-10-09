@@ -1,8 +1,17 @@
 {
   "sellerName": "Lime Apps d.o.o.",
+  "sellerAddress": "Šišićeva ulica 18, 10000 Zagreb, Hrvatska",
+  "sellerOib": "95393674629",
+  "buyerName": "Primjer inozemnog klijenta LTD.",
+  "buyerAddress": "Street 1, London, UK",
+  "buyerOib": "12345678901",
   "documentNumber": "121/1/1",
   "issueDate": "2025-01-22",
+  "issueTime": "18:23:39",
   "total": "100.00",
   "currency": "EUR",
+  "paymentMethod": "bank_transfer",
+  "jir": null,
+  "zki": null,
   "vatBreakdown": null
 }

@@ -1,8 +1,17 @@
 {
   "sellerName": "Ana Horvat",
+  "sellerAddress": "Ulica primjera 5, 21000 Split",
+  "sellerOib": "12345678902",
+  "buyerName": "John Smith",
+  "buyerAddress": "Ulica primjera 10, 10000 Zagreb",
+  "buyerOib": null,
   "documentNumber": "1/1/1",
   "issueDate": "2026-07-29",
+  "issueTime": null,
   "total": "630.00",
   "currency": "EUR",
+  "paymentMethod": "bank_transfer",
+  "jir": null,
+  "zki": null,
   "vatBreakdown": null
 }

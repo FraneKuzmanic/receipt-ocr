@@ -16,7 +16,6 @@ export interface ReviewFormValues {
   documentNumber: string;
   issueDate: string;
   issueTime: string;
-  subtotal: string;
   vatBreakdown: Array<{ rate: string; taxableBase: string; vatAmount: string }>;
   total: string;
   currency: string;
@@ -43,7 +42,6 @@ export function toFormValues(receipt: CanonicalReceiptFields): ReviewFormValues 
     documentNumber: text(receipt.documentNumber),
     issueDate: text(receipt.issueDate),
     issueTime: text(receipt.issueTime),
-    subtotal: text(receipt.subtotal),
     vatBreakdown: (receipt.vatBreakdown?.length
       ? receipt.vatBreakdown
       : [{ rate: null, taxableBase: null, vatAmount: null }]
@@ -113,7 +111,6 @@ export function toPatch(values: ReviewFormValues): CanonicalReceiptFields {
     documentNumber: nullableText(values.documentNumber),
     issueDate: nullableDate(values.issueDate),
     issueTime: nullableTime(values.issueTime),
-    subtotal: nullableAmount(values.subtotal),
     vatBreakdown: vatBreakdown.length === 0 ? null : vatBreakdown,
     total: nullableAmount(values.total),
     currency: nullableText(values.currency)?.toUpperCase() ?? null,

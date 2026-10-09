@@ -109,6 +109,55 @@ describe("source region projection", () => {
     );
   });
 
+  it("keeps VAT outlines on their own row after a non-VAT row is dropped", async () => {
+    // The model's recap for `receipt123` has a PNP entry the mapper drops; the outlines must be
+    // indexed through the same filtered list, or a dropped row shifts every later one.
+    const fields = mapSourceRegions(await secondaryFixture("receipt123")).regions.flatMap(
+      (region) => region.fields,
+    );
+    expect(fields).toEqual(
+      expect.arrayContaining([
+        "vatBreakdown.0.rate",
+        "vatBreakdown.0.taxableBase",
+        "vatBreakdown.0.vatAmount",
+      ]),
+    );
+    expect(fields.some((field) => field.startsWith("vatBreakdown.1."))).toBe(false);
+
+    const three = mapSourceRegions(await secondaryFixture("22559270")).regions.flatMap(
+      (region) => region.fields,
+    );
+    for (const row of [0, 1, 2]) {
+      expect(three).toContain(`vatBreakdown.${row}.vatAmount`);
+    }
+  });
+
+  it("outlines a payment method and an OIB that were read from text", async () => {
+    const lira = mapSourceRegions(await fixture("lira_trogir"));
+    expect(lira.regions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fields: expect.arrayContaining(["paymentMethod"]),
+          origin: "text",
+        }),
+      ]),
+    );
+
+    const pdf = mapSourceRegions(await fixture("primjer-pdf-racuna"));
+    expect(pdf.regions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ fields: expect.arrayContaining(["sellerOib"]), origin: "text" }),
+      ]),
+    );
+  });
+
+  it("no longer projects a subtotal", async () => {
+    const fields = mapSourceRegions(await fixture("gradanin-gotovina-pos")).regions.flatMap(
+      (region) => region.fields,
+    );
+    expect(fields).not.toContain("subtotal");
+  });
+
   it("returns no regions when the stored analysis has no pages", async () => {
     const raw = JSON.parse(
       await readFile(new URL("./fixtures/mapper-edge-cases.json", import.meta.url), "utf8"),

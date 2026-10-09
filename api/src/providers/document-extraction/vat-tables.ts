@@ -254,7 +254,7 @@ function mentions(content: string, term: string): boolean {
   return false;
 }
 
-function differsByOneCharacter(candidate: string, term: string): boolean {
+export function differsByOneCharacter(candidate: string, term: string): boolean {
   let differences = 0;
   for (let index = 0; index < term.length; index += 1) {
     if (candidate[index] !== term[index] && (differences += 1) > 1) return false;

@@ -56,6 +56,22 @@ export function findOib(content: string): CroatianMatch | null {
 }
 
 /**
+ * The first labelled OIB whatever its check digit. Used only after no valid OIB was found anywhere:
+ * `primjer-pdf-racuna` prints "OIB: 12345678902", which fails MOD 11,10, and showing the printed
+ * value with a warning serves a reviewer better than an empty field with nothing to compare.
+ */
+export function findLabelledOib(content: string): CroatianMatch | null {
+  for (const match of content.matchAll(OIB)) {
+    const indices = match.indices?.[1];
+    const value = match[1];
+    if (indices !== undefined && value !== undefined) {
+      return { value, start: indices[0], end: indices[1] };
+    }
+  }
+  return null;
+}
+
+/**
  * Whether the document carries Croatian fiscal markings at all. This asks only about shape: an
  * OIB whose check digit was mis-scanned still identifies the receipt as Croatian, so requiring a
  * valid checksum here would withdraw the currency inference from exactly the receipts that need

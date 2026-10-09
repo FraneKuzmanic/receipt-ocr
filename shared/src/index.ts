@@ -45,6 +45,8 @@ export {
   type VatBreakdown,
 } from "./receipt.js";
 
+export { vatRowConsistent } from "./vat.js";
+
 export {
   EXPORT_FORMATS,
   EXPORT_SCHEMA_VERSION,

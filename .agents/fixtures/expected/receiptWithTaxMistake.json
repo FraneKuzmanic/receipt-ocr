@@ -1,9 +1,23 @@
 {
   "sellerName": "REBECA d.o.o.",
+  "sellerAddress": "Prolaz sestara Baković 1, Zagreb",
+  "sellerOib": "16029174381",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "326/U02/1",
   "issueDate": "2020-09-25",
   "issueTime": "17:13",
   "total": "13.00",
   "currency": "HRK",
-  "vatBreakdown": [{ "rate": "25.00", "taxableBase": "10.40", "vatAmount": "2.60" }]
+  "paymentMethod": "cash",
+  "jir": "7b6e8de5-9122-427a-a0e2-1bd2c10b7308",
+  "zki": "043bb05ab8d54535eddca9eb43fc71f1",
+  "vatBreakdown": [
+    {
+      "rate": "25.00",
+      "taxableBase": "10.40",
+      "vatAmount": "2.60"
+    }
+  ]
 }

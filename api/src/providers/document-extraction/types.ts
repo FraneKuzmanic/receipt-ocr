@@ -15,7 +15,7 @@ export interface ExtractionInput {
 
 export interface ExtractionFieldMetadata {
   readonly confidence: number | null;
-  readonly source: "model" | "text" | "inferred";
+  readonly source: "model" | "text" | "inferred" | "qr";
 }
 
 export interface ExtractionMetadata {

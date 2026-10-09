@@ -1,10 +1,16 @@
 {
   "sellerName": "S.A.L.N. SYSTEMS j.d.o.o.",
+  "sellerAddress": "Ivana Ančića 3, 10373 Ivanja Reka",
+  "sellerOib": "85092357159",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
   "documentNumber": "224/STP/3",
   "issueDate": "2025-03-31",
   "issueTime": "23:59:47",
   "total": "132.72",
   "currency": "EUR",
+  "paymentMethod": "cash",
   "jir": "18916f95-5787-4e7f-a190-3a091970cfa2",
   "zki": "cf706ac762a61389c6c46af0ec90c5c5"
 }

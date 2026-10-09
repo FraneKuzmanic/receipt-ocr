@@ -4,12 +4,14 @@ import DocumentIntelligence, {
   type AnalyzeResultOutput,
   type DocumentIntelligenceClient,
 } from "@azure-rest/ai-document-intelligence";
+import type { CanonicalReceiptFields } from "@receipt/shared";
 import { config } from "../../config.js";
 import {
   findDocumentNumber,
   findIssueDate,
   findIssueTime,
   findJir,
+  findLabelledOib,
   findOib,
   findZki,
 } from "./croatian.js";
@@ -18,6 +20,7 @@ import { mergeExtractions, type ModelExtraction } from "./merge.js";
 import { logger } from "../../logger.js";
 import { stripContentMarkers, type StrippedContent } from "./content-markers.js";
 import { hasUnreadVatSignal } from "./tax-signals.js";
+import { findPaymentMethod } from "./payment-method.js";
 import { parseFiscalQr, type FiscalQrData } from "./fiscal-qr.js";
 import {
   ExtractionError,
@@ -121,6 +124,10 @@ export function createAzureProvider(
         const secondary =
           secondaryResponse === null ? null : readModel(secondaryResponse.analyzeResult);
         const merged = mergeExtractions(primary, secondary);
+        const qr =
+          extractFiscalQr(response.analyzeResult) ??
+          (secondaryResponse === null ? null : extractFiscalQr(secondaryResponse.analyzeResult));
+        applyQrJir(merged.fields, merged.metadata, qr);
 
         return {
           fields: merged.fields,
@@ -142,9 +149,7 @@ export function createAzureProvider(
             fieldModels: merged.fieldModels,
             vatTextPresent: hasUnreadVatSignal(response.analyzeResult.content),
           },
-          qr:
-            extractFiscalQr(response.analyzeResult) ??
-            (secondaryResponse === null ? null : extractFiscalQr(secondaryResponse.analyzeResult)),
+          qr,
           raw: {
             ...(response.raw as Record<string, unknown>),
             secondaryModelId: secondaryResponse === null ? null : settings.secondaryModelId,
@@ -246,7 +251,24 @@ async function analyzeWithAzure(
   }
 }
 
-function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | null {
+/**
+ * The QR code is the reliable copy of the JIR: it carries error correction, while the printed
+ * identifier has no check digit, so an OCR substitution yields a plausible wrong value nothing can
+ * detect (`receipt123` read `61985013-…` where its QR holds `b19e5e13-…`). Only the JIR is taken;
+ * the QR never fills the total, date or time, which it only corroborates. This runs at extraction
+ * only — a later user edit is never overwritten and still raises `qr_jir_mismatch`.
+ */
+export function applyQrJir(
+  fields: CanonicalReceiptFields,
+  metadata: Record<string, ExtractionFieldMetadata>,
+  qr: FiscalQrData | null,
+): void {
+  if (qr === null || qr.jir === null) return;
+  fields.jir = qr.jir;
+  metadata.jir = { confidence: null, source: "qr" };
+}
+
+export function extractFiscalQr(analyzeResult: AnalyzeResultOutput): FiscalQrData | null {
   let firstQr: FiscalQrData | null = null;
 
   for (const page of analyzeResult.pages ?? []) {
@@ -268,7 +290,9 @@ export function applyTextFallbacks(
   content: StrippedContent,
 ): void {
   const fallbacks = {
-    sellerOib: findOib(content.text),
+    // A valid OIB always wins; the printed one that fails its check digit is the last resort.
+    sellerOib: findOib(content.text) ?? findLabelledOib(content.text),
+    paymentMethod: findPaymentMethod(content.text),
     jir: findJir(content.text),
     zki: findZki(content.text),
     issueDate: findIssueDate(content.text),

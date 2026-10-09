@@ -29,7 +29,7 @@ import { toFormValues, toPatch, type ReviewFormValues } from "../review/reviewFo
 
 const sellerFields = ["sellerName", "sellerAddress", "sellerOib"] as const;
 const buyerFields = ["buyerName", "buyerAddress", "buyerOib"] as const;
-const receiptTextFields = ["paymentMethod", "jir", "zki"] as const;
+const fiscalIdentifierFields = ["jir", "zki"] as const;
 
 function amountValidation(value: string) {
   return (
@@ -169,6 +169,11 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [regions, setRegions] = useState<SourceRegionsResponse | null>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
+  // Most retail receipts name no buyer, so three permanently empty inputs were noise on nearly
+  // every review. The block opens by itself only when a buyer value was extracted.
+  const [buyerOpen, setBuyerOpen] = useState(() =>
+    buyerFields.some((field) => (receipt[field] ?? "").trim() !== ""),
+  );
   const { register, control, handleSubmit, reset, formState } = useForm<ReviewFormValues>({
     values: toFormValues(receipt),
   });
@@ -351,19 +356,29 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
           ))}
         </fieldset>
 
-        <fieldset className="flex flex-col gap-3">
-          <SectionLegend section="buyer" label={t("review.buyer")} />
-          {buyerFields.map((field) => (
-            <ReviewField
-              key={field}
-              field={field}
-              label={t(`review.fields.${field}`)}
-              lowConfidenceFields={receipt.lowConfidenceFields}
-              warnings={receipt.warnings}
-              input={<input {...register(field)} />}
-            />
-          ))}
-        </fieldset>
+        {buyerOpen ? (
+          <fieldset className="flex flex-col gap-3">
+            <SectionLegend section="buyer" label={t("review.buyer")} />
+            {buyerFields.map((field) => (
+              <ReviewField
+                key={field}
+                field={field}
+                label={t(`review.fields.${field}`)}
+                lowConfidenceFields={receipt.lowConfidenceFields}
+                warnings={receipt.warnings}
+                input={<input {...register(field)} />}
+              />
+            ))}
+          </fieldset>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setBuyerOpen(true)}
+            className="min-h-11 text-left underline"
+          >
+            {t("review.addBuyer")}
+          </button>
+        )}
 
         <fieldset className="flex flex-col gap-3">
           <SectionLegend section="receipt" label={t("review.receipt")} />
@@ -391,14 +406,6 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
           />
           {formError(formState.errors.issueTime?.message)}
           <ReviewField
-            field="subtotal"
-            label={t("review.fields.subtotal")}
-            lowConfidenceFields={receipt.lowConfidenceFields}
-            warnings={receipt.warnings}
-            input={<input {...register("subtotal", { validate: amountValidation })} />}
-          />
-          {formError(formState.errors.subtotal?.message)}
-          <ReviewField
             field="total"
             label={t("review.fields.total")}
             lowConfidenceFields={receipt.lowConfidenceFields}
@@ -414,7 +421,14 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
             input={<input {...register("currency", { validate: currencyValidation })} />}
           />
           {formError(formState.errors.currency?.message)}
-          {receiptTextFields.map((field) => (
+          <ReviewField
+            field="paymentMethod"
+            label={t("review.fields.paymentMethod")}
+            lowConfidenceFields={receipt.lowConfidenceFields}
+            warnings={receipt.warnings}
+            input={<input {...register("paymentMethod")} />}
+          />
+          {fiscalIdentifierFields.map((field) => (
             <ReviewField
               key={field}
               field={field}
@@ -428,7 +442,7 @@ function ReviewForm({ receipt, receiptId, onReceipt }: ReviewFormProps) {
 
         <fieldset className="flex flex-col gap-3">
           <SectionLegend section="vat" label={t("review.vat")} />
-          {/* `vat_arithmetic_mismatch` concerns the breakdown as a whole, so the engine emits it
+          {/* `vat_present_but_unread` concerns the breakdown as a whole, so the engine emits it
               against the bare `vatBreakdown` path rather than an indexed cell. It has to be read
               here; the per-cell lookups below can never match it. */}
           {messages("vatBreakdown")}

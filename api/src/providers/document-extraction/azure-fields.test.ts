@@ -34,8 +34,8 @@ describe("Azure field mapper", () => {
     const exemptVat = mapAnalyzeResult(await fixture("racuntaksi1"));
 
     expect(inferred.fields.currency).toBe("HRK");
-    expect(inferred.fieldMetadata.currency).toMatchObject({ source: "inferred" });
-    expect(inferred.fieldMetadata.currency?.confidence).toBeLessThan(0.7);
+    // An inferred currency has no confidence of its own; inventing a low one flagged it amber.
+    expect(inferred.fieldMetadata.currency).toEqual({ confidence: null, source: "inferred" });
     expect(inferred.fields.vatBreakdown).toEqual([
       { rate: "25.00", taxableBase: "82.95", vatAmount: "20.74" },
     ]);
@@ -78,7 +78,6 @@ describe("Azure field mapper", () => {
     const mapped = mapAnalyzeResult(raw.invoice);
 
     expect(mapped.fields.total).toBe("8.08");
-    expect(mapped.fields.subtotal).toBe("1234.56");
     expect(mapped.fields.items?.[0]?.quantity).toBe("2.30");
     expect(mapped.fields.currency).toBe("EUR");
   });
@@ -139,6 +138,70 @@ describe("dual-currency, tax id and totals lines (iteration 21)", () => {
 
     expect(mapped.fields.items).toHaveLength(6);
     expect(mapped.fields.items?.[0]?.description).toBe("PIVO PAB 2L");
+  });
+});
+
+describe("payment method, non-VAT rows and tax ids (iteration 26)", () => {
+  it("stores the payment method as printed", async () => {
+    expect(mapAnalyzeResult(await fixture("22559270")).fields.paymentMethod).toBe("Novčanice");
+    // OCR read the printed NOVČANICE as "NONCANICE".
+    expect(mapAnalyzeResult(await fixture("receipt123")).fields.paymentMethod).toBe("NONCANICE");
+    expect(mapAnalyzeResult(await fixture("racuntaksi1")).fields.paymentMethod).toBe("Gotovina");
+  });
+
+  it("does not store wording that names no payment method", async () => {
+    // The provider returned the amount in words, "tridesettri € i 10 c", as the payment term.
+    const mapped = mapAnalyzeResult(await fixture("lira_trogir"));
+
+    expect(mapped.fields.paymentMethod).toBeUndefined();
+    expect(mapped.fieldMetadata.paymentMethod).toBeUndefined();
+  });
+
+  it("no longer maps a subtotal", async () => {
+    expect(mapAnalyzeResult(await fixture("gradanin-gotovina-pos")).fields).not.toHaveProperty(
+      "subtotal",
+    );
+  });
+
+  it("drops a consumption-tax row from the VAT breakdown", async () => {
+    // The recap prints "PDV 25,00 18,97 4,74" and, below it, "PNP 3,00 2,81 0,08".
+    expect(mapAnalyzeResult(await fixture("secondary/receipt123")).fields.vatBreakdown).toEqual([
+      { rate: "25.00", taxableBase: "18.97", vatAmount: "4.74" },
+    ]);
+  });
+
+  it("drops a tax row none of whose cells could be read", async () => {
+    // Not in the VAT system; the model returned "999.98 HRK" as a tax row with no amounts.
+    expect(
+      mapAnalyzeResult(await fixture("secondary/racuntaksi1")).fields.vatBreakdown,
+    ).toBeUndefined();
+  });
+
+  it("keeps every real VAT row", async () => {
+    expect(mapAnalyzeResult(await fixture("secondary/22559270")).fields.vatBreakdown).toEqual([
+      { rate: "25", taxableBase: "60.08", vatAmount: "15.02" },
+      { rate: "25", taxableBase: "88.80", vatAmount: "22.20" },
+      { rate: "13", taxableBase: "292.04", vatAmount: "37.96" },
+    ]);
+  });
+
+  it("infers the currency from a valid OIB the model read when the printed label is cropped", async () => {
+    // The photo crops "OIB" to "IB" and no currency token survives beside an amount.
+    const mapped = mapAnalyzeResult(await fixture("lira_trogir"));
+
+    expect(mapped.fields.currency).toBe("EUR");
+    expect(mapped.fieldMetadata.currency).toEqual({ confidence: null, source: "inferred" });
+  });
+
+  it("does not infer a currency for a receipt with no Croatian marking", async () => {
+    expect(mapAnalyzeResult(await fixture("images")).fields.currency).toBe("USD");
+  });
+
+  it("does not let text-sourced currency borrow the total's confidence", async () => {
+    expect(mapAnalyzeResult(await fixture("26515835")).fieldMetadata.currency).toEqual({
+      confidence: null,
+      source: "text",
+    });
   });
 });
 

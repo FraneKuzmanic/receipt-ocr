@@ -44,6 +44,16 @@ describe("currency resolution", () => {
     ).toEqual({ code: "HRK", source: "inferred" });
   });
 
+  it("takes a valid OIB the model read as Croatian evidence when no label survived", () => {
+    const input = { content: "IB\n73710835843\n1.06.2026", field: undefined };
+
+    expect(resolveCurrency({ ...input, issueDate: "2026-06-01" })).toBeNull();
+    expect(resolveCurrency({ ...input, issueDate: "2026-06-01", croatianTaxId: true })).toEqual({
+      code: "EUR",
+      source: "inferred",
+    });
+  });
+
   it("abstains without currency or Croatian fiscal evidence", () => {
     expect(
       resolveCurrency({ content: "Receipt total 10.00", field: undefined, issueDate: undefined }),

@@ -106,7 +106,7 @@ Current coverage and what each test protects:
 | `shared/src/money.test.ts` | Croatian and English amounts parse to one canonical decimal string; trailing zeros survive (`100.50` never becomes `100.5`); values beyond float precision are exact; unreadable input returns `null` and never throws; `Big.strict` rejects a JS number at runtime; the Croatian kuna abbreviation `kn` (not only the ISO code `HRK`) is stripped like any other currency token — a real receipt's `total` was silently dropped before this was added |
 | `shared/src/datetime.test.ts` | Croatian day-first dates normalize to `yyyy-mm-dd`; the calendar is validated by hand including leap years; a time with no seconds does not gain `:00`; output satisfies `z.iso.date()` / `z.iso.time()` |
 | `shared/src/receipt.test.ts` | The canonical schema accepts an all-null and an all-absent receipt, requires UUID persisted identifiers, rejects an unknown status, rejects unnormalized money and dates, and rejects unknown keys. Also the **provider-independence guard**: no Azure vocabulary anywhere in `shared/src` (PRD §6.2) |
-| `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold, and the JSON export DTO strips owner/delete fields while pinning `schemaVersion: 1` |
+| `shared/src/api.test.ts` | DTOs are derived, not redeclared: a forged `userId` in a PATCH body is rejected with `unrecognized_keys` (PRD §9.1), server-owned fields are refused, paging defaults and bounds hold, and the JSON export DTO strips owner/delete fields while pinning `schemaVersion: 2` |
 | `shared/src/api.test.ts` (Iteration 19 — "response DTOs tolerate a newer API") | **The two halves of the strictness split, asserted together.** Every response body the browser parses accepts a field added by a newer API *and discards it*, so a tab left open across a deploy cannot be broken by an additive change — the iteration-18 `failureReason` outage. The same block re-asserts that request bodies still reject an unknown key, which is the half that must never be relaxed alongside it. If a future task makes a response schema `.strict()` again, this is what fails |
 | `api/src/app.test.ts` | `GET /api/health` returns the shared `HealthResponse` shape at runtime; unknown routes return a JSON error body, never an HTML stack trace |
 | `api/src/repositories/receipts.test.ts` | Database rows map explicitly to canonical objects, timestamps normalize, canonical JSON/warnings are validated, generated projections are ignored, owner/deleted filters survive list paging and export paging, inclusive range bounds and exact counts are correct, and provider errors become stable internal categories |
@@ -150,7 +150,7 @@ Current coverage and what each test protects:
 | `api/src/providers/document-extraction/fiscal-qr.test.ts` | Croatian fiscal QR URLs, a bare JIR UUID, case-insensitive parameters, ZKI, malformed payloads and separator-less `izn` parsing remain deterministic, local and non-throwing |
 | `api/src/providers/document-extraction/azure-fields.test.ts` (Task 08) | Unreadable source values are tracked as `unreadableFields` without persisting bad data; structured Azure values still take precedence when valid |
 | `api/src/providers/document-extraction/azure.test.ts` (Task 08) | Barcode feature propagation, QR extraction and marker-safe text fallbacks preserve normal field extraction when a QR is absent |
-| `api/src/validation/warnings.test.ts` | Pure, stable-order warning rules cover critical gaps, unreadable values, exact VAT arithmetic, QR total/date/time mismatches and the not-enough-information path; corrected values clear warnings without OCR rerunning |
+| `api/src/validation/warnings.test.ts` | Pure, stable-order warning rules cover critical gaps, unreadable values, per-row VAT arithmetic, QR total/date/time mismatches and the not-enough-information path; corrected values clear warnings without OCR rerunning |
 | `api/src/providers/document-extraction/azure-fields.test.ts` (Iteration 18) | Table VAT, inferred HRK currency and tax-class-suffixed line-item amounts reach the canonical mapper; structured `TaxDetails` retains precedence |
 | `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 18) | Table-sourced VAT cells project canonical review paths from their own geometry after skipped summary rows are removed |
 | `api/src/validation/warnings.test.ts` (Iteration 18) | `vat_present_but_unread` is informational, emitted once only when a structural VAT signal exists without a mapped VAT row, and clears after a VAT row is present |
@@ -178,6 +178,20 @@ Current coverage and what each test protects:
 | `shared/src/quantity.test.ts` (Iteration 23) | **A quantity printed to three decimals is a decimal, not thousands** — `3,000` is `3.000` with either separator — while every other shape, including `1.000.000` and `1.234,5`, parses exactly as money does |
 | `api/src/providers/document-extraction/azure-fields.test.ts` (Iteration 23) | Replays the real receipts that shipped the bug: `lira_trogir`'s `3,000`/`2,000`/`1,000` and `screenshot-20190705-1907152`'s dot-separated `1.000` map to decimal quantities, while a `1,00` quantity is unchanged |
 | `client/src/review/reviewForm.test.ts` (Iteration 23) | **Saving does not undo it.** A stored `3.000` survives the form round trip, a typed `2,500` saves as `2.500`, and a unit price beside it still follows the money rule |
+| `shared/src/vat.test.ts` (Iteration 26) | **A VAT row is judged against its own base and rate, to the cent.** Six rows printed on corpus receipts are consistent, including a zero-rate row; a wrong amount is not; a missing or malformed cell is "cannot judge" (`null`), never a mismatch and never a throw |
+| `shared/src/receipt.test.ts`, `shared/src/api.test.ts` (Iteration 26) | **Receipt schema v2.** `subtotal` is an unknown key in the canonical schema and in the PATCH body, which stays strict; the JSON export envelope is pinned to `schemaVersion: 2` |
+| `api/src/providers/document-extraction/payment-method.test.ts` (Iteration 26) | The payment wording of every corpus receipt maps to its category, including the OCR misread `NONCANICE`; several methods are `other`; unknown wording is `null`, never `other`; the labelled fallback reads the same line or the next one, tolerates a cropped or abbreviated label, returns the wording as printed with its offsets, and **does not read an unlabelled tender line** |
+| `api/src/providers/document-extraction/azure-fields.test.ts` (Iteration 26) | Recorded fixtures: the payment method is stored as printed, and wording that names no method is not stored; no `subtotal` is mapped; a consumption-tax (PNP) row and an all-empty tax row are dropped while three real VAT rows survive; a checksum-valid model-read OIB lets currency be inferred when the printed label is cropped; inferred and text-sourced currency carry **no** confidence |
+| `api/src/providers/document-extraction/azure.test.ts` (Iteration 26) | The real provider replayed over a receipt's two recorded responses: **the QR code's JIR replaces an OCR misread and nothing else is taken from the QR**; the labelled payment fallback and inferred currency reach the result on `lira_trogir`; an OIB failing its check digit is shown with `oib_checksum_invalid` while a valid one still wins on `ina-racun-sladoled`; `receipt123` and `22559270` raise no VAT warning |
+| `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 26) | **VAT outlines stay on their own row after a non-VAT row is dropped** — the mapper and the projection share one filtered list; a text-read payment method and OIB are outlined; `subtotal` is no longer projected |
+| `api/src/providers/document-extraction/croatian.test.ts`, `currency.test.ts` (Iteration 26) | `findLabelledOib` returns the printed OIB whatever its check digit while `findOib` still refuses it; a model-read valid OIB counts as Croatian evidence only when passed, so a US receipt is unaffected |
+| `api/src/validation/warnings.test.ts` (Iteration 26) | The VAT warning names the inconsistent row and **never consults the total** (`22559270`'s three rows against 517.00 raise nothing); `oib_checksum_invalid` fires on a seller or buyer OIB only when it fails its check digit; `qrCorroboratedFields` lists exactly the fields the QR code carries and agrees with |
+| `api/src/routes/receipts.test.ts` (Iteration 26) | **The low-confidence list is evidence-aware.** A model reading below 0.7 is listed; an inferred, text-sourced or QR-sourced value never is, including one stored with the old deliberate 0.5; a field the QR code corroborates is dropped |
+| `api/src/repositories/receipts.test.ts` (Iteration 26) | **A row stored under schema v1 loads without a migration**: a stored `subtotal` is dropped and the stored payment wording is kept as it is — and genuinely invalid JSON still fails as `invalid_data` |
+| `api/src/repositories/receipts.test.ts` (Iteration 26, stale warnings) | **A stored warning is never what the user sees.** A `review`/`confirmed` row's warnings are recomputed from its fields, QR payload and metadata, so a mismatch stored under a retired rule disappears without a save; a `processing` row keeps its stored (empty) list rather than gaining five missing-field warnings; a malformed stored `warnings` value still fails as `invalid_data` |
+| `api/src/export/receipts.test.ts` (Iteration 26) | The CSV has exactly the twenty documented columns in order, with no `subtotal`; the JSON envelope says `schemaVersion: 2`; `paymentMethod` exports as its code |
+| `client/src/review/reviewForm.test.ts`, `regionSections.test.ts` (Iteration 26) | The payment wording survives the form round trip and an unset one saves as `null`; the form neither shows nor sends `subtotal`, which the strict PATCH schema would reject on every save |
+| `client/src/routes/ReviewPage.test.tsx` (Iteration 26) | No buyer inputs and an Add buyer control when no buyer was extracted, three inputs after clicking it, and the block open at once when any buyer value exists; no subtotal field; the payment method is an editable text input that saves what was typed; a per-row VAT warning is attached to its own cell, and `vat_present_but_unread` and `oib_checksum_invalid` render their copy |
 | `client/src/review/ActiveRegionStrip.test.tsx` (Iteration 15) | The mobile crop strip renders only with a matching active field, a known region and a non-PDF, safe source; `cropTransform`'s output, reproduced through the same `scale ∘ translate` composition the browser applies, centers the region's centroid in the **strip's own viewport**, not the full receipt image — the previous formula centered the whole image regardless of which field was active, verified wrong only by measuring a real rendered page |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
@@ -502,6 +516,17 @@ no primary would be silently ignored, quietly removing a receipt from the corpus
 node -e "const fs=require('fs'); const dir='api/src/providers/document-extraction/fixtures'; const primary=new Set(fs.readdirSync(dir).filter(n=>n.endsWith('.json'))); const orphans=fs.existsSync(dir+'/secondary')?fs.readdirSync(dir+'/secondary').filter(n=>n.endsWith('.json')&&!primary.has(n)):[]; if(orphans.length) throw new Error('secondary fixture with no primary: '+orphans.join(', ')); console.log('ok');"
 ```
 
+### 6.24 The removed subtotal field stays removed
+
+Receipt schema v2 removed `subtotal` because it had no stable meaning (README "Receipt schema v2").
+Reintroducing it in the canonical schema would also change the strict PATCH contract and the export.
+Stored rows that still carry it are handled by `fromStoredFields`, which is the one place allowed to
+name it.
+
+```
+node -e "const fs=require('fs'); const s=fs.readFileSync('shared/src/receipt.ts','utf8'); if(/subtotal/.test(s)) throw new Error('shared/src/receipt.ts names subtotal again; schema v2 removed it'); const r=fs.readFileSync('api/src/repositories/receipts.ts','utf8'); if(!/fromStoredFields\(row\.canonical_data\)/.test(r)) throw new Error('mapReceiptRow no longer converts stored v1 rows; every older receipt would fail as invalid_data'); console.log('ok');"
+```
+
 ---
 
 ## Phase 7: Supabase integration
@@ -773,7 +798,7 @@ Croatian.
 Sign in, upload and confirm a real Croatian receipt, then open `/receipts` and download both CSV and
 JSON. Open the CSV in a spreadsheet and verify Croatian characters are intact, a seller name starting
 with `=`, `+`, `-` or `@` is neutralized, and a total of `100.50` remains exactly `100.50`. Verify the
-JSON response has `schemaVersion: 1`, contains no Azure property name, keeps nested VAT and optional
+JSON response has `schemaVersion: 2`, contains no Azure property name, keeps nested VAT and optional
 items, and preserves exact money strings. Confirm a `review` receipt, a soft-deleted confirmed
 receipt and another user's confirmed receipt are absent from both formats. Repeat the visible export
 controls in Croatian at 375 px.
@@ -898,8 +923,9 @@ modality both depend on layout and the top layer, neither of which jsdom impleme
 ### 8.16 Journey - extraction accuracy
 
 Upload a Croatian receipt with a VAT recap and confirm the review form contains its VAT rate, taxable
-base and VAT amount. Confirm the currency is populated; when it is inferred from a pre-2023 Croatian
-receipt, it must use the existing amber low-confidence treatment. At 1440 px, focus each VAT field and
+base and VAT amount. Confirm the currency is populated; when it is inferred from the receipt's date it
+must **not** be amber (iteration 26 — an inferred value has no model confidence to be low), and neither
+may a date, time, total or JIR that the receipt's QR code agrees with. At 1440 px, focus each VAT field and
 confirm its table-cell source outline appears. Upload a VAT-exempt receipt and confirm it shows no
 `vat_present_but_unread` warning. Repeat the visible copy in Croatian.
 
@@ -909,6 +935,29 @@ hit testing.
 For a source above 2 MP or 1.5 MB, confirm its preview and stored source are the same downscaled JPEG,
 the critical extracted fields still match the full-size source, and an unreadable failure offers Upload
 another receipt without Retry.
+
+### 8.17 Journey - schema v2 review form
+
+Upload `receipt123.jpg`, `22559270.png`, `primjer-pdf-racuna.pdf`, `receiptWithTaxMistake.jpg` and
+`lira_trogir.jpg` from `.agents/fixtures/receipts/`. At 1440 px and 390 px, in both languages:
+
+- No subtotal field exists. Payment method is a text input holding the wording the receipt prints
+  (`Novčanice`, `Transakcijski račun`).
+- The retail receipts show **no buyer inputs**, only an Add buyer control at least 44 px tall;
+  clicking it reveals three inputs and removes the control. The PDF shows its buyer at once.
+- `receipt123`: the JIR equals the QR value `b19e5e13-…`, one VAT row, no VAT warning.
+- `22559270`: three VAT rows, no VAT warning, date and currency not amber.
+- `primjer-pdf-racuna`: the OIB is shown amber with the check-digit warning, and focusing it raises
+  its outline on the PDF.
+- `lira_trogir`: currency `EUR`, not amber; payment method `Novčanice`.
+- **A row stored under schema v1 still works.** With the secret key, rewrite one disposable receipt's
+  `canonical_data` and `original_extraction` to carry `subtotal`.
+  It must open (not the generic error screen), list no edited field, save, and
+  export. `PATCH` with a `subtotal` key must return 400.
+- The CSV header has twenty columns and no `subtotal`; the JSON says `"schemaVersion": 2`.
+
+`.env` may set `PORT` to something other than 3001, which the Vite proxy does not follow: if
+`http://localhost:5173/api/health` answers 502, start the API with `PORT=3001` for the session.
 
 ---
 
