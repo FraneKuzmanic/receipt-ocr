@@ -82,9 +82,9 @@ export async function complete(
   system: string,
   content: string | Part[],
   schema: Record<string, unknown>,
+  deployment = requireEnv("AZURE_OPENAI_DEPLOYMENT"),
 ): Promise<{ json: Record<string, unknown>; usage: Usage; latencyMs: number }> {
   const endpoint = requireEnv("AZURE_OPENAI_ENDPOINT").replace(/\/$/, "");
-  const deployment = requireEnv("AZURE_OPENAI_DEPLOYMENT");
   const apiVersion = requireEnv("AZURE_OPENAI_API_VERSION");
   const url = `${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=${apiVersion}`;
   for (let attempt = 1; ; attempt++) {

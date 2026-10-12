@@ -2,9 +2,11 @@
  * Scores every recorded input-mode run, and the production engine as the reference line,
  * against one ground truth with one comparator.
  *
- * Ground truth is `.agents/fixtures/expected/<sample>.json` plus the additive keys in
- * `ground-truth/<sample>.json`. A run that exists but lacks a receipt fails the script: a
- * harness that skips what it cannot measure reports the health of the corpus it kept.
+ * Ground truth is `truth.ts`. A run that exists but lacks a receipt fails the script: a harness
+ * that skips what it cannot measure reports the health of the corpus it kept.
+ *
+ * These are iteration 25's runs: full-resolution inputs and the schema that still asked for
+ * `subtotal`. Production is replayed from fixtures, so the receipt without one is left out.
  *
  * `--verbose` lists every mismatch with each arm's value, and the paths that differ between runs.
  */
@@ -21,36 +23,20 @@ import { normalize } from "./normalize.ts";
 import {
   CACHE_DIR,
   EXCLUDED,
-  EXPECTED_DIR,
   FIXTURES_DIR,
-  GROUND_TRUTH_DIR,
-  SAMPLES,
+  SAMPLES as ALL_SAMPLES,
   SECONDARY_FIXTURES_DIR,
+  UNSEEN,
   readCache,
   writeCache,
   type Sample,
 } from "./samples.ts";
+import { TABLES_VERIFIED, groundTruth } from "./truth.ts";
+
+const SAMPLES = ALL_SAMPLES.filter((s) => s.name !== UNSEEN);
 
 const verbose = process.argv.includes("--verbose");
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, "utf8")) as T;
-
-// ---------- ground truth ----------
-
-let unverified = 0;
-
-function groundTruth(s: Sample): Record<string, unknown> {
-  const expected = readJson<Record<string, unknown>>(join(EXPECTED_DIR, `${s.name}.json`));
-  const path = join(GROUND_TRUTH_DIR, `${s.name}.json`);
-  if (!existsSync(path)) throw new Error(`no extended ground truth for '${s.name}': ${path}`);
-  const { verifiedBy, notes: _notes, ...additions } = readJson<Record<string, unknown>>(path);
-  if (!verifiedBy) unverified++;
-  for (const key of Object.keys(additions)) {
-    if (key in expected && JSON.stringify(expected[key]) !== JSON.stringify(additions[key])) {
-      throw new Error(`'${s.name}': '${key}' is in both ground-truth files with different values`);
-    }
-  }
-  return { ...expected, ...additions };
-}
 
 // ---------- the production engine, replayed as scripts/score-extraction.ts replays it ----------
 
@@ -161,6 +147,7 @@ const METRICS = [
   "critical",
   "fiscal",
   "other",
+  "party",
   "VAT cells",
   "item cells",
   "VAT row count exact",
@@ -181,10 +168,11 @@ function tally(receipts: ScoredReceipt[]): Record<Metric, Tally> {
   };
   const critical = receipts.map((r) => r.score.noCriticalCorrection).filter((v) => v !== null);
   return {
-    scalars: group("critical", "fiscal", "other"),
+    scalars: group("critical", "fiscal", "other", "party"),
     critical: group("critical"),
     fiscal: group("fiscal"),
     other: group("other"),
+    party: group("party"),
     "VAT cells": group("vat"),
     "item cells": group("items"),
     "VAT row count exact": rows("vatBreakdown"),
@@ -214,7 +202,7 @@ const lines: string[] = [];
 const out = (line = ""): void => void lines.push(line);
 const row = (cells: string[]): void => out(`| ${cells.join(" | ")} |`);
 
-if (unverified) out(`**GROUND TRUTH NOT VERIFIED** (${unverified} of ${SAMPLES.length} files)\n`);
+if (!TABLES_VERIFIED) out("**ITEMS AND VAT ROWS NOT VERIFIED** (the scalar ground truth is)\n");
 out(
   `Runs recorded: ${armNames.map((arm) => `${arm} ${runsOf(arm).length}`).join(", ")}. ` +
     `Ranges are over an arm's runs. \`files\` ran for the 2 PDFs only. ` +
@@ -333,7 +321,7 @@ console.log(lines.join("\n"));
 
 // The same numbers as data, for the write-up.
 writeCache("", "report", {
-  groundTruthVerified: unverified === 0,
+  tablesVerified: TABLES_VERIFIED,
   runs: runs.map((run) => ({
     arm: run.arm,
     rep: run.rep,

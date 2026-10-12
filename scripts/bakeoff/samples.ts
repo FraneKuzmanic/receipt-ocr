@@ -11,7 +11,7 @@ export const FIXTURES_DIR = join(ROOT, "api/src/providers/document-extraction/fi
 export const SECONDARY_FIXTURES_DIR = join(FIXTURES_DIR, "secondary");
 
 export interface Sample {
-  /** The basename of its expected file and of its recorded fixtures. */
+  /** The basename of its ground-truth files and, where it has them, of its recorded fixtures. */
   readonly name: string;
   readonly sourceFile: string;
   readonly contentType: "image/png" | "image/jpeg" | "application/pdf";
@@ -24,6 +24,8 @@ const sample = (name: string, sourceFile: string): Sample => {
     ext === "pdf" ? "application/pdf" : ext === "png" ? "image/png" : "image/jpeg";
   return { name, sourceFile, contentType, sourceKind: ext === "pdf" ? "pdf" : "image" };
 };
+
+export const UNSEEN = "0f089468f365211452db4ccf6e8da466";
 
 // Names follow no slug rule, so the pairing is written out rather than derived.
 export const SAMPLES: readonly Sample[] = [
@@ -41,6 +43,9 @@ export const SAMPLES: readonly Sample[] = [
   sample("receiptEuroMistake", "receiptEuroMistake.jpg"),
   sample("receiptWithTaxMistake", "receiptWithTaxMistake.jpg"),
   sample("screenshot-20190705-1907152", "Screenshot_20190705-1907152.png"),
+  // No recorded fixture, so it is outside score.ts and scripts/score-extraction.ts: the one
+  // receipt the production rules were not written against.
+  sample(UNSEEN, `${UNSEEN}.png`),
 ];
 
 /** Expected values exist for these, but no source file, so no arm can be given them. */

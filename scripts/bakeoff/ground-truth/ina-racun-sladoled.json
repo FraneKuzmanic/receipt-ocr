@@ -1,5 +1,4 @@
 {
-  "paymentMethod": "kartica-MasterCard",
   "items": [
     {
       "quantity": "1.00",
@@ -27,9 +26,7 @@
   ],
   "verifiedBy": null,
   "notes": [
-    "JIR and ZKI left out: on this 328 px wide image I cannot tell a/e/8 apart with confidence. My best reading, for you to check: JIR b044e5f9-727c-47a0-ae57-ec4580d9406a, ZKI ad29e09be271e25fe4dbfc88fad71c30.",
     "First item's description left out: its second word is unclear ('SLAD.?TA.MONTE 110ml').",
-    "Descriptions are written without the printed row number ('01', '02', ...).",
-    "subtotal left out: the only amount without VAT is the base inside the VAT recap, which is scored there."
+    "Descriptions are written without the printed row number ('01', '02', ...)."
   ]
 }

@@ -4,76 +4,124 @@
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { cuUsd, type CuUsage } from "./content-understanding.ts";
 import type { Usage } from "./model-input.ts";
 import { CACHE_DIR } from "./samples.ts";
 
-// USD, list prices: gpt-4.1 on Azure per 1M tokens, and DI prebuilt-layout per page.
-export const PRICE = { input: 2.0, cachedInput: 0.5, output: 8.0, layoutPage: 0.01 };
+// USD, list prices: gpt-4.1 on Azure per 1M tokens; Document Intelligence per page; Content
+// Understanding per page and per 1M contextualization tokens.
+export const PRICE = {
+  input: 2.0,
+  cachedInput: 0.5,
+  output: 8.0,
+  layoutPage: 0.01,
+  readPage: 0.0015,
+  diPage: 0.01,
+  cuPage: 0.005,
+  cuContextualization: 1.0,
+};
 export const PRICE_NOTE =
-  "List prices, not checked against the invoice: gpt-4.1 $2.00 / $0.50 cached / $8.00 per 1M tokens; prebuilt-layout $0.01 per page.";
+  "List prices, not checked against the invoice: gpt-4.1 $2.00 / $0.50 cached / $8.00 per 1M tokens; " +
+  "prebuilt-layout, prebuilt-invoice and prebuilt-receipt taken at $0.01 per page each; " +
+  "Content Understanding $0.005 per page and $1.00 per 1M contextualization tokens.";
+
+/** Per 1M tokens, for a deployment other than gpt-4.1. */
+const MODEL_PRICE: Record<string, { input: number; cachedInput: number; output: number }> = {
+  "gpt-4.1-mini": { input: 0.4, cachedInput: 0.1, output: 1.6 },
+};
 
 /** A call nothing has been recorded for yet is assumed to cost this much. */
-const UNSEEN_CALL_USD = 0.015;
+const UNSEEN_CALL_USD: Record<string, number> = { production: 0.02, cu: 0.035 };
+const UNSEEN_MODEL_CALL_USD = 0.015;
 
-export function modelUsd(usage: Usage, billed = true): number {
+export function modelUsd(usage: Usage, billed = true, deployment?: string): number {
+  const price = MODEL_PRICE[deployment ?? ""] ?? PRICE;
   const cached = billed ? (usage.prompt_tokens_details?.cached_tokens ?? 0) : 0;
   return (
-    ((usage.prompt_tokens - cached) * PRICE.input +
-      cached * PRICE.cachedInput +
-      usage.completion_tokens * PRICE.output) /
+    ((usage.prompt_tokens - cached) * price.input +
+      cached * price.cachedInput +
+      usage.completion_tokens * price.output) /
     1e6
   );
 }
 
 interface Recorded {
   total: number;
-  /** Model cost of every recorded call, by arm ("boxes" for the box run). */
+  /** Cost of every recorded call, by arm ("boxes" for the box run), layout calls apart. */
   byArm: Map<string, number[]>;
 }
 
-/** Every record under .bakeoff/, whatever its tag: probes and failed sittings were paid for too. */
-export function recordedSpend(): Recorded {
+/**
+ * Every record under `dir`, whatever its tag: probes and failed sittings were paid for too.
+ * Each experiment has its own cap, so each passes its own directory.
+ */
+export function recordedSpend(dir = CACHE_DIR): Recorded {
   const recorded: Recorded = { total: 0, byArm: new Map() };
-  const walk = (dir: string): void => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const path = join(dir, entry.name);
+  const add = (arm: string, usd: number): void => {
+    recorded.total += usd;
+    recorded.byArm.set(arm, [...(recorded.byArm.get(arm) ?? []), usd]);
+  };
+  const walk = (folder: string): void => {
+    for (const entry of readdirSync(folder, { withFileTypes: true })) {
+      const path = join(folder, entry.name);
       if (entry.isDirectory()) walk(path);
       else if (entry.name.endsWith(".json")) {
         const record = JSON.parse(readFileSync(path, "utf8")) as {
           arm?: string;
           usage?: Usage;
           modelId?: string;
-          operation?: { analyzeResult?: { pages?: unknown[] } };
+          deployment?: string;
+          operation?: { analyzeResult?: { pages?: unknown[] }; usage?: CuUsage };
+          raw?: { analyzeResult?: { pages?: unknown[] } };
+          metadata?: { secondaryModelId?: string | null };
+          submitAttempts?: number;
         };
-        if (record.modelId === "prebuilt-layout") {
+        if (record.modelId === "prebuilt-layout" || record.modelId === "prebuilt-read") {
           recorded.total +=
-            (record.operation?.analyzeResult?.pages?.length ?? 1) * PRICE.layoutPage;
+            (record.operation?.analyzeResult?.pages?.length ?? 1) *
+            (record.modelId === "prebuilt-read" ? PRICE.readPage : PRICE.layoutPage);
+        } else if (record.arm === "production") {
+          // Every page, once per prebuilt model that read it.
+          const models = record.metadata?.secondaryModelId ? 2 : 1;
+          add(
+            "production",
+            (record.raw?.analyzeResult?.pages?.length ?? 1) * models * PRICE.diPage,
+          );
+        } else if (record.arm === "cu") {
+          // A submit abandoned as stalled may still have been analysed, so it is counted as one.
+          add("cu", cuUsd(record.operation?.usage) * (record.submitAttempts ?? 1));
         } else if (record.usage) {
-          const usd = modelUsd(record.usage);
-          recorded.total += usd;
-          const arm = record.arm ?? "boxes";
-          recorded.byArm.set(arm, [...(recorded.byArm.get(arm) ?? []), usd]);
+          add(record.arm ?? "boxes", modelUsd(record.usage, true, record.deployment));
         }
       }
     }
   };
-  if (existsSync(CACHE_DIR)) walk(CACHE_DIR);
+  if (existsSync(dir)) walk(dir);
   return recorded;
 }
 
 /**
  * Prints the recorded spend and the estimate for what is about to run, and exits if the two
- * together would pass the cap. `calls` names the arm of every model call still to be made.
+ * together would pass the cap. `calls` names the arm of every call still to be made, and
+ * `extraUsd` is what they cost beyond that (the `ocr` arm's layout pages).
  */
-export function guardSpend(label: string, calls: string[], layoutPages: number, cap: number): void {
-  const recorded = recordedSpend();
+export function guardSpend(
+  label: string,
+  calls: string[],
+  extraUsd: number,
+  cap: number,
+  dir = CACHE_DIR,
+): void {
+  const recorded = recordedSpend(dir);
   const mean = (arm: string): number => {
     const seen = recorded.byArm.get(arm);
-    return seen?.length ? seen.reduce((a, b) => a + b, 0) / seen.length : UNSEEN_CALL_USD;
+    return seen?.length
+      ? seen.reduce((a, b) => a + b, 0) / seen.length
+      : (UNSEEN_CALL_USD[arm] ?? UNSEEN_MODEL_CALL_USD);
   };
-  const estimate = calls.reduce((sum, arm) => sum + mean(arm), 0) + layoutPages * PRICE.layoutPage;
+  const estimate = calls.reduce((sum, arm) => sum + mean(arm), 0) + extraUsd;
   console.log(
-    `  ${label}: ${calls.length} model calls, ${layoutPages} layout pages, estimated $${estimate.toFixed(2)}; ` +
+    `  ${label}: ${calls.length} calls, estimated $${estimate.toFixed(2)}; ` +
       `recorded so far $${recorded.total.toFixed(2)}; cap $${cap.toFixed(2)}`,
   );
   if (recorded.total + estimate > cap) {

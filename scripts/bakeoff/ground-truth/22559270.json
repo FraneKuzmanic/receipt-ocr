@@ -1,8 +1,4 @@
 {
-  "sellerOib": "78796880101",
-  "paymentMethod": "Novčanice",
-  "zki": "d731f731e41e19b0c32856505415e584",
-  "jir": "c8403f99-e432-47fe-9a43-3685a48aec89",
   "items": [
     {
       "description": "CLUB SENDVIČ PUREĆA PRSA",
@@ -48,8 +44,5 @@
     }
   ],
   "verifiedBy": null,
-  "notes": [
-    "ZKI and JIR read from an enlarged crop of a 447 px wide photo; 0/8/9 are easy to confuse. Please check them character by character.",
-    "subtotal left out: the only amount without VAT is the base inside the VAT recap, which is scored there. (The recap's 'TOTAL: 440.92' is the sum of the bases.)"
-  ]
+  "notes": []
 }

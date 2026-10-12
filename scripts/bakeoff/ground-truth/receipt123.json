@@ -1,7 +1,4 @@
 {
-  "sellerOib": "90789920471",
-  "issueTime": "14:17",
-  "paymentMethod": "NOVČANICE",
   "items": [
     {
       "description": "KAVA S MLIJEKOM VE",
@@ -23,9 +20,5 @@
     }
   ],
   "verifiedBy": null,
-  "notes": [
-    "JIR and ZKI left out: the print is too degraded for me to read reliably.",
-    "The columns are printed price, then quantity ('Cijena Kol. Iznos').",
-    "subtotal left out: the only amount without VAT is the base inside the VAT recap, which is scored there."
-  ]
+  "notes": ["The columns are printed price, then quantity ('Cijena Kol. Iznos')."]
 }

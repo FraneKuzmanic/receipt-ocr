@@ -1,0 +1,43 @@
+{
+  "sellerName": "KONZUM plus d.o.o.",
+  "sellerAddress": "Zagreb, Ulica Marijana Čavića 1A",
+  "sellerOib": "62226620908",
+  "buyerName": null,
+  "buyerAddress": null,
+  "buyerOib": null,
+  "documentNumber": null,
+  "issueDate": null,
+  "issueTime": null,
+  "total": "13.40",
+  "currency": "EUR",
+  "paymentMethod": "cash",
+  "jir": null,
+  "zki": null,
+  "items": [
+    {
+      "description": "RAJČICA GRAPOLO",
+      "quantity": "0.51",
+      "unitPrice": "1.99",
+      "total": "1.01"
+    },
+    {
+      "description": "PAPRIKA BABURA",
+      "quantity": "0.334",
+      "unitPrice": "1.33",
+      "total": "0.44"
+    },
+    {
+      "description": "CIGARETE PALL MALL E",
+      "quantity": "3",
+      "unitPrice": "3.98",
+      "total": "11.95"
+    }
+  ],
+  "verifiedBy": null,
+  "notes": [
+    "The scalars are the product owner's verified row in .agents/fixtures/ground-truth-review.md. They live here, not in .agents/fixtures/expected/, because the receipt has no recorded fixture and /validate 6.19 fails on an expectation without one.",
+    "Document number, date, time, JIR and ZKI are null: the photo ends above them, so an engine must return nothing.",
+    "The receipt prints every item in kuna and, on the line below, in euros. The items are the euro line, the currency of the total (1,01 + 0,44 + 11,95 = 13,40). Not owner-verified.",
+    "vatBreakdown left out: the recap is printed in kuna only."
+  ]
+}

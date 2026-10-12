@@ -178,7 +178,12 @@ if (process.argv.includes("--summary")) {
       armsFor(s).filter((arm) => force || !isRecorded(arm, rep, s)),
     );
     // One page each: both PDFs in the corpus are single-page.
-    guardSpend(`run ${rep}`, todo, todo.filter((arm) => arm === "ocr").length, cap);
+    guardSpend(
+      `run ${rep}`,
+      todo,
+      todo.filter((arm) => arm === "ocr").length * PRICE.layoutPage,
+      cap,
+    );
 
     for (const [index, s] of samples.entries()) {
       const arms = armsFor(s);
