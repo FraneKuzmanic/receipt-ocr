@@ -1,0 +1,1794 @@
+{
+  "analyzeResult": {
+    "apiVersion": "2024-11-30",
+    "modelId": "prebuilt-read",
+    "stringIndexType": "textElements",
+    "content": "Ana Horvat Privatni iznajmljivač paušalist\napartman-demo@example.invalid +385 91 555 123 Ulica primjera 5, 21000 Split\nRAČUN br. 1/1/1\nDatum izdavanja: 29.07.2026.\nDospijeće plaćanja: 12.08.2026.\nIzdavatelj: Ana Horvat Ulica primjera 5, 21000 Split OIB: 12345678902 Način plaćanja: Transakcijski račun\nKupac:\nJohn Smith\nUlica primjera 10, 10000 Zagreb\nOpis\nJed. mj. Kol.\nUkupno\nSmještaj - Apartman Demo, Ulica primjera 5, Split, 12 .- 19.07.2026.\nPnoćenja 7 630,00 EUR\nPDV nije obračunat prema čl. 90. Zakona o PDV-u. 630,00 EUR\nUkupno:\nPodaci za plaćanje IBAN: HR91 2360 0001 1029 3847 5 Model i poziv na broj: HR99 1/1/1 Primatelj: Ana Horvat Opis plaćanja: Smjestaj 1/1/1\nDEMO DOKUMENT I PODACI SU IZMIŠLJENI I SLUŽE SAMO KAO PRIMJER OIB: 12345678902 | IBAN: HR91 2360 0001 1029 3847 5",
+    "pages": [
+      {
+        "pageNumber": 1,
+        "angle": 0,
+        "width": 8.25,
+        "height": 11.6667,
+        "unit": "inch",
+        "words": [
+          {
+            "content": "Ana",
+            "polygon": [0.5396, 0.3283, 1.0431, 0.3315, 1.0402, 0.5746, 0.5351, 0.5823],
+            "confidence": 0.998,
+            "span": {
+              "offset": 0,
+              "length": 3
+            }
+          },
+          {
+            "content": "Horvat",
+            "polygon": [1.1317, 0.3319, 1.9346, 0.3305, 1.9346, 0.5774, 1.1292, 0.5738],
+            "confidence": 0.998,
+            "span": {
+              "offset": 4,
+              "length": 6
+            }
+          },
+          {
+            "content": "Privatni",
+            "polygon": [0.543, 0.6261, 0.981, 0.6284, 0.9793, 0.7757, 0.543, 0.7719],
+            "confidence": 0.994,
+            "span": {
+              "offset": 11,
+              "length": 8
+            }
+          },
+          {
+            "content": "iznajmljivač",
+            "polygon": [1.0191, 0.6286, 1.6736, 0.6316, 1.6692, 0.7769, 1.0172, 0.7759],
+            "confidence": 0.992,
+            "span": {
+              "offset": 20,
+              "length": 12
+            }
+          },
+          {
+            "content": "paušalist",
+            "polygon": [1.7045, 0.6317, 2.2284, 0.6337, 2.2284, 0.7738, 1.7001, 0.7769],
+            "confidence": 0.993,
+            "span": {
+              "offset": 33,
+              "length": 9
+            }
+          },
+          {
+            "content": "apartman-demo@example.invalid",
+            "polygon": [5.7695, 0.2963, 7.7182, 0.2832, 7.7182, 0.4243, 5.7663, 0.4344],
+            "confidence": 0.964,
+            "span": {
+              "offset": 43,
+              "length": 29
+            }
+          },
+          {
+            "content": "+385",
+            "polygon": [6.7199, 0.4719, 7.0154, 0.468, 7.0154, 0.5973, 6.7199, 0.5955],
+            "confidence": 0.995,
+            "span": {
+              "offset": 73,
+              "length": 4
+            }
+          },
+          {
+            "content": "91",
+            "polygon": [7.0475, 0.4677, 7.1717, 0.4664, 7.1717, 0.5975, 7.0475, 0.5974],
+            "confidence": 0.994,
+            "span": {
+              "offset": 78,
+              "length": 2
+            }
+          },
+          {
+            "content": "555",
+            "polygon": [7.2295, 0.4658, 7.4394, 0.4642, 7.4394, 0.5975, 7.2295, 0.5975],
+            "confidence": 0.995,
+            "span": {
+              "offset": 81,
+              "length": 3
+            }
+          },
+          {
+            "content": "123",
+            "polygon": [7.4822, 0.464, 7.7081, 0.4629, 7.7081, 0.5972, 7.4822, 0.5975],
+            "confidence": 0.998,
+            "span": {
+              "offset": 85,
+              "length": 3
+            }
+          },
+          {
+            "content": "Ulica",
+            "polygon": [6.0835, 0.6511, 6.3803, 0.6509, 6.3791, 0.7997, 6.0835, 0.8001],
+            "confidence": 0.993,
+            "span": {
+              "offset": 89,
+              "length": 5
+            }
+          },
+          {
+            "content": "primjera",
+            "polygon": [6.415, 0.6509, 6.8751, 0.6499, 6.8719, 0.7995, 6.4136, 0.7997],
+            "confidence": 0.992,
+            "span": {
+              "offset": 95,
+              "length": 8
+            }
+          },
+          {
+            "content": "5,",
+            "polygon": [6.9048, 0.6498, 7.0186, 0.6494, 7.0148, 0.7996, 6.9015, 0.7995],
+            "confidence": 0.994,
+            "span": {
+              "offset": 104,
+              "length": 2
+            }
+          },
+          {
+            "content": "21000",
+            "polygon": [7.0557, 0.6493, 7.4144, 0.6476, 7.4091, 0.8001, 7.0518, 0.7997],
+            "confidence": 0.996,
+            "span": {
+              "offset": 107,
+              "length": 5
+            }
+          },
+          {
+            "content": "Split",
+            "polygon": [7.4539, 0.6474, 7.7182, 0.6459, 7.7182, 0.8001, 7.4485, 0.8001],
+            "confidence": 0.996,
+            "span": {
+              "offset": 113,
+              "length": 5
+            }
+          },
+          {
+            "content": "RAČUN",
+            "polygon": [0.553, 1.3419, 1.5144, 1.3313, 1.512, 1.6253, 0.5485, 1.6246],
+            "confidence": 0.992,
+            "span": {
+              "offset": 119,
+              "length": 5
+            }
+          },
+          {
+            "content": "br.",
+            "polygon": [1.6166, 1.3326, 1.8906, 1.3383, 1.889, 1.6254, 1.6144, 1.6253],
+            "confidence": 0.992,
+            "span": {
+              "offset": 125,
+              "length": 3
+            }
+          },
+          {
+            "content": "1/1/1",
+            "polygon": [2.0113, 1.3424, 2.5879, 1.3682, 2.5879, 1.6254, 2.01, 1.6254],
+            "confidence": 0.997,
+            "span": {
+              "offset": 129,
+              "length": 5
+            }
+          },
+          {
+            "content": "Datum",
+            "polygon": [6.6915, 1.2961, 7.0532, 1.2988, 7.0487, 1.4685, 6.6869, 1.4672],
+            "confidence": 0.998,
+            "span": {
+              "offset": 135,
+              "length": 5
+            }
+          },
+          {
+            "content": "izdavanja:",
+            "polygon": [7.1001, 1.2992, 7.7233, 1.3041, 7.7233, 1.4678, 7.0956, 1.4685],
+            "confidence": 0.992,
+            "span": {
+              "offset": 141,
+              "length": 10
+            }
+          },
+          {
+            "content": "29.07.2026.",
+            "polygon": [6.8176, 1.5027, 7.7081, 1.5096, 7.704, 1.6761, 6.813, 1.6761],
+            "confidence": 0.993,
+            "span": {
+              "offset": 152,
+              "length": 11
+            }
+          },
+          {
+            "content": "Dospijeće",
+            "polygon": [6.5858, 1.7486, 7.1558, 1.7505, 7.1525, 1.8959, 6.5858, 1.8983],
+            "confidence": 0.977,
+            "span": {
+              "offset": 164,
+              "length": 9
+            }
+          },
+          {
+            "content": "plaćanja:",
+            "polygon": [7.1896, 1.7504, 7.7132, 1.7475, 7.7096, 1.8972, 7.1861, 1.8959],
+            "confidence": 0.992,
+            "span": {
+              "offset": 174,
+              "length": 9
+            }
+          },
+          {
+            "content": "12.08.2026.",
+            "polygon": [6.8348, 1.9326, 7.7081, 1.9298, 7.7064, 2.0901, 6.8348, 2.0886],
+            "confidence": 0.993,
+            "span": {
+              "offset": 184,
+              "length": 11
+            }
+          },
+          {
+            "content": "Izdavatelj:",
+            "polygon": [0.543, 2.1903, 1.1388, 2.1979, 1.1323, 2.3328, 0.5398, 2.3318],
+            "confidence": 0.954,
+            "span": {
+              "offset": 196,
+              "length": 11
+            }
+          },
+          {
+            "content": "Ana",
+            "polygon": [0.5505, 2.4122, 0.844, 2.4119, 0.8418, 2.5666, 0.5505, 2.5673],
+            "confidence": 0.998,
+            "span": {
+              "offset": 208,
+              "length": 3
+            }
+          },
+          {
+            "content": "Horvat",
+            "polygon": [0.8947, 2.4119, 1.3978, 2.413, 1.3942, 2.5656, 0.892, 2.5663],
+            "confidence": 0.996,
+            "span": {
+              "offset": 212,
+              "length": 6
+            }
+          },
+          {
+            "content": "Ulica",
+            "polygon": [0.5408, 2.6529, 0.8901, 2.6537, 0.8895, 2.8317, 0.5408, 2.8284],
+            "confidence": 0.996,
+            "span": {
+              "offset": 219,
+              "length": 5
+            }
+          },
+          {
+            "content": "primjera",
+            "polygon": [0.9493, 2.6537, 1.4999, 2.6537, 1.4983, 2.835, 0.9486, 2.8321],
+            "confidence": 0.992,
+            "span": {
+              "offset": 225,
+              "length": 8
+            }
+          },
+          {
+            "content": "5,",
+            "polygon": [1.5502, 2.6537, 1.6657, 2.6535, 1.6638, 2.8354, 1.5486, 2.8351],
+            "confidence": 0.989,
+            "span": {
+              "offset": 234,
+              "length": 2
+            }
+          },
+          {
+            "content": "21000",
+            "polygon": [1.7219, 2.6534, 2.1482, 2.652, 2.1456, 2.8351, 1.72, 2.8354],
+            "confidence": 0.998,
+            "span": {
+              "offset": 237,
+              "length": 5
+            }
+          },
+          {
+            "content": "Split",
+            "polygon": [2.2044, 2.6518, 2.5221, 2.6501, 2.5221, 2.8336, 2.2017, 2.835],
+            "confidence": 0.997,
+            "span": {
+              "offset": 243,
+              "length": 5
+            }
+          },
+          {
+            "content": "OIB:",
+            "polygon": [0.543, 2.8696, 0.8558, 2.8724, 0.855, 3.0351, 0.543, 3.0433],
+            "confidence": 0.974,
+            "span": {
+              "offset": 249,
+              "length": 4
+            }
+          },
+          {
+            "content": "12345678902",
+            "polygon": [0.9141, 2.8728, 1.8637, 2.8707, 1.8637, 3.034, 0.9132, 3.0339],
+            "confidence": 0.994,
+            "span": {
+              "offset": 254,
+              "length": 11
+            }
+          },
+          {
+            "content": "Način",
+            "polygon": [0.5367, 3.0988, 0.9436, 3.0979, 0.9425, 3.2711, 0.5367, 3.2711],
+            "confidence": 0.995,
+            "span": {
+              "offset": 266,
+              "length": 5
+            }
+          },
+          {
+            "content": "plaćanja:",
+            "polygon": [0.9948, 3.0978, 1.618, 3.0971, 1.6151, 3.2711, 0.9936, 3.2711],
+            "confidence": 0.989,
+            "span": {
+              "offset": 272,
+              "length": 9
+            }
+          },
+          {
+            "content": "Transakcijski",
+            "polygon": [1.6549, 3.0971, 2.5541, 3.0977, 2.5488, 3.2693, 1.652, 3.2711],
+            "confidence": 0.995,
+            "span": {
+              "offset": 282,
+              "length": 13
+            }
+          },
+          {
+            "content": "račun",
+            "polygon": [2.6025, 3.0978, 2.9982, 3.0986, 2.9982, 3.2676, 2.5971, 3.2691],
+            "confidence": 0.993,
+            "span": {
+              "offset": 296,
+              "length": 5
+            }
+          },
+          {
+            "content": "Kupac:",
+            "polygon": [5.0693, 2.2935, 5.4899, 2.2914, 5.4899, 2.4222, 5.0692, 2.4285],
+            "confidence": 0.994,
+            "span": {
+              "offset": 302,
+              "length": 6
+            }
+          },
+          {
+            "content": "John",
+            "polygon": [5.0768, 2.5012, 5.4296, 2.5009, 5.4269, 2.6606, 5.0767, 2.6624],
+            "confidence": 0.99,
+            "span": {
+              "offset": 309,
+              "length": 4
+            }
+          },
+          {
+            "content": "Smith",
+            "polygon": [5.4876, 2.5009, 5.9153, 2.5013, 5.913, 2.6634, 5.4844, 2.6605],
+            "confidence": 0.996,
+            "span": {
+              "offset": 314,
+              "length": 5
+            }
+          },
+          {
+            "content": "Ulica",
+            "polygon": [5.0756, 2.7522, 5.4222, 2.7464, 5.4185, 2.9237, 5.0724, 2.9206],
+            "confidence": 0.994,
+            "span": {
+              "offset": 320,
+              "length": 5
+            }
+          },
+          {
+            "content": "primjera",
+            "polygon": [5.479, 2.7457, 6.0288, 2.7398, 6.0242, 2.9266, 5.4752, 2.9241],
+            "confidence": 0.994,
+            "span": {
+              "offset": 326,
+              "length": 8
+            }
+          },
+          {
+            "content": "10,",
+            "polygon": [6.0856, 2.7395, 6.2888, 2.7385, 6.2838, 2.9268, 6.0809, 2.9267],
+            "confidence": 0.997,
+            "span": {
+              "offset": 335,
+              "length": 3
+            }
+          },
+          {
+            "content": "10000",
+            "polygon": [6.3426, 2.7382, 6.7699, 2.7381, 6.7642, 2.9255, 6.3375, 2.9268],
+            "confidence": 0.998,
+            "span": {
+              "offset": 339,
+              "length": 5
+            }
+          },
+          {
+            "content": "Zagreb",
+            "polygon": [6.8117, 2.7383, 7.3181, 2.741, 7.3162, 2.9217, 6.806, 2.9253],
+            "confidence": 0.998,
+            "span": {
+              "offset": 345,
+              "length": 6
+            }
+          },
+          {
+            "content": "Opis",
+            "polygon": [0.6229, 3.4939, 0.9977, 3.4939, 0.9977, 3.6635, 0.6229, 3.6661],
+            "confidence": 0.992,
+            "span": {
+              "offset": 352,
+              "length": 4
+            }
+          },
+          {
+            "content": "Jed.",
+            "polygon": [4.0008, 3.4885, 4.3116, 3.4909, 4.3083, 3.6762, 3.9975, 3.6713],
+            "confidence": 0.991,
+            "span": {
+              "offset": 357,
+              "length": 4
+            }
+          },
+          {
+            "content": "mj.",
+            "polygon": [4.3689, 3.4915, 4.5935, 3.4939, 4.5935, 3.6762, 4.3657, 3.6762],
+            "confidence": 0.995,
+            "span": {
+              "offset": 362,
+              "length": 3
+            }
+          },
+          {
+            "content": "Kol.",
+            "polygon": [4.8315, 3.4838, 5.142, 3.4838, 5.1434, 3.6483, 4.8315, 3.6509],
+            "confidence": 0.989,
+            "span": {
+              "offset": 366,
+              "length": 4
+            }
+          },
+          {
+            "content": "Ukupno",
+            "polygon": [7.1286, 3.4958, 7.703, 3.5026, 7.703, 3.6731, 7.1253, 3.6736],
+            "confidence": 0.997,
+            "span": {
+              "offset": 371,
+              "length": 6
+            }
+          },
+          {
+            "content": "Smještaj",
+            "polygon": [0.625, 3.8541, 1.2303, 3.8489, 1.2297, 4.0357, 0.625, 4.0311],
+            "confidence": 0.945,
+            "span": {
+              "offset": 378,
+              "length": 8
+            }
+          },
+          {
+            "content": "-",
+            "polygon": [1.2975, 3.8485, 1.4228, 3.8478, 1.4221, 4.0367, 1.2969, 4.0361],
+            "confidence": 0.988,
+            "span": {
+              "offset": 387,
+              "length": 1
+            }
+          },
+          {
+            "content": "Apartman",
+            "polygon": [1.4748, 3.8474, 2.1442, 3.8449, 2.1429, 4.039, 1.474, 4.037],
+            "confidence": 0.992,
+            "span": {
+              "offset": 389,
+              "length": 8
+            }
+          },
+          {
+            "content": "Demo,",
+            "polygon": [2.1962, 3.8449, 2.6395, 3.8449, 2.6376, 4.0388, 2.1948, 4.039],
+            "confidence": 0.995,
+            "span": {
+              "offset": 398,
+              "length": 5
+            }
+          },
+          {
+            "content": "Ulica",
+            "polygon": [2.7006, 3.8449, 3.0216, 3.8459, 3.0194, 4.0375, 2.6987, 4.0386],
+            "confidence": 0.992,
+            "span": {
+              "offset": 404,
+              "length": 5
+            }
+          },
+          {
+            "content": "primjera",
+            "polygon": [3.0582, 3.846, 3.6421, 3.8491, 3.6394, 4.034, 3.056, 4.0374],
+            "confidence": 0.992,
+            "span": {
+              "offset": 410,
+              "length": 8
+            }
+          },
+          {
+            "content": "5,",
+            "polygon": [3.6971, 3.8494, 3.8133, 3.8504, 3.8104, 4.0325, 3.6943, 4.0337],
+            "confidence": 0.992,
+            "span": {
+              "offset": 419,
+              "length": 2
+            }
+          },
+          {
+            "content": "Split,",
+            "polygon": [3.8622, 3.8509, 4.2136, 3.8539, 4.2136, 4.0288, 3.8592, 4.032],
+            "confidence": 0.854,
+            "span": {
+              "offset": 422,
+              "length": 6
+            }
+          },
+          {
+            "content": "12",
+            "polygon": [0.6335, 4.0516, 0.764, 4.0524, 0.7637, 4.2168, 0.6335, 4.2166],
+            "confidence": 0.997,
+            "span": {
+              "offset": 429,
+              "length": 2
+            }
+          },
+          {
+            "content": ".-",
+            "polygon": [0.7967, 4.0526, 0.9163, 4.0531, 0.9155, 4.2171, 0.7962, 4.2168],
+            "confidence": 0.992,
+            "span": {
+              "offset": 432,
+              "length": 2
+            }
+          },
+          {
+            "content": "19.07.2026.",
+            "polygon": [0.949, 4.0532, 1.7867, 4.0504, 1.7834, 4.221, 0.9481, 4.2172],
+            "confidence": 0.994,
+            "span": {
+              "offset": 435,
+              "length": 11
+            }
+          },
+          {
+            "content": "Pnoćenja",
+            "polygon": [3.971, 3.9514, 4.5875, 3.9502, 4.5843, 4.1166, 3.971, 4.0973],
+            "confidence": 0.588,
+            "span": {
+              "offset": 447,
+              "length": 8
+            }
+          },
+          {
+            "content": "7",
+            "polygon": [5.0391, 3.9497, 5.1485, 3.9497, 5.1485, 4.0864, 5.0391, 4.0864],
+            "confidence": 0.996,
+            "span": {
+              "offset": 456,
+              "length": 1
+            }
+          },
+          {
+            "content": "630,00",
+            "polygon": [6.838, 3.9444, 7.3252, 3.9478, 7.3215, 4.1157, 6.838, 4.1118],
+            "confidence": 0.996,
+            "span": {
+              "offset": 458,
+              "length": 6
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [7.3769, 3.9483, 7.7132, 3.9514, 7.7132, 4.1104, 7.3729, 4.1154],
+            "confidence": 0.999,
+            "span": {
+              "offset": 465,
+              "length": 3
+            }
+          },
+          {
+            "content": "PDV",
+            "polygon": [4.7925, 4.4633, 5.0403, 4.4611, 5.0401, 4.6124, 4.7925, 4.6114],
+            "confidence": 0.997,
+            "span": {
+              "offset": 469,
+              "length": 3
+            }
+          },
+          {
+            "content": "nije",
+            "polygon": [5.0829, 4.4607, 5.3032, 4.459, 5.3026, 4.613, 5.0826, 4.6125],
+            "confidence": 0.992,
+            "span": {
+              "offset": 473,
+              "length": 4
+            }
+          },
+          {
+            "content": "obračunat",
+            "polygon": [5.3332, 4.4588, 5.8939, 4.4561, 5.8927, 4.613, 5.3326, 4.613],
+            "confidence": 0.995,
+            "span": {
+              "offset": 478,
+              "length": 9
+            }
+          },
+          {
+            "content": "prema",
+            "polygon": [5.9239, 4.456, 6.3069, 4.4555, 6.3052, 4.613, 5.9227, 4.613],
+            "confidence": 0.995,
+            "span": {
+              "offset": 488,
+              "length": 5
+            }
+          },
+          {
+            "content": "čl.",
+            "polygon": [6.342, 4.4555, 6.4646, 4.4555, 6.4627, 4.6129, 6.3402, 4.613],
+            "confidence": 0.982,
+            "span": {
+              "offset": 494,
+              "length": 3
+            }
+          },
+          {
+            "content": "90.",
+            "polygon": [6.5072, 4.4556, 6.6749, 4.456, 6.6728, 4.612, 6.5052, 4.6127],
+            "confidence": 0.997,
+            "span": {
+              "offset": 498,
+              "length": 3
+            }
+          },
+          {
+            "content": "Zakona",
+            "polygon": [6.7174, 4.4561, 7.1505, 4.4579, 7.1478, 4.6094, 6.7153, 4.6118],
+            "confidence": 0.996,
+            "span": {
+              "offset": 502,
+              "length": 6
+            }
+          },
+          {
+            "content": "o",
+            "polygon": [7.1855, 4.4581, 7.2556, 4.4585, 7.2529, 4.6087, 7.1828, 4.6092],
+            "confidence": 0.98,
+            "span": {
+              "offset": 509,
+              "length": 1
+            }
+          },
+          {
+            "content": "PDV-u.",
+            "polygon": [7.3031, 4.4587, 7.7081, 4.4619, 7.7081, 4.605, 7.3004, 4.6083],
+            "confidence": 0.989,
+            "span": {
+              "offset": 511,
+              "length": 6
+            }
+          },
+          {
+            "content": "630,00",
+            "polygon": [6.7837, 4.6822, 7.2999, 4.6834, 7.2995, 4.8611, 6.7869, 4.8592],
+            "confidence": 0.997,
+            "span": {
+              "offset": 518,
+              "length": 6
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [7.3579, 4.6831, 7.7182, 4.6796, 7.7182, 4.852, 7.3571, 4.8611],
+            "confidence": 0.999,
+            "span": {
+              "offset": 525,
+              "length": 3
+            }
+          },
+          {
+            "content": "Ukupno:",
+            "polygon": [0.531, 4.6852, 1.1446, 4.6986, 1.1446, 4.8711, 0.531, 4.8662],
+            "confidence": 0.995,
+            "span": {
+              "offset": 529,
+              "length": 7
+            }
+          },
+          {
+            "content": "Podaci",
+            "polygon": [0.6928, 5.3027, 1.1994, 5.3056, 1.192, 5.4917, 0.6838, 5.4881],
+            "confidence": 0.996,
+            "span": {
+              "offset": 537,
+              "length": 6
+            }
+          },
+          {
+            "content": "za",
+            "polygon": [1.2483, 5.3058, 1.4253, 5.3064, 1.4186, 5.4927, 1.241, 5.492],
+            "confidence": 0.998,
+            "span": {
+              "offset": 544,
+              "length": 2
+            }
+          },
+          {
+            "content": "plaćanje",
+            "polygon": [1.4741, 5.3065, 2.1017, 5.3073, 2.1017, 5.4934, 1.4676, 5.4929],
+            "confidence": 0.993,
+            "span": {
+              "offset": 547,
+              "length": 8
+            }
+          },
+          {
+            "content": "IBAN:",
+            "polygon": [0.6846, 5.5927, 1.1018, 5.59, 1.1013, 5.7485, 0.6846, 5.7465],
+            "confidence": 0.987,
+            "span": {
+              "offset": 556,
+              "length": 5
+            }
+          },
+          {
+            "content": "HR91",
+            "polygon": [1.1516, 5.5897, 1.5164, 5.5881, 1.5153, 5.7498, 1.151, 5.7487],
+            "confidence": 0.992,
+            "span": {
+              "offset": 562,
+              "length": 4
+            }
+          },
+          {
+            "content": "2360",
+            "polygon": [1.5846, 5.5879, 1.9362, 5.587, 1.9346, 5.7502, 1.5835, 5.7499],
+            "confidence": 0.989,
+            "span": {
+              "offset": 567,
+              "length": 4
+            }
+          },
+          {
+            "content": "0001",
+            "polygon": [1.9782, 5.587, 2.2957, 5.5868, 2.2936, 5.7499, 1.9765, 5.7502],
+            "confidence": 0.989,
+            "span": {
+              "offset": 572,
+              "length": 4
+            }
+          },
+          {
+            "content": "1029",
+            "polygon": [2.3718, 5.5868, 2.7155, 5.5873, 2.713, 5.7489, 2.3696, 5.7498],
+            "confidence": 0.989,
+            "span": {
+              "offset": 577,
+              "length": 4
+            }
+          },
+          {
+            "content": "3847",
+            "polygon": [2.7601, 5.5874, 3.1013, 5.5885, 3.0982, 5.7473, 2.7575, 5.7488],
+            "confidence": 0.992,
+            "span": {
+              "offset": 582,
+              "length": 4
+            }
+          },
+          {
+            "content": "5",
+            "polygon": [3.1459, 5.5887, 3.2362, 5.589, 3.2362, 5.7466, 3.1427, 5.747],
+            "confidence": 0.997,
+            "span": {
+              "offset": 587,
+              "length": 1
+            }
+          },
+          {
+            "content": "Model",
+            "polygon": [0.6878, 5.8148, 1.099, 5.8134, 1.0984, 5.9822, 0.6878, 5.9797],
+            "confidence": 0.996,
+            "span": {
+              "offset": 589,
+              "length": 5
+            }
+          },
+          {
+            "content": "i",
+            "polygon": [1.1323, 5.8133, 1.1935, 5.8131, 1.1928, 5.9826, 1.1317, 5.9824],
+            "confidence": 0.994,
+            "span": {
+              "offset": 595,
+              "length": 1
+            }
+          },
+          {
+            "content": "poziv",
+            "polygon": [1.2518, 5.8129, 1.6075, 5.8119, 1.6062, 5.9836, 1.251, 5.9828],
+            "confidence": 0.995,
+            "span": {
+              "offset": 597,
+              "length": 5
+            }
+          },
+          {
+            "content": "na",
+            "polygon": [1.6547, 5.8118, 1.8186, 5.8114, 1.817, 5.9835, 1.6533, 5.9837],
+            "confidence": 0.996,
+            "span": {
+              "offset": 603,
+              "length": 2
+            }
+          },
+          {
+            "content": "broj:",
+            "polygon": [1.8742, 5.8113, 2.1549, 5.8108, 2.1528, 5.9827, 1.8725, 5.9835],
+            "confidence": 0.996,
+            "span": {
+              "offset": 606,
+              "length": 5
+            }
+          },
+          {
+            "content": "HR99",
+            "polygon": [2.1882, 5.8108, 2.605, 5.8103, 2.6023, 5.9803, 2.1861, 5.9826],
+            "confidence": 0.992,
+            "span": {
+              "offset": 612,
+              "length": 4
+            }
+          },
+          {
+            "content": "1/1/1",
+            "polygon": [2.6661, 5.8103, 2.9931, 5.8101, 2.9931, 5.9769, 2.6633, 5.9799],
+            "confidence": 0.998,
+            "span": {
+              "offset": 617,
+              "length": 5
+            }
+          },
+          {
+            "content": "Primatelj:",
+            "polygon": [0.6941, 6.0324, 1.3405, 6.0306, 1.3391, 6.2013, 0.6941, 6.1995],
+            "confidence": 0.992,
+            "span": {
+              "offset": 623,
+              "length": 10
+            }
+          },
+          {
+            "content": "Ana",
+            "polygon": [1.3827, 6.0305, 1.6524, 6.0294, 1.6504, 6.2021, 1.3812, 6.2014],
+            "confidence": 0.998,
+            "span": {
+              "offset": 634,
+              "length": 3
+            }
+          },
+          {
+            "content": "Horvat",
+            "polygon": [1.7115, 6.0292, 2.1777, 6.027, 2.1777, 6.203, 1.7092, 6.2022],
+            "confidence": 0.994,
+            "span": {
+              "offset": 638,
+              "length": 6
+            }
+          },
+          {
+            "content": "Opis",
+            "polygon": [0.6835, 6.2491, 1.0107, 6.2477, 1.0107, 6.4338, 0.6835, 6.4313],
+            "confidence": 0.992,
+            "span": {
+              "offset": 645,
+              "length": 4
+            }
+          },
+          {
+            "content": "plaćanja:",
+            "polygon": [1.0678, 6.2475, 1.6802, 6.2464, 1.6802, 6.4339, 1.0678, 6.434],
+            "confidence": 0.96,
+            "span": {
+              "offset": 650,
+              "length": 9
+            }
+          },
+          {
+            "content": "Smjestaj",
+            "polygon": [1.7253, 6.2464, 2.3197, 6.2472, 2.3197, 6.4277, 1.7253, 6.4337],
+            "confidence": 0.993,
+            "span": {
+              "offset": 660,
+              "length": 8
+            }
+          },
+          {
+            "content": "1/1/1",
+            "polygon": [2.3738, 6.2474, 2.7145, 6.2485, 2.7145, 6.4206, 2.3738, 6.4269],
+            "confidence": 0.996,
+            "span": {
+              "offset": 669,
+              "length": 5
+            }
+          },
+          {
+            "content": "DEMO",
+            "polygon": [1.8478, 11.2399, 2.2453, 11.2335, 2.2479, 11.3684, 1.851, 11.3662],
+            "confidence": 0.989,
+            "span": {
+              "offset": 675,
+              "length": 4
+            }
+          },
+          {
+            "content": "DOKUMENT",
+            "polygon": [2.2836, 11.2329, 2.9971, 11.2238, 2.9987, 11.3718, 2.2862, 11.3686],
+            "confidence": 0.993,
+            "span": {
+              "offset": 680,
+              "length": 8
+            }
+          },
+          {
+            "content": "I",
+            "polygon": [3.0258, 11.2235, 3.0809, 11.2229, 3.0824, 11.3721, 3.0274, 11.3719],
+            "confidence": 0.829,
+            "span": {
+              "offset": 689,
+              "length": 1
+            }
+          },
+          {
+            "content": "PODACI",
+            "polygon": [3.1192, 11.2224, 3.6053, 11.2189, 3.606, 11.373, 3.1206, 11.3722],
+            "confidence": 0.992,
+            "span": {
+              "offset": 691,
+              "length": 6
+            }
+          },
+          {
+            "content": "SU",
+            "polygon": [3.646, 11.2187, 3.8184, 11.2176, 3.8188, 11.373, 3.6467, 11.373],
+            "confidence": 0.996,
+            "span": {
+              "offset": 698,
+              "length": 2
+            }
+          },
+          {
+            "content": "IZMIŠLJENI",
+            "polygon": [3.8615, 11.2175, 4.5487, 11.2163, 4.5481, 11.373, 3.8619, 11.373],
+            "confidence": 0.983,
+            "span": {
+              "offset": 701,
+              "length": 10
+            }
+          },
+          {
+            "content": "I",
+            "polygon": [4.5847, 11.2164, 4.6158, 11.2165, 4.6151, 11.373, 4.584, 11.373],
+            "confidence": 0.977,
+            "span": {
+              "offset": 712,
+              "length": 1
+            }
+          },
+          {
+            "content": "SLUŽE",
+            "polygon": [4.6565, 11.2166, 5.0731, 11.2175, 5.0718, 11.3722, 4.6557, 11.373],
+            "confidence": 0.993,
+            "span": {
+              "offset": 714,
+              "length": 5
+            }
+          },
+          {
+            "content": "SAMO",
+            "polygon": [5.1043, 11.2176, 5.4922, 11.2202, 5.4902, 11.3706, 5.1029, 11.3721],
+            "confidence": 0.992,
+            "span": {
+              "offset": 720,
+              "length": 4
+            }
+          },
+          {
+            "content": "KAO",
+            "polygon": [5.5233, 11.2204, 5.7939, 11.2224, 5.7915, 11.3691, 5.5213, 11.3704],
+            "confidence": 0.997,
+            "span": {
+              "offset": 725,
+              "length": 3
+            }
+          },
+          {
+            "content": "PRIMJER",
+            "polygon": [5.8322, 11.2229, 6.4015, 11.2292, 6.4015, 11.3656, 5.8298, 11.3689],
+            "confidence": 0.992,
+            "span": {
+              "offset": 729,
+              "length": 7
+            }
+          },
+          {
+            "content": "OIB:",
+            "polygon": [2.4681, 11.4359, 2.7554, 11.4339, 2.7551, 11.5632, 2.4681, 11.5608],
+            "confidence": 0.963,
+            "span": {
+              "offset": 737,
+              "length": 4
+            }
+          },
+          {
+            "content": "12345678902",
+            "polygon": [2.7824, 11.4337, 3.5455, 11.4298, 3.5444, 11.5685, 2.782, 11.5635],
+            "confidence": 0.992,
+            "span": {
+              "offset": 742,
+              "length": 11
+            }
+          },
+          {
+            "content": "|",
+            "polygon": [3.5724, 11.4297, 3.6263, 11.4295, 3.6252, 11.5688, 3.5714, 11.5686],
+            "confidence": 0.164,
+            "span": {
+              "offset": 754,
+              "length": 1
+            }
+          },
+          {
+            "content": "IBAN:",
+            "polygon": [3.6532, 11.4294, 3.9944, 11.4286, 3.9929, 11.5701, 3.6521, 11.5689],
+            "confidence": 0.977,
+            "span": {
+              "offset": 756,
+              "length": 5
+            }
+          },
+          {
+            "content": "HR91",
+            "polygon": [4.0214, 11.4285, 4.3693, 11.4281, 4.3674, 11.5705, 4.0198, 11.5702],
+            "confidence": 0.989,
+            "span": {
+              "offset": 762,
+              "length": 4
+            }
+          },
+          {
+            "content": "2360",
+            "polygon": [4.3984, 11.4282, 4.6813, 11.4284, 4.6791, 11.5705, 4.3965, 11.5705],
+            "confidence": 0.99,
+            "span": {
+              "offset": 767,
+              "length": 4
+            }
+          },
+          {
+            "content": "0001",
+            "polygon": [4.7172, 11.4284, 5.0067, 11.4289, 5.0042, 11.5701, 4.715, 11.5705],
+            "confidence": 0.989,
+            "span": {
+              "offset": 772,
+              "length": 4
+            }
+          },
+          {
+            "content": "1029",
+            "polygon": [5.0449, 11.429, 5.3232, 11.4298, 5.3204, 11.5691, 5.0424, 11.57],
+            "confidence": 0.989,
+            "span": {
+              "offset": 777,
+              "length": 4
+            }
+          },
+          {
+            "content": "3847",
+            "polygon": [5.3591, 11.43, 5.6532, 11.4313, 5.65, 11.5676, 5.3563, 11.569],
+            "confidence": 0.992,
+            "span": {
+              "offset": 782,
+              "length": 4
+            }
+          },
+          {
+            "content": "5",
+            "polygon": [5.6823, 11.4315, 5.7684, 11.4318, 5.7684, 11.567, 5.6792, 11.5674],
+            "confidence": 0.997,
+            "span": {
+              "offset": 787,
+              "length": 1
+            }
+          }
+        ],
+        "lines": [
+          {
+            "content": "Ana Horvat",
+            "polygon": [0.5318, 0.3241, 1.9296, 0.3241, 1.9296, 0.5722, 0.5318, 0.5773],
+            "spans": [
+              {
+                "offset": 0,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "Privatni iznajmljivač paušalist",
+            "polygon": [0.5419, 0.6228, 2.2233, 0.6279, 2.2233, 0.7747, 0.5419, 0.7697],
+            "spans": [
+              {
+                "offset": 11,
+                "length": 31
+              }
+            ]
+          },
+          {
+            "content": "apartman-demo@example.invalid",
+            "polygon": [5.7634, 0.2886, 7.7132, 0.2785, 7.7182, 0.4203, 5.7634, 0.4304],
+            "spans": [
+              {
+                "offset": 43,
+                "length": 29
+              }
+            ]
+          },
+          {
+            "content": "+385 91 555 123",
+            "polygon": [6.7155, 0.4659, 7.703, 0.4608, 7.703, 0.5924, 6.7155, 0.5975],
+            "spans": [
+              {
+                "offset": 73,
+                "length": 15
+              }
+            ]
+          },
+          {
+            "content": "Ulica primjera 5, 21000 Split",
+            "polygon": [6.0824, 0.6481, 7.7132, 0.6431, 7.7132, 0.795, 6.0824, 0.8001],
+            "spans": [
+              {
+                "offset": 89,
+                "length": 29
+              }
+            ]
+          },
+          {
+            "content": "RAČUN br. 1/1/1",
+            "polygon": [0.547, 1.3267, 2.5829, 1.3368, 2.5829, 1.6254, 0.547, 1.6153],
+            "spans": [
+              {
+                "offset": 119,
+                "length": 15
+              }
+            ]
+          },
+          {
+            "content": "Datum izdavanja:",
+            "polygon": [6.6851, 1.2912, 7.7182, 1.2963, 7.7182, 1.4634, 6.6851, 1.4634],
+            "spans": [
+              {
+                "offset": 135,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "29.07.2026.",
+            "polygon": [6.8117, 1.4988, 7.703, 1.5039, 7.703, 1.671, 6.8117, 1.671],
+            "spans": [
+              {
+                "offset": 152,
+                "length": 11
+              }
+            ]
+          },
+          {
+            "content": "Dospijeće plaćanja:",
+            "polygon": [6.5838, 1.747, 7.7081, 1.747, 7.7081, 1.8938, 6.5838, 1.8938],
+            "spans": [
+              {
+                "offset": 164,
+                "length": 19
+              }
+            ]
+          },
+          {
+            "content": "12.08.2026.",
+            "polygon": [6.832, 1.9293, 7.703, 1.9293, 7.703, 2.0862, 6.832, 2.0862],
+            "spans": [
+              {
+                "offset": 184,
+                "length": 11
+              }
+            ]
+          },
+          {
+            "content": "Izdavatelj:",
+            "polygon": [0.5368, 2.1875, 1.1344, 2.1926, 1.1344, 2.3293, 0.5368, 2.3293],
+            "spans": [
+              {
+                "offset": 196,
+                "length": 11
+              }
+            ]
+          },
+          {
+            "content": "Ana Horvat",
+            "polygon": [0.547, 2.4103, 1.3927, 2.4103, 1.3978, 2.5622, 0.547, 2.5622],
+            "spans": [
+              {
+                "offset": 208,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "Ulica primjera 5, 21000 Split",
+            "polygon": [0.5368, 2.6483, 2.517, 2.6483, 2.517, 2.8306, 0.5368, 2.8306],
+            "spans": [
+              {
+                "offset": 219,
+                "length": 29
+              }
+            ]
+          },
+          {
+            "content": "OIB: 12345678902",
+            "polygon": [0.5419, 2.866, 1.8587, 2.866, 1.8637, 3.0331, 0.5419, 3.0382],
+            "spans": [
+              {
+                "offset": 249,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "Način plaćanja: Transakcijski račun",
+            "polygon": [0.5318, 3.0939, 2.9931, 3.0939, 2.9931, 3.2661, 0.5318, 3.2711],
+            "spans": [
+              {
+                "offset": 266,
+                "length": 35
+              }
+            ]
+          },
+          {
+            "content": "Kupac:",
+            "polygon": [5.0645, 2.2888, 5.4848, 2.2888, 5.4899, 2.4204, 5.0645, 2.4255],
+            "spans": [
+              {
+                "offset": 302,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "John Smith",
+            "polygon": [5.0746, 2.4964, 5.9102, 2.4964, 5.9102, 2.6584, 5.0746, 2.6584],
+            "spans": [
+              {
+                "offset": 309,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "Ulica primjera 10, 10000 Zagreb",
+            "polygon": [5.0695, 2.7394, 7.3131, 2.7344, 7.3131, 2.9167, 5.0695, 2.9268],
+            "spans": [
+              {
+                "offset": 320,
+                "length": 31
+              }
+            ]
+          },
+          {
+            "content": "Opis",
+            "polygon": [0.6229, 3.499, 0.9926, 3.4939, 0.9926, 3.6661, 0.6229, 3.6661],
+            "spans": [
+              {
+                "offset": 352,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "Jed. mj.",
+            "polygon": [3.9959, 3.4838, 4.5884, 3.4889, 4.5884, 3.6762, 3.9959, 3.6712],
+            "spans": [
+              {
+                "offset": 357,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "Kol.",
+            "polygon": [4.8315, 3.4889, 5.1404, 3.4838, 5.1404, 3.6509, 4.8315, 3.6509],
+            "spans": [
+              {
+                "offset": 366,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "Ukupno",
+            "polygon": [7.1257, 3.4939, 7.698, 3.4939, 7.698, 3.6712, 7.1206, 3.6712],
+            "spans": [
+              {
+                "offset": 371,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "Smještaj - Apartman Demo, Ulica primjera 5, Split,",
+            "polygon": [0.6229, 3.8433, 4.2086, 3.8433, 4.2086, 4.0307, 0.6229, 4.0357],
+            "spans": [
+              {
+                "offset": 378,
+                "length": 50
+              }
+            ]
+          },
+          {
+            "content": "12 .- 19.07.2026.",
+            "polygon": [0.6331, 4.0459, 1.7827, 4.0459, 1.7776, 4.218, 0.6331, 4.213],
+            "spans": [
+              {
+                "offset": 429,
+                "length": 17
+              }
+            ]
+          },
+          {
+            "content": "Pnoćenja",
+            "polygon": [3.9705, 3.9497, 4.5833, 3.9497, 4.5783, 4.1117, 3.9705, 4.1066],
+            "spans": [
+              {
+                "offset": 447,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "7",
+            "polygon": [5.0391, 3.9497, 5.1455, 3.9497, 5.1404, 4.0864, 5.0391, 4.0864],
+            "spans": [
+              {
+                "offset": 456,
+                "length": 1
+              }
+            ]
+          },
+          {
+            "content": "630,00 EUR",
+            "polygon": [6.837, 3.9395, 7.7081, 3.9446, 7.7081, 4.1117, 6.837, 4.1117],
+            "spans": [
+              {
+                "offset": 458,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "PDV nije obračunat prema čl. 90. Zakona o PDV-u.",
+            "polygon": [4.791, 4.456, 7.703, 4.451, 7.703, 4.6079, 4.791, 4.6079],
+            "spans": [
+              {
+                "offset": 469,
+                "length": 48
+              }
+            ]
+          },
+          {
+            "content": "630,00 EUR",
+            "polygon": [6.7813, 4.6788, 7.7132, 4.6788, 7.7132, 4.856, 6.7813, 4.8611],
+            "spans": [
+              {
+                "offset": 518,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "Ukupno:",
+            "polygon": [0.5267, 4.6839, 1.1395, 4.694, 1.1344, 4.8712, 0.5267, 4.8611],
+            "spans": [
+              {
+                "offset": 529,
+                "length": 7
+              }
+            ]
+          },
+          {
+            "content": "Podaci za plaćanje",
+            "polygon": [0.6837, 5.3017, 2.0967, 5.3017, 2.0967, 5.489, 0.6837, 5.4839],
+            "spans": [
+              {
+                "offset": 537,
+                "length": 18
+              }
+            ]
+          },
+          {
+            "content": "IBAN: HR91 2360 0001 1029 3847 5",
+            "polygon": [0.6837, 5.5852, 3.2311, 5.5852, 3.2311, 5.7422, 0.6837, 5.7473],
+            "spans": [
+              {
+                "offset": 556,
+                "length": 32
+              }
+            ]
+          },
+          {
+            "content": "Model i poziv na broj: HR99 1/1/1",
+            "polygon": [0.6837, 5.8131, 2.988, 5.808, 2.988, 5.9751, 0.6837, 5.9802],
+            "spans": [
+              {
+                "offset": 589,
+                "length": 33
+              }
+            ]
+          },
+          {
+            "content": "Primatelj: Ana Horvat",
+            "polygon": [0.6938, 6.0258, 2.1727, 6.0258, 2.1727, 6.1979, 0.6938, 6.1979],
+            "spans": [
+              {
+                "offset": 623,
+                "length": 21
+              }
+            ]
+          },
+          {
+            "content": "Opis plaćanja: Smjestaj 1/1/1",
+            "polygon": [0.6786, 6.2435, 2.7095, 6.2435, 2.7095, 6.4258, 0.6786, 6.4308],
+            "spans": [
+              {
+                "offset": 645,
+                "length": 29
+              }
+            ]
+          },
+          {
+            "content": "DEMO DOKUMENT I PODACI SU IZMIŠLJENI I SLUŽE SAMO KAO PRIMJER",
+            "polygon": [1.8435, 11.216, 6.3964, 11.216, 6.3964, 11.3679, 1.8435, 11.373],
+            "spans": [
+              {
+                "offset": 675,
+                "length": 61
+              }
+            ]
+          },
+          {
+            "content": "OIB: 12345678902 | IBAN: HR91 2360 0001 1029 3847 5",
+            "polygon": [2.4664, 11.4236, 5.7634, 11.4236, 5.7634, 11.5654, 2.4664, 11.5654],
+            "spans": [
+              {
+                "offset": 737,
+                "length": 51
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 0,
+            "length": 788
+          }
+        ]
+      }
+    ],
+    "paragraphs": [
+      {
+        "spans": [
+          {
+            "offset": 0,
+            "length": 42
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0.5318, 0.3199, 2.2247, 0.325, 2.2233, 0.7747, 0.5304, 0.7696]
+          }
+        ],
+        "content": "Ana Horvat Privatni iznajmljivač paušalist"
+      },
+      {
+        "spans": [
+          {
+            "offset": 43,
+            "length": 75
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [5.7626, 0.2886, 7.7175, 0.2785, 7.7202, 0.795, 5.7653, 0.8051]
+          }
+        ],
+        "content": "apartman-demo@example.invalid +385 91 555 123 Ulica primjera 5, 21000 Split"
+      },
+      {
+        "spans": [
+          {
+            "offset": 119,
+            "length": 15
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0.547, 1.3267, 2.5843, 1.3368, 2.5829, 1.6254, 0.5455, 1.6153]
+          }
+        ],
+        "content": "RAČUN br. 1/1/1"
+      },
+      {
+        "spans": [
+          {
+            "offset": 135,
+            "length": 28
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [6.6851, 1.2912, 7.7191, 1.2963, 7.7172, 1.6754, 6.6832, 1.6704]
+          }
+        ],
+        "content": "Datum izdavanja: 29.07.2026."
+      },
+      {
+        "spans": [
+          {
+            "offset": 164,
+            "length": 31
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [6.5838, 1.747, 7.7081, 1.747, 7.7081, 2.0862, 6.5838, 2.0862]
+          }
+        ],
+        "content": "Dospijeće plaćanja: 12.08.2026."
+      },
+      {
+        "spans": [
+          {
+            "offset": 196,
+            "length": 105
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0.5318, 2.1875, 2.9931, 2.1875, 2.9931, 3.2711, 0.5318, 3.2711]
+          }
+        ],
+        "content": "Izdavatelj: Ana Horvat Ulica primjera 5, 21000 Split OIB: 12345678902 Način plaćanja: Transakcijski račun"
+      },
+      {
+        "spans": [
+          {
+            "offset": 302,
+            "length": 6
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [5.0645, 2.2888, 5.4848, 2.2888, 5.4899, 2.4204, 5.0645, 2.4255]
+          }
+        ],
+        "content": "Kupac:"
+      },
+      {
+        "spans": [
+          {
+            "offset": 309,
+            "length": 10
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [5.0746, 2.4964, 5.9102, 2.4964, 5.9102, 2.6584, 5.0746, 2.6584]
+          }
+        ],
+        "content": "John Smith"
+      },
+      {
+        "spans": [
+          {
+            "offset": 320,
+            "length": 31
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [5.0695, 2.7394, 7.3131, 2.7344, 7.3131, 2.9167, 5.0695, 2.9268]
+          }
+        ],
+        "content": "Ulica primjera 10, 10000 Zagreb"
+      },
+      {
+        "spans": [
+          {
+            "offset": 352,
+            "length": 4
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0.6229, 3.4939, 0.9926, 3.4939, 0.9926, 3.6661, 0.6229, 3.6661]
+          }
+        ],
+        "content": "Opis"
+      },
+      {
+        "spans": [
+          {
+            "offset": 357,
+            "length": 13
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [3.9959, 3.4838, 5.1404, 3.4838, 5.1404, 3.6762, 3.9959, 3.6762]
+          }
+        ],
+        "content": "Jed. mj. Kol."
+      },
+      {
+        "spans": [
+          {
+            "offset": 371,
+            "length": 6
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [7.1206, 3.4939, 7.698, 3.4939, 7.698, 3.6712, 7.1206, 3.6712]
+          }
+        ],
+        "content": "Ukupno"
+      },
+      {
+        "spans": [
+          {
+            "offset": 378,
+            "length": 68
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0.6229, 3.8433, 4.2086, 3.8433, 4.2086, 4.218, 0.6229, 4.218]
+          }
+        ],
+        "content": "Smještaj - Apartman Demo, Ulica primjera 5, Split, 12 .- 19.07.2026."
+      },
+      {
+        "spans": [
+          {
+            "offset": 447,
+            "length": 21
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [3.9705, 3.9395, 7.7081, 3.9395, 7.7081, 4.1117, 3.9705, 4.1117]
+          }
+        ],
+        "content": "Pnoćenja 7 630,00 EUR"
+      },
+      {
+        "spans": [
+          {
+            "offset": 469,
+            "length": 59
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [4.7907, 4.456, 7.7128, 4.4509, 7.7135, 4.8595, 4.7914, 4.8646]
+          }
+        ],
+        "content": "PDV nije obračunat prema čl. 90. Zakona o PDV-u. 630,00 EUR"
+      },
+      {
+        "spans": [
+          {
+            "offset": 529,
+            "length": 7
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0.5267, 4.6839, 1.1395, 4.694, 1.1366, 4.8713, 0.5238, 4.8611]
+          }
+        ],
+        "content": "Ukupno:"
+      },
+      {
+        "spans": [
+          {
+            "offset": 537,
+            "length": 137
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [0.6786, 5.3017, 3.2311, 5.3017, 3.2311, 6.4308, 0.6786, 6.4308]
+          }
+        ],
+        "content": "Podaci za plaćanje IBAN: HR91 2360 0001 1029 3847 5 Model i poziv na broj: HR99 1/1/1 Primatelj: Ana Horvat Opis plaćanja: Smjestaj 1/1/1"
+      },
+      {
+        "spans": [
+          {
+            "offset": 675,
+            "length": 113
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [1.8435, 11.216, 6.3964, 11.216, 6.3964, 11.5654, 1.8435, 11.5654]
+          }
+        ],
+        "content": "DEMO DOKUMENT I PODACI SU IZMIŠLJENI I SLUŽE SAMO KAO PRIMJER OIB: 12345678902 | IBAN: HR91 2360 0001 1029 3847 5"
+      }
+    ],
+    "styles": [],
+    "contentFormat": "text"
+  },
+  "answer": {
+    "sellerName": "Ana Horvat Privatni iznajmljivač paušalist",
+    "sellerAddress": "Ulica primjera 5, 21000 Split",
+    "sellerOib": "12345678902",
+    "buyerName": "John Smith",
+    "buyerAddress": "Ulica primjera 10, 10000 Zagreb",
+    "buyerOib": null,
+    "documentNumber": "1/1/1",
+    "issueDate": "29.07.2026.",
+    "issueTime": null,
+    "total": "630,00",
+    "currency": "EUR",
+    "paymentMethod": "Transakcijski račun",
+    "jir": null,
+    "zki": null
+  }
+}

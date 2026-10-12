@@ -4,14 +4,23 @@ import type {
   AnalyzeResultOutput,
   DocumentIntelligenceClient,
 } from "@azure-rest/ai-document-intelligence";
+import { logger } from "../../logger.js";
 import { computeWarnings } from "../../validation/warnings.js";
 import {
   applyQrJir,
   classifyAzureFailure,
   createAzureProvider,
+  READER_GRACE_MS,
   SECONDARY_GRACE_MS,
 } from "./azure.js";
-import { ExtractionError } from "./types.js";
+import { SCALAR_FIELDS } from "./scalar-merge.js";
+import {
+  createScalarReader,
+  normalizeScalars,
+  type ScalarReader,
+  type ScalarReading,
+} from "./scalar-reader.js";
+import { ExtractionError, type ProviderExtractionResult } from "./types.js";
 
 /** A client whose submit is accepted and whose status polls return `statuses` in order. */
 function fakeAzure(statuses: Array<"running" | "succeeded" | "failed">) {
@@ -407,5 +416,197 @@ describe("Azure extraction provider", () => {
     expect(result.qr).toMatchObject({ total: "132.72", issueTime: "23:59" });
     expect(result.fields.documentNumber).toBe("381/1/3");
     expect(result.fields.jir).toBe("18916f95-5787-4e7f-a190-3a091970cfa2");
+  });
+});
+
+/** What a reader must leave untouched when it fails: values, their provenance, their owners. */
+const comparable = (result: ProviderExtractionResult) => ({
+  fields: result.fields,
+  metadata: result.metadata.fields,
+  fieldModels: result.metadata.fieldModels,
+});
+
+describe("the scalar reader is additive, never load-bearing (iteration 29)", () => {
+  const input = { bytes: Buffer.from("receipt"), contentType: "image/jpeg" as const };
+  const readResult: AnalyzeResultOutput = {
+    apiVersion: "2024-11-30",
+    modelId: "prebuilt-read",
+    stringIndexType: "utf16CodeUnit",
+    content: "GOTOVINA 8,08",
+    pages: [],
+  };
+
+  /** A reading of `printed`, the rest null, as the reader returns it. */
+  const readingOf = (printed: Record<string, string | null>): ScalarReading => {
+    const all = { ...Object.fromEntries(SCALAR_FIELDS.map((name) => [name, null])), ...printed };
+    return {
+      printed: all,
+      fields: normalizeScalars(all),
+      ocrModelId: "prebuilt-read",
+      deployment: "test-deployment",
+      latencyMs: 1200,
+      analyzeResult: readResult,
+    };
+  };
+
+  /** The two models with a buyer the invoice model invented, as on `26515835`. */
+  const provider = (scalarReader?: ScalarReader | null) =>
+    createAzureProvider({
+      settings: { modelId: "prebuilt-invoice", secondaryModelId: "" },
+      analyze: async () => {
+        const result: AnalyzeResultOutput = {
+          ...analyzeResult,
+          documents: [
+            {
+              ...analyzeResult.documents![0]!,
+              fields: {
+                ...analyzeResult.documents![0]!.fields,
+                CustomerName: { type: "string", content: "Blagajna 2", confidence: 0.6 },
+              },
+            },
+          ],
+        };
+        return { analyzeResult: result, raw: { status: "succeeded", analyzeResult: result } };
+      },
+      ...(scalarReader === undefined ? {} : { scalarReader }),
+    });
+
+  it("merges a reading into the two-model result and stores what it read", async () => {
+    const reading = readingOf({
+      paymentMethod: "GOTOVINA",
+      documentNumber: "381/1/3",
+      total: "9,08",
+    });
+    const result = await provider(async () => reading).extract(input);
+
+    // Filled, cleared, and kept although the reader differs.
+    expect(result.fields.paymentMethod).toBe("GOTOVINA");
+    expect(result.fields.buyerName).toBeNull();
+    expect(result.fields.total).toBe("8.08");
+    expect(result.metadata.fields["paymentMethod"]).toEqual({ confidence: null, source: "reader" });
+    expect(result.metadata.fieldModels).toMatchObject({
+      paymentMethod: "reader",
+      buyerName: "reader",
+      total: "primary",
+    });
+    expect(result.metadata.reader).toEqual({
+      ocrModelId: "prebuilt-read",
+      deployment: "test-deployment",
+      latencyMs: 1200,
+      agreed: [],
+      disagreed: ["documentNumber", "total"],
+    });
+    const raw = result.raw as Record<string, unknown>;
+    expect(raw["readerAnswer"]).toBe(reading.printed);
+    expect(raw["readerAnalyzeResult"]).toBe(readResult);
+    expect(raw["fieldModels"]).toBe(result.metadata.fieldModels);
+  });
+
+  it("leaves line items and VAT rows to the two models", async () => {
+    const without = await provider().extract(input);
+    const withReader = await provider(async () => readingOf({ paymentMethod: "GOTOVINA" })).extract(
+      input,
+    );
+
+    expect(withReader.fields.items).toEqual(without.fields.items);
+    expect(withReader.fields.vatBreakdown).toEqual(without.fields.vatBreakdown);
+  });
+
+  it("keeps the two-model result when no reader is configured", async () => {
+    const result = await provider(null).extract(input);
+
+    expect(result.fields.buyerName).toBe("Blagajna 2");
+    expect(result.metadata.reader).toBeNull();
+    expect((result.raw as Record<string, unknown>)["readerAnswer"]).toBeNull();
+    expect(comparable(result)).toEqual(comparable(await provider().extract(input)));
+  });
+
+  it("keeps the two-model result when the reader fails", async () => {
+    const expected = comparable(await provider().extract(input));
+    const result = await provider(async () => {
+      throw new Error("scalar reader: HTTP 429");
+    }).extract(input);
+
+    expect(comparable(result)).toEqual(expected);
+    expect(result.metadata.reader).toBeNull();
+    expect((result.raw as Record<string, unknown>)["readerAnswer"]).toBeNull();
+  });
+
+  it("keeps the two-model result when the reader's answer is malformed", async () => {
+    const expected = comparable(await provider().extract(input));
+    const reader = createScalarReader({
+      settings: { endpoint: "x", key: "x", deployment: "x", apiVersion: "x" },
+      ocr: async () => readResult,
+      complete: async () => ({ sellerName: 12 }),
+    });
+    const result = await provider(reader).extract(input);
+
+    expect(comparable(result)).toEqual(expected);
+    expect(result.metadata.reader).toBeNull();
+  });
+
+  it("abandons a reader that is still running a few seconds after the two-model result", async () => {
+    vi.useFakeTimers();
+    try {
+      let readerSignal: AbortSignal | undefined;
+      const pending = provider((_input, signal) => {
+        readerSignal = signal;
+        return new Promise((_resolve, reject) =>
+          signal.addEventListener("abort", () => reject(new Error("aborted"))),
+        );
+      }).extract(input);
+
+      await vi.advanceTimersByTimeAsync(READER_GRACE_MS - 1);
+      expect(readerSignal?.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+
+      const result = await pending;
+      expect(readerSignal?.aborted).toBe(true);
+      expect(result.fields.buyerName).toBe("Blagajna 2");
+      expect(result.metadata.reader).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stores the QR code's JIR whatever the reader offers", async () => {
+    const [primary, secondary] = await Promise.all([
+      recorded("receipt123"),
+      recorded("secondary/receipt123"),
+    ]);
+    const result = await createAzureProvider({
+      settings: { modelId: "prebuilt-invoice", secondaryModelId: "prebuilt-receipt" },
+      analyze: async (_input, _signal, modelId) => {
+        const chosen = modelId === "prebuilt-receipt" ? secondary : primary;
+        return { analyzeResult: chosen, raw: { status: "succeeded", analyzeResult: chosen } };
+      },
+      scalarReader: async () => readingOf({ jir: "61985013-0388-4284-9be9-380919701be5" }),
+    }).extract(input);
+
+    expect(result.fields.jir).toBe("b19e5e13-0388-4284-9be9-3a0919701be5");
+    expect(result.metadata.fields["jir"]).toEqual({ confidence: null, source: "qr" });
+    expect(result.metadata.reader?.disagreed).not.toContain("jir");
+  });
+
+  it("does not report a dead reader when the extraction itself fails", async () => {
+    const warn = vi.spyOn(logger, "warn").mockImplementation(() => undefined);
+    try {
+      const failing = createAzureProvider({
+        settings: { modelId: "prebuilt-invoice", secondaryModelId: "" },
+        analyze: async () => {
+          throw new Error("primary failed");
+        },
+        scalarReader: (_input, signal) =>
+          new Promise((_resolve, reject) =>
+            signal.addEventListener("abort", () => reject(new Error("aborted"))),
+          ),
+      });
+
+      await expect(failing.extract(input)).rejects.toBeInstanceOf(ExtractionError);
+      await Promise.resolve();
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
   });
 });

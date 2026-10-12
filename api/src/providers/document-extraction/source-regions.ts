@@ -22,7 +22,9 @@ import {
 import { findPayableEuroTotal } from "./currency.js";
 import { findPaymentMethod } from "./payment-method.js";
 import { FIELD_ALIASES, ITEM_CELL_ALIASES, VAT_CELL_ALIASES } from "./field-aliases.js";
+import { normalizeScalars } from "./scalar-reader.js";
 import { findVatTable, mapVatTableRows } from "./vat-tables.js";
+import { envelope, findWords, printedForms } from "./word-search.js";
 
 type Fields = Record<string, DocumentFieldOutput>;
 
@@ -237,21 +239,6 @@ function addTextRegion(
   }
 }
 
-function envelope(points: readonly number[]): number[] {
-  const xs = points.filter((_, index) => index % 2 === 0);
-  const ys = points.filter((_, index) => index % 2 === 1);
-  return [
-    Math.min(...xs),
-    Math.min(...ys),
-    Math.max(...xs),
-    Math.min(...ys),
-    Math.max(...xs),
-    Math.max(...ys),
-    Math.min(...xs),
-    Math.max(...ys),
-  ];
-}
-
 function addCorners(
   regions: SourceRegion[],
   path: string,
@@ -293,6 +280,11 @@ function deduplicate(regions: SourceRegion[]): SourceRegion[] {
  * actually supplied its value, because the two models index their item and VAT rows independently
  * — outlining a four-item list against the three rows the other model found would point every
  * highlight at the wrong line.
+ *
+ * A value the scalar reader supplied has no position: the reader returns text, not geometry. It is
+ * outlined where its printed text is found among the reader's own OCR words, and a value that is
+ * not found there gets no outline — an outline that cannot be shown to sit on its text is worse
+ * than none. A buyer the reader cleared loses the outline the model drew for it.
  */
 export function mapStoredSourceRegions(raw: unknown): SourceRegionsResponse {
   const primary = storedAnalyzeResult(raw);
@@ -305,16 +297,55 @@ export function mapStoredSourceRegions(raw: unknown): SourceRegionsResponse {
   const ownedBySecondary = (path: string): boolean =>
     (fieldModels[path] ?? fieldModels[path.split(".")[0] ?? path]) === "secondary";
 
+  const ownedByReader = (path: string): boolean => fieldModels[path] === "reader";
+
   const projected = mapSourceRegions(primary);
-  const regions = retain(projected.regions, (path) => !ownedBySecondary(path));
+  const regions = retain(
+    projected.regions,
+    (path) => !ownedBySecondary(path) && !ownedByReader(path),
+  );
   if (secondary !== null) {
     regions.push(...retain(mapSourceRegions(secondary).regions, ownedBySecondary));
   }
+  addReaderRegions(regions, raw, Object.keys(fieldModels).filter(ownedByReader));
 
   return sourceRegionsResponseSchema.parse({
     pages: projected.pages,
     regions: deduplicate(regions),
   });
+}
+
+function addReaderRegions(regions: SourceRegion[], raw: unknown, paths: readonly string[]): void {
+  const read = storedObject(raw, "readerAnalyzeResult") as AnalyzeResultOutput | null;
+  const answer = storedObject(raw, "readerAnswer");
+  if (read === null || answer === null || paths.length === 0) return;
+
+  const printed = Object.fromEntries(
+    Object.entries(answer).map(([name, value]) => [name, typeof value === "string" ? value : null]),
+  );
+  const canonical = normalizeScalars(printed);
+  // The read response has its own page dimensions; a PDF's are inches where a photo's are pixels.
+  const dimensions = pageDimensions(read);
+
+  for (const path of paths) {
+    const value = printed[path];
+    if (value == null || value.trim() === "") continue;
+    const match = findWords(
+      [value.split(/\s*\n\s*/).join(" "), ...printedForms(canonical[path] ?? "")],
+      read,
+    );
+    if (match !== null) {
+      addCorners(regions, path, match.pageNumber, match.polygon, "text", dimensions);
+    }
+  }
+}
+
+function storedObject(raw: unknown, key: string): Record<string, unknown> | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const value = (raw as Record<string, unknown>)[key];
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 function retain(regions: readonly SourceRegion[], keep: (path: string) => boolean): SourceRegion[] {

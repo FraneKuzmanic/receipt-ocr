@@ -132,7 +132,9 @@ describe("provider independence", () => {
     // PRD §6.2: Azure response objects must never become the application schema. Enforced
     // by a test rather than by inspection, because the canonical model is the one place a
     // provider field name would do lasting damage (ROADMAP §5 rule 7).
-    const forbidden = /azure|prebuilt|documentintelligence|analyzeresult|boundingregion|polygon/i;
+    // The scalar reader's vendor and model are provider vocabulary too (iteration 29).
+    const forbidden =
+      /azure|prebuilt|documentintelligence|analyzeresult|boundingregion|polygon|openai|\bgpt\b|\bllm\b/i;
     const directory = fileURLToPath(new URL(".", import.meta.url));
 
     const offenders = readdirSync(directory)

@@ -4,6 +4,8 @@ import type { AnalyzeResultOutput } from "@azure-rest/ai-document-intelligence";
 import type { SourceRegion } from "@receipt/shared";
 import { mapAnalyzeResult } from "./azure-fields.js";
 import { mergeExtractions, type ModelExtraction } from "./merge.js";
+import { mergeScalars } from "./scalar-merge.js";
+import { normalizeScalars } from "./scalar-reader.js";
 import { mapSourceRegions, mapStoredSourceRegions } from "./source-regions.js";
 
 function readModel(analyzeResult: AnalyzeResultOutput): ModelExtraction {
@@ -245,5 +247,94 @@ describe("source region projection", () => {
   it("falls back to the single stored response for a receipt read by one model", async () => {
     const primary = await fixture("racuntaksi1");
     expect(mapStoredSourceRegions({ analyzeResult: primary })).toEqual(mapSourceRegions(primary));
+  });
+});
+
+const regionOf = (regions: readonly SourceRegion[], field: string) =>
+  regions.filter((region) => region.fields.includes(field));
+
+const lettersAndDigits = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+
+describe("outlines for values the scalar reader supplied (iteration 29)", () => {
+  /** A receipt as the provider stores it: two recorded model responses and a recorded reading. */
+  async function storedWithReader(name: string, answerOverrides: Record<string, string> = {}) {
+    const [primary, secondary] = await Promise.all([fixture(name), secondaryFixture(name)]);
+    const reader = JSON.parse(
+      await readFile(new URL(`./fixtures/reader/${name}.json`, import.meta.url), "utf8"),
+    ) as { analyzeResult: AnalyzeResultOutput; answer: Record<string, string | null> };
+    const answer = { ...reader.answer, ...answerOverrides };
+    const merged = mergeExtractions(readModel(primary), readModel(secondary));
+    const scalars = mergeScalars(
+      { ...merged, qr: null },
+      { printed: answer, fields: normalizeScalars(answer) },
+    );
+    return {
+      primary,
+      reader,
+      scalars,
+      regions: mapStoredSourceRegions({
+        analyzeResult: primary,
+        secondaryAnalyzeResult: secondary,
+        readerAnalyzeResult: reader.analyzeResult,
+        readerAnswer: answer,
+        fieldModels: scalars.fieldModels,
+      }).regions,
+    };
+  }
+
+  it("outlines a payment method the reader read where its words are printed", async () => {
+    // `26515835` prints its payment method as a tender line with no label, which no text rule reads.
+    const { reader, scalars, regions } = await storedWithReader("26515835");
+    expect(scalars.fieldModels["paymentMethod"]).toBe("reader");
+
+    const outlined = regionOf(regions, "paymentMethod");
+    expect(outlined).toEqual([expect.objectContaining({ origin: "text" })]);
+
+    // The outline sits on a word of the reader's own OCR that is part of the value it copied.
+    const page = reader.analyzeResult.pages![0]!;
+    const inside = page.words!.filter((word) => {
+      const polygon = word.polygon!;
+      return contains(outlined[0]!, {
+        x: (polygon[0]! + polygon[4]!) / 2 / page.width!,
+        y: (polygon[1]! + polygon[5]!) / 2 / page.height!,
+      });
+    });
+    expect(inside.length).toBeGreaterThan(0);
+    for (const word of inside) {
+      expect(lettersAndDigits(reader.answer["paymentMethod"]!)).toContain(
+        lettersAndDigits(word.content),
+      );
+    }
+  });
+
+  it("drops the outline of a buyer the reader cleared", async () => {
+    const { primary, scalars, regions } = await storedWithReader("26515835");
+
+    expect(scalars.fields.buyerName).toBeNull();
+    expect(regionOf(mapSourceRegions(primary).regions, "buyerName")).toHaveLength(1);
+    expect(regionOf(regions, "buyerName")).toEqual([]);
+  });
+
+  it("outlines a reader-supplied value on a PDF, whose pages are measured in inches", async () => {
+    const { scalars, regions } = await storedWithReader("primjer1-hr-nopdv");
+    expect(scalars.fieldModels["buyerName"]).toBe("reader");
+
+    const [outlined] = regionOf(regions, "buyerName");
+    expect(outlined?.origin).toBe("text");
+    for (const corner of outlined!.corners) {
+      expect(corner.x).toBeGreaterThan(0);
+      expect(corner.x).toBeLessThan(1);
+      expect(corner.y).toBeGreaterThan(0);
+      expect(corner.y).toBeLessThan(1);
+    }
+  });
+
+  it("draws no outline for a value that is not printed on the page", async () => {
+    const { scalars, regions } = await storedWithReader("26515835", {
+      paymentMethod: "Bankovni prijenos",
+    });
+
+    expect(scalars.fields.paymentMethod).toBe("Bankovni prijenos");
+    expect(regionOf(regions, "paymentMethod")).toEqual([]);
   });
 });

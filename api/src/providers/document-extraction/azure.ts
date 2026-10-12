@@ -22,6 +22,8 @@ import { stripContentMarkers, type StrippedContent } from "./content-markers.js"
 import { hasUnreadVatSignal } from "./tax-signals.js";
 import { findPaymentMethod } from "./payment-method.js";
 import { parseFiscalQr, type FiscalQrData } from "./fiscal-qr.js";
+import { mergeScalars } from "./scalar-merge.js";
+import type { ScalarReader } from "./scalar-reader.js";
 import {
   ExtractionError,
   type DocumentExtractionProvider,
@@ -42,6 +44,12 @@ const POLL_INTERVAL_MS = 500;
 // too early silently loses the secondary's fields, so this errs long; the gap between the two calls'
 // completions has not been measured.
 export const SECONDARY_GRACE_MS = 10_000;
+
+// How long the scalar reader may keep running once the two-model result is ready, and so the most
+// it can add to an extraction. Measured from a home connection, 2 s kept 16 of 16 readings and the
+// reader finished before the two models on 15; but one completion in 192 was held 84 s by the
+// service, which is why there is a limit at all. 3 s is the top of the accepted latency budget.
+export const READER_GRACE_MS = 3_000;
 
 interface AzureSettings {
   readonly endpoint: string;
@@ -67,6 +75,8 @@ export interface AzureProviderOptions {
     signal: AbortSignal,
     modelId: string,
   ) => Promise<AnalyzeOutcome>;
+  /** The third, additive reading of the scalar fields; absent or null leaves two models. */
+  readonly scalarReader?: ScalarReader | null;
 }
 
 export function createAzureProvider(
@@ -100,8 +110,29 @@ export function createAzureProvider(
       const abortSecondary = () => secondaryController.abort();
       controller.signal.addEventListener("abort", abortSecondary, { once: true });
       let graceTimer: ReturnType<typeof setTimeout> | undefined;
+      const readerController = new AbortController();
+      const abortReader = () => readerController.abort();
+      controller.signal.addEventListener("abort", abortReader, { once: true });
+      let readerGraceTimer: ReturnType<typeof setTimeout> | undefined;
+      let readerAbandoned = false;
 
       try {
+        // Started with the two models, so it normally adds nothing to the wall clock. Like the
+        // secondary it is strictly additive: a failed, slow or malformed reading is logged and the
+        // two-model result stands. The log line is the only sign of a dead reader, by design.
+        const readerPending =
+          options.scalarReader == null
+            ? Promise.resolve(null)
+            : options.scalarReader(input, readerController.signal).catch((error: unknown) => {
+                // A reader cancelled because the extraction itself failed or timed out is not a
+                // dead reader, and this line is how a dead one is noticed.
+                if (controller.signal.aborted && !readerAbandoned) return null;
+                logger.warn(
+                  { err: error, abandoned: readerAbandoned },
+                  "scalar reader unavailable; continuing with the two-model result",
+                );
+                return null;
+              });
         // The two models run concurrently, so the wall clock is the slower call rather than their
         // sum. The secondary is strictly additive: any failure leaves the primary result intact.
         const secondaryPending =
@@ -129,8 +160,18 @@ export function createAzureProvider(
           (secondaryResponse === null ? null : extractFiscalQr(secondaryResponse.analyzeResult));
         applyQrJir(merged.fields, merged.metadata, qr);
 
+        readerGraceTimer = setTimeout(() => {
+          readerAbandoned = true;
+          abortReader();
+        }, READER_GRACE_MS);
+        const reading = await readerPending;
+        const scalars = reading === null ? null : mergeScalars({ ...merged, qr }, reading);
+        const fields = scalars?.fields ?? merged.fields;
+        const fieldMetadata = scalars?.metadata ?? merged.metadata;
+        const fieldModels = scalars?.fieldModels ?? merged.fieldModels;
+
         return {
-          fields: merged.fields,
+          fields,
           metadata: {
             provider: "azure-document-intelligence",
             modelId: response.analyzeResult.modelId || settings.modelId,
@@ -144,9 +185,19 @@ export function createAzureProvider(
             uploadMs: response.uploadMs,
             analyzeMs: response.analyzeMs,
             documentConfidence: primary.documentConfidence,
-            fields: merged.metadata,
+            fields: fieldMetadata,
             unreadableFields: merged.unreadableFields,
-            fieldModels: merged.fieldModels,
+            fieldModels,
+            reader:
+              reading === null || scalars === null
+                ? null
+                : {
+                    ocrModelId: reading.ocrModelId,
+                    deployment: reading.deployment,
+                    latencyMs: reading.latencyMs,
+                    agreed: scalars.agreed,
+                    disagreed: scalars.disagreed,
+                  },
             vatTextPresent: hasUnreadVatSignal(response.analyzeResult.content),
           },
           qr,
@@ -154,7 +205,9 @@ export function createAzureProvider(
             ...(response.raw as Record<string, unknown>),
             secondaryModelId: secondaryResponse === null ? null : settings.secondaryModelId,
             secondaryAnalyzeResult: secondaryResponse?.analyzeResult ?? null,
-            fieldModels: merged.fieldModels,
+            readerAnalyzeResult: reading?.analyzeResult ?? null,
+            readerAnswer: reading?.printed ?? null,
+            fieldModels,
           },
         };
       } catch (error) {
@@ -165,6 +218,7 @@ export function createAzureProvider(
       } finally {
         clearTimeout(timeout);
         clearTimeout(graceTimer);
+        clearTimeout(readerGraceTimer);
         // Both calls have settled on the success path; on the failure path this cancels whichever
         // model is still in flight rather than leaving it to poll against a lost extraction.
         controller.abort();
@@ -197,12 +251,14 @@ export function classifyAzureFailure(status: string | number): ExtractionError {
   return new ExtractionError("provider_unavailable", true);
 }
 
-async function analyzeWithAzure(
+/** `features` defaults to the barcode add-on the two prebuilt models use to return the QR code. */
+export async function analyzeWithAzure(
   client: DocumentIntelligenceClient,
-  settings: AzureSettings,
+  settings: Pick<AzureSettings, "locale">,
   modelId: string,
   input: ExtractionInput,
   signal: AbortSignal,
+  features: Array<"barcodes"> = ["barcodes"],
 ): Promise<{
   analyzeResult: AnalyzeResultOutput;
   raw: unknown;
@@ -215,7 +271,7 @@ async function analyzeWithAzure(
   const initial = await client.path("/documentModels/{modelId}:analyze", modelId).post({
     contentType: "application/octet-stream",
     body: input.bytes,
-    queryParameters: { locale: settings.locale, features: ["barcodes"] },
+    queryParameters: { locale: settings.locale, ...(features.length > 0 ? { features } : {}) },
     abortSignal: signal,
   });
   const uploadMs = Date.now() - uploadStartedAt;

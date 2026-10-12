@@ -6,8 +6,8 @@
 process ends here; further testing, iteration and hardening happen directly, driven by the user
 against the deployed prototype, rather than through another numbered roadmap task. Iterations since
 then are listed in §3 under "Iterations outside the numbered task list" — the most recent is
-**28, a probe of an LLM as a parallel reader of scalar fields** (a measurement; the product is
-unchanged).
+**29, an LLM as a third, parallel reader of scalar fields** (a product change, and the first to put
+an LLM in the application; it amends PRD §4.7, §7.6, §8 and §5 rule 10 below).
 
 This roadmap divided the PRD into 11 sequential tasks. Each task was one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -208,6 +208,27 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 26  | Extraction layer fixes and receipt schema v2 ("Plan A"; scalar ground truth verified by the product owner) | [plan](plans/extraction-layer-fixes-receipt-schema-v2.md) | [history](history/26-extraction-layer-fixes-receipt-schema-v2.md) |
 | 27  | Plan B: an LLM pass and Content Understanding, measured against the production engine (a measurement; the product is unchanged) | [plan](plans/plan-b-llm-pass-content-understanding-measurement.md) | [history](history/27-plan-b-llm-pass-content-understanding-measurement.md) · [result](research/plan-b-engines.md) |
 | 28  | Scalar probe: an LLM as a third, parallel reader of scalar fields (a measurement; the product is unchanged) | _none — user asked for the probe to be run directly from the [handoff](specs/scalar-llm-reader-probe.md)_ | [history](history/28-scalar-llm-reader-probe.md) · [result](research/scalar-llm-reader-probe.md) |
+| 29  | Scalar reader: an LLM as a third, parallel reader of the scalar fields, merged by a fixed rule (the first LLM in the application) | [plan](plans/llm-scalar-reader.md) | [history](history/29-llm-scalar-reader.md) |
+
+**Amendment from iteration 29 — an LLM reads the scalar fields, and only those.** PRD §4.7, §7.6 and
+§8 and rule 10 below ruled an LLM out; they are amended in place, dated, with the iteration 28 probe
+as the reason: 198 of 209 scalars right against the two models' 183, no correct value changed, the
+same answer in three runs, no added wait at p50 or p90. The reader is OCR text (`prebuilt-read`)
+into `gpt-4.1`, started with the two prebuilt models and merged on the server by a fixed per-field
+rule, never by confidence. It is **additive, never load-bearing** (iteration 23's rule, applied
+again): off, failed, malformed or more than 3 s behind the two-model result, it is logged and the
+two-model result stands, so the application runs unchanged without its four variables. One rule is
+narrowed: iteration 23's "a second reader never blanks a value" does not hold for buyer name,
+address and OIB, where the reader's empty reading clears a buyer the prebuilt models invent. Still
+out: an LLM reading items or VAT rows, an LLM winning a critical field, LLM validation.
+
+**Decision from iteration 29 — a disagreement is shown only where a field holds one exact value.**
+The reader's agreement clears a low-confidence flag; its disagreement raises one only on
+`documentNumber`, `issueDate`, `total` and `currency`. `sellerName` was left out although first
+agreed in: over 16 receipts it disagreed two or three times a run and once on a wrong value, because
+the readers differ on how much of the header is the name. That is iteration 26's amendment applied —
+a flag that fires on correct values teaches the user to ignore it — on a sample of sixteen. It is
+one constant (`FLAGGED_DISAGREEMENT_FIELDS`); adding `sellerName` needs a decision, not a design.
 
 **Amendment from iteration 26 — `subtotal` is removed from the canonical receipt.** PRD §4.2 and §6.4
 list it; it is gone from the schema, the review form and both exports (JSON `schemaVersion: 2`). It
@@ -841,4 +862,7 @@ These come from `CLAUDE.md` and the PRD, and applied to all eleven tasks:
 8. **Everything the user reads is translated.** No hardcoded strings, in any task (PRD §7.13).
 9. **Money is never a JS float.** Decimal-safe representation end to end (PRD §6.4).
 10. **Out of scope stays out.** No companies, tenants, accountants, approvals, duplicate
-    detection, LLMs, or accounting integrations — however tempting (PRD §4.6–4.8).
+    detection, or accounting integrations — however tempting (PRD §4.6–4.8). **Amended in iteration
+    29:** "LLMs" left this list for one use, the additive scalar reader. An LLM reading line items
+    or VAT rows, an LLM overruling the prebuilt models on a critical field, an LLM the extraction
+    depends on, and LLM validation all stay out until measured and decided.

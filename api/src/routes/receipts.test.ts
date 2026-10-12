@@ -37,6 +37,44 @@ describe("lowConfidenceFields", () => {
     expect(lowConfidenceFields(metadata, ["issueDate"])).toEqual([]);
   });
 
+  it("drops a low-confidence field the scalar reader read the same way", () => {
+    const reader = { agreed: ["issueDate"], disagreed: [] };
+
+    expect(lowConfidenceFields({ ...metadata, reader })).toEqual([]);
+    expect(lowConfidenceFields({ ...metadata, reader: { agreed: ["total"] } })).toEqual([
+      "issueDate",
+    ]);
+  });
+
+  it("lists a disagreement only on a critical field that holds one exact value", () => {
+    const confident = {
+      fields: {
+        total: { confidence: 0.98, source: "model" },
+        sellerName: { confidence: 0.95, source: "model" },
+        sellerAddress: { confidence: 0.95, source: "model" },
+      },
+      reader: { agreed: [], disagreed: ["total", "sellerName", "sellerAddress"] },
+    };
+
+    expect(lowConfidenceFields(confident)).toEqual(["total"]);
+    // The QR code outranks the reader: a value it confirms is not in doubt.
+    expect(lowConfidenceFields(confident, ["total"])).toEqual([]);
+  });
+
+  it("lists a field once when it is both low-confidence and disagreed", () => {
+    const both = {
+      fields: { total: { confidence: 0.4, source: "model" } },
+      reader: { agreed: [], disagreed: ["total"] },
+    };
+
+    expect(lowConfidenceFields(both)).toEqual(["total"]);
+  });
+
+  it("behaves as before for a row stored without a reader", () => {
+    expect(lowConfidenceFields({ ...metadata, reader: null })).toEqual(["issueDate"]);
+    expect(lowConfidenceFields({ ...metadata, reader: "x" })).toEqual(["issueDate"]);
+  });
+
   it("tolerates missing or malformed metadata", () => {
     expect(lowConfidenceFields(null)).toEqual([]);
     expect(lowConfidenceFields({ fields: { total: "x" } })).toEqual([]);
