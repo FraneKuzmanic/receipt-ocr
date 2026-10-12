@@ -3,8 +3,9 @@
  * canonical names of `shared/src/receipt.ts`. The model copies what is printed; `normalize.ts`
  * turns that into canonical values.
  *
- * Frozen once a paid call has been made: a description reworded after seeing one arm's output
- * would be tuned to that arm.
+ * Schema v2: `subtotal` is gone, as it is from the canonical receipt (iteration 26). No
+ * description was reworded with it. Frozen again from Plan B's first paid call: a description
+ * reworded after seeing one arm's output would be tuned to that arm.
  */
 export interface FieldDef {
   type: "string" | "array";
@@ -35,9 +36,6 @@ export const RECEIPT_FIELDS: Record<string, FieldDef> = {
   ),
   issueTime: text(
     "Vrijeme izdavanja računa, kako je ispisano (npr. '14:30', '14:19:14'), obično odmah uz datum izdavanja. Trajanje vožnje ili usluge je drugo polje.",
-  ),
-  subtotal: text(
-    "Iznos bez PDV-a ispisan kao zaseban zbroj ('Osnovica ukupno', 'Iznos bez PDV-a', 'Ukupno bez poreza'). Samo broj kako je ispisan.",
   ),
   total: text(
     "Ukupan iznos računa za platiti, kako je ispisan. Labeli: 'UKUPNO', 'Sveukupno', 'Za platiti', 'Ukupno EUR'. Ako su ispisani iznosi u eurima i u kunama, vrati iznos u valuti u kojoj je račun izdan: eure od 1.1.2023., kune prije toga. Samo broj, bez oznake valute.",

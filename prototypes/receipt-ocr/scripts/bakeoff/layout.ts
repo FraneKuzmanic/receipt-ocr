@@ -11,7 +11,7 @@ import DocumentIntelligence, { isUnexpected } from "@azure-rest/ai-document-inte
 import { requireEnv } from "./samples.ts";
 
 const API_VERSION = "2024-11-30";
-const MODEL_ID = "prebuilt-layout";
+export type TextModel = "prebuilt-layout" | "prebuilt-read";
 const POLL_INTERVAL_MS = 500;
 
 export interface LayoutOperation {
@@ -35,17 +35,24 @@ export interface LayoutRecord {
   operation: LayoutOperation;
 }
 
-export async function analyzeLayout(bytes: Buffer): Promise<LayoutRecord> {
+/** `prebuilt-read` returns plain text: only the layout model can be asked for markdown. */
+export async function analyzeLayout(
+  bytes: Buffer,
+  modelId: TextModel = "prebuilt-layout",
+): Promise<LayoutRecord> {
   const client = DocumentIntelligence(
     requireEnv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"),
     { key: requireEnv("AZURE_DOCUMENT_INTELLIGENCE_KEY") },
     { apiVersion: API_VERSION },
   );
   const started = Date.now();
-  const initial = await client.path("/documentModels/{modelId}:analyze", MODEL_ID).post({
+  const initial = await client.path("/documentModels/{modelId}:analyze", modelId).post({
     contentType: "application/octet-stream",
     body: bytes,
-    queryParameters: { outputContentFormat: "markdown", locale: "hr-HR" },
+    queryParameters: {
+      ...(modelId === "prebuilt-layout" ? { outputContentFormat: "markdown" as const } : {}),
+      locale: "hr-HR",
+    },
   });
   const uploadMs = Date.now() - started;
   if (isUnexpected(initial)) throw new Error(`layout submit: HTTP ${initial.status}`);
@@ -56,7 +63,7 @@ export async function analyzeLayout(bytes: Buffer): Promise<LayoutRecord> {
   for (;;) {
     await delay(POLL_INTERVAL_MS);
     const poll = await client
-      .path("/documentModels/{modelId}/analyzeResults/{resultId}", MODEL_ID, resultId)
+      .path("/documentModels/{modelId}/analyzeResults/{resultId}", modelId, resultId)
       .get();
     if (isUnexpected(poll)) throw new Error(`layout poll: HTTP ${poll.status}`);
     const operation = poll.body;
@@ -68,7 +75,7 @@ export async function analyzeLayout(bytes: Buffer): Promise<LayoutRecord> {
       uploadMs,
       analyzeMs: latencyMs - uploadMs,
       apiVersion: API_VERSION,
-      modelId: MODEL_ID,
+      modelId,
       operation: operation as LayoutOperation,
     };
   }

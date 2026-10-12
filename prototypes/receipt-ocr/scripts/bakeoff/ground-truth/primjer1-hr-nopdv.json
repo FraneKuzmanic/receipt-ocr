@@ -1,9 +1,4 @@
 {
-  "sellerOib": "95393674629",
-  "jir": null,
-  "zki": null,
-  "subtotal": "100.00",
-  "paymentMethod": "Bankovni prijenos, Kripto Test",
   "items": [
     {
       "description": "Primjer usluge",
@@ -13,7 +8,5 @@
     }
   ],
   "verifiedBy": null,
-  "notes": [
-    "issueTime left out: the only time is in the footer line 'Datum i vrijeme: 2025-01-22 18:23:39', which may or may not be read as the issue time."
-  ]
+  "notes": []
 }

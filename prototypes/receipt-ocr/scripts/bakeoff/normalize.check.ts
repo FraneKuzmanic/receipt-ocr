@@ -31,7 +31,7 @@ test("printed scalars become canonical values", () => {
 
 test("a value no parser can read stays null and is listed", () => {
   const { fields, unreadable } = normalize({
-    sellerOib: "12345678902",
+    sellerOib: "1234567890",
     issueDate: "jučer",
     total: "sto eura",
   });
@@ -101,7 +101,19 @@ test("a value copied with what is printed around it is still read", () => {
   assert.deepEqual(unreadable, []);
 });
 
-test("a labelled OIB still has to pass its check digit, and an ambiguous date stays day first", () => {
-  assert.equal(normalize({ sellerOib: "OIB: 12345678902" }).fields.sellerOib, null);
+test("a JIR copied without hyphens is written with them", () => {
+  const hyphenated = "58d14366-9037-4fd1-b6ee-ec4580d96136";
+  assert.equal(normalize({ jir: "58d1436690374fd1b6eeec4580d96136" }).fields.jir, hyphenated);
+  assert.equal(normalize({ jir: hyphenated }).fields.jir, hyphenated);
+  assert.equal(normalize({ jir: "58d14366" }).fields.jir, "58d14366");
+});
+
+test("an OIB that fails its check digit is kept as printed, and an ambiguous date stays day first", () => {
+  assert.equal(normalize({ sellerOib: "OIB: 12345678902" }).fields.sellerOib, "12345678902");
+  assert.equal(
+    normalize({ sellerOib: `12345678902 / HR${VALID_OIB}` }).fields.sellerOib,
+    VALID_OIB,
+  );
+  assert.equal(normalize({ sellerOib: "123456789012" }).fields.sellerOib, null);
   assert.equal(normalize({ issueDate: "02/03/2017" }).fields.issueDate, "2017-03-02");
 });

@@ -8,9 +8,24 @@ test("amounts compare numerically", () => {
   assert.ok(!matches("total", "100.50", "100.51"));
 });
 
-test("text ignores case, spacing, punctuation and diacritics", () => {
-  assert.ok(matches("sellerName", "Građanin d.o.o.", "GRADANIN  DOO"));
+test("text ignores case, spacing and punctuation, but not diacritics", () => {
+  assert.ok(matches("sellerName", "Građanin d.o.o.", "GRAĐANIN  D. O.O."));
+  assert.ok(!matches("sellerName", "Građanin d.o.o.", "GRADANIN DOO"));
   assert.ok(!matches("sellerName", "Milenij hoteli", "Kavana Wagner"));
+});
+
+test("a payment method is matched by its category", () => {
+  assert.ok(matches("paymentMethod", "cash", "Novčanice"));
+  assert.ok(matches("paymentMethod", "cash", "NONCANICE"));
+  assert.ok(!matches("paymentMethod", "cash", "Kartica"));
+});
+
+test("a subtotal in ground truth is not scored", () => {
+  const score = scoreReceipt({ subtotal: "10.00", total: "12.50" }, { total: "12.50" });
+  assert.deepEqual(
+    score.cells.map((cell) => cell.path),
+    ["total"],
+  );
 });
 
 test("dates, times, OIBs and currency are exact; JIR and ZKI ignore case", () => {

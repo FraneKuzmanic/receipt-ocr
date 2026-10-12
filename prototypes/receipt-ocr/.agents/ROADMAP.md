@@ -6,7 +6,8 @@
 process ends here; further testing, iteration and hardening happen directly, driven by the user
 against the deployed prototype, rather than through another numbered roadmap task. Iterations since
 then are listed in §3 under "Iterations outside the numbered task list" — the most recent is
-**26, extraction layer fixes and receipt schema v2**.
+**28, a probe of an LLM as a parallel reader of scalar fields** (a measurement; the product is
+unchanged).
 
 This roadmap divided the PRD into 11 sequential tasks. Each task was one full
 **prime → plan → execute → review → commit** cycle, sized to fit comfortably in a single agent
@@ -205,6 +206,8 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 24  | Demo-readiness review fixes | _none — user reported a full manual test run, asked for analysis, then the three recommended fixes_ | [history](history/24-demo-readiness-review-fixes.md) |
 | 25  | Input-mode experiment: OCR text vs the document itself, into an LLM (a measurement; the product is unchanged) | [plan](plans/input-modes-experiment.md) | [history](history/25-input-modes-experiment.md) · [result](research/input-modes.md) |
 | 26  | Extraction layer fixes and receipt schema v2 ("Plan A"; scalar ground truth verified by the product owner) | [plan](plans/extraction-layer-fixes-receipt-schema-v2.md) | [history](history/26-extraction-layer-fixes-receipt-schema-v2.md) |
+| 27  | Plan B: an LLM pass and Content Understanding, measured against the production engine (a measurement; the product is unchanged) | [plan](plans/plan-b-llm-pass-content-understanding-measurement.md) | [history](history/27-plan-b-llm-pass-content-understanding-measurement.md) · [result](research/plan-b-engines.md) |
+| 28  | Scalar probe: an LLM as a third, parallel reader of scalar fields (a measurement; the product is unchanged) | _none — user asked for the probe to be run directly from the [handoff](specs/scalar-llm-reader-probe.md)_ | [history](history/28-scalar-llm-reader-probe.md) · [result](research/scalar-llm-reader-probe.md) |
 
 **Amendment from iteration 26 — `subtotal` is removed from the canonical receipt.** PRD §4.2 and §6.4
 list it; it is gone from the schema, the review form and both exports (JSON `schemaVersion: 2`). It

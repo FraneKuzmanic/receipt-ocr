@@ -31,6 +31,15 @@ const oneLine: Parser = (raw) =>
     .trim() || null;
 const compact: Parser = (raw) => raw.replace(/\s/g, "") || null;
 
+/** A JIR copied without its hyphens is the same identifier; it is written 8-4-4-4-12, as printed. */
+const jir: Parser = (raw) => {
+  const joined = compact(raw);
+  const parts = /^([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})$/i.exec(
+    joined ?? "",
+  );
+  return parts ? parts.slice(1).join("-") : joined;
+};
+
 function currencyCode(raw: string): string | null {
   const token = raw.trim().toUpperCase();
   if (token === "€" || token === "EUR" || token === "EURO") return "EUR";
@@ -43,8 +52,14 @@ function currencyCode(raw: string): string | null {
 // value too: "OIB: 62357811032", "1,00 kom", "2,79 D1", "0,95 EUR/kg". That is a reading of the
 // right value, so each parser below falls back to the value inside the text it was given.
 
-/** An OIB with its label still attached. The check digit is verified either way. */
-const oib: Parser = (raw) => normalizeOib(raw) ?? normalizeOib(/\d{11}/.exec(raw)?.[0]);
+/**
+ * An OIB with its label still attached. One that passes its check digit wins; one that fails it
+ * is kept as printed, which is what production stores (with a warning) and what ground truth holds.
+ */
+const oib: Parser = (raw) => {
+  const printed = [...raw.matchAll(/(?<!\d)\d{11}(?!\d)/g)].map((match) => match[0]);
+  return normalizeOib(raw) ?? printed.find((digits) => normalizeOib(digits)) ?? printed[0] ?? null;
+};
 
 /** A number followed by its unit or tax-group code. */
 const leadingNumber = (raw: string): string | undefined => /^\s*-?\d[\d.,]*/.exec(raw)?.[0];
@@ -76,11 +91,10 @@ const SCALARS: Record<string, Parser> = {
   documentNumber: oneLine,
   issueDate: date,
   issueTime: parseIssueTime,
-  subtotal: parseAmount,
   total: parseAmount,
   currency: currencyCode,
   paymentMethod: oneLine,
-  jir: compact,
+  jir,
   zki: compact,
 };
 

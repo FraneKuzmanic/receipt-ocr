@@ -1,8 +1,4 @@
 {
-  "sellerOib": "79435261200",
-  "paymentMethod": "NOVCANICE I KOVANICE",
-  "jir": "ac12e053-3300-496a-8ad4-1bd2c10b0ec6",
-  "zki": "08a78e71e4e01080e6755ffe3bfdb1e6",
   "items": [
     {
       "description": "PIVO PAB 2L",
@@ -42,7 +38,5 @@
     }
   ],
   "verifiedBy": null,
-  "notes": [
-    "subtotal left out: the only amount without VAT is the base inside the VAT recap, which is scored there."
-  ]
+  "notes": []
 }
