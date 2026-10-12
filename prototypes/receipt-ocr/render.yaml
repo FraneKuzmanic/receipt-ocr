@@ -36,6 +36,16 @@ services:
         sync: false
       - key: AZURE_DOCUMENT_INTELLIGENCE_KEY
         sync: false
+      # The scalar reader. Optional as a set: with any of the four missing the API starts and
+      # extracts with the two models alone, and its startup log says `scalarReader: false`.
+      - key: AZURE_OPENAI_ENDPOINT
+        sync: false
+      - key: AZURE_OPENAI_KEY
+        sync: false
+      - key: AZURE_OPENAI_DEPLOYMENT
+        sync: false
+      - key: AZURE_OPENAI_API_VERSION
+        sync: false
 
   - type: web
     name: receipt-ocr-client

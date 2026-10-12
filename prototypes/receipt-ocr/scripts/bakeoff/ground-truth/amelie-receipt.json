@@ -13,9 +13,9 @@
   "paymentMethod": "card",
   "jir": "6c2fbfff-8d38-4c6f-b0a3-3a09197079b7",
   "zki": "93304464732c18efd6d76e3f67ba73f9",
-  "verifiedBy": null,
+  "verifiedBy": "product owner, 2026-10-12",
   "notes": [
-    "Scalars drafted by the agent from the photo on 2026-10-12; not verified by the product owner. The scalar probe reports this receipt apart from the verified ones until it is.",
+    "Scalars drafted by the agent from the photo on 2026-10-12 and verified by the product owner the same day.",
     "No recorded fixture, so it has no file in .agents/fixtures/expected/ (/validate 6.19).",
     "Seller is the legal entity on the first line; 'Slastičarnica-Caffe' and 'AMELIE 1 VLAŠKA 6' are the venue. The address is the seat, not the venue's Vlaška ulica 6.",
     "Items and VAT rows left out: the probe scores scalars only."

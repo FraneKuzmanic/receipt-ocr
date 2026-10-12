@@ -192,6 +192,14 @@ Current coverage and what each test protects:
 | `api/src/export/receipts.test.ts` (Iteration 26) | The CSV has exactly the twenty documented columns in order, with no `subtotal`; the JSON envelope says `schemaVersion: 2`; `paymentMethod` exports as its code |
 | `client/src/review/reviewForm.test.ts`, `regionSections.test.ts` (Iteration 26) | The payment wording survives the form round trip and an unset one saves as `null`; the form neither shows nor sends `subtotal`, which the strict PATCH schema would reject on every save |
 | `client/src/routes/ReviewPage.test.tsx` (Iteration 26) | No buyer inputs and an Add buyer control when no buyer was extracted, three inputs after clicking it, and the block open at once when any buyer value exists; no subtotal field; the payment method is an editable text input that saves what was typed; a per-row VAT warning is attached to its own cell, and `vat_present_but_unread` and `oib_checksum_invalid` render their copy |
+| `api/src/providers/document-extraction/scalar-merge.test.ts` (Iteration 29) | **The scalar reader's merge rule, branch by branch.** A field the QR code supplied or agrees with is never changed; the buyer block is the reader's including empty; payment method and issue time are the reader's when it has one; every other scalar keeps the two-model value and a difference is listed rather than applied; a null outside the buyer block never blanks a value; a printed value no parser could read neither fills nor clears; items and VAT rows are untouched; `d. o.o.` against `d.o.o.` is agreement, not disagreement |
+| `api/src/providers/document-extraction/azure.test.ts` (Iteration 29) | **The reader is additive, never load-bearing.** A reader that throws, answers malformed, or is absent leaves fields, provenance and field owners identical to the two-model result; one still running is aborted `READER_GRACE_MS` after the two-model result (fake timers); the QR code's JIR survives whatever the reader offers; a merged reading is stored as `readerAnswer`/`readerAnalyzeResult` with its agreed and disagreed fields |
+| `api/src/providers/document-extraction/scalar-reader.test.ts` (Iteration 29) | The schema asks for the 14 scalars and nothing else; the normaliser uses the two-model parsers and **infers no currency**; the request is the measured one (URL, header, frozen prompt, strict schema, the caller's abort signal); a 429 or 500 fails **once, with no retry**; and **no receipt text reaches an error** — a failed status, a non-JSON answer and a malformed answer each throw a fixed phrase with no body and no `cause`. Also that any one blank setting turns the reader off, and a document with no text never reaches the model |
+| `api/src/providers/document-extraction/word-search.test.ts` (Iteration 29) | A reader-supplied value is found among OCR words across several words, glued to its label, in brackets, and in the printed forms of a date or amount; the first occurrence wins; a value not on the page, or split across a page break, is not found; an empty candidate cannot match the first word |
+| `api/src/providers/document-extraction/source-regions.test.ts` (Iteration 29) | Replays recorded readings: a reader-supplied payment method is outlined on its own words with `origin: "text"`; **a buyer the reader cleared loses the outline the model drew**; a PDF's inch-based read pages still normalise to fractions; a value not printed on the page gets no outline |
+| `api/src/routes/receipts.test.ts` (Iteration 29) | The reader's part in the low-confidence list: agreement drops a low model confidence; a disagreement is listed only on `documentNumber`, `issueDate`, `total`, `currency` and never when the QR code corroborates the value; a field is listed once; **a row stored without a reader behaves exactly as before** |
+| `shared/src/receipt.test.ts` (Iteration 29) | The provider-independence guard also bans the reader's vendor and model vocabulary from `shared/src` |
+| `scripts/bakeoff/product-parity.check.ts` (Iteration 29, `node --test`, not Vitest) | The product's prompt, field order and JSON schema equal the measured harness ones character for character. `api/` cannot import `scripts/`, so the product holds a copy; this is what stops the copy drifting from the wording whose accuracy was measured. Run with `node --env-file-if-exists=.env --import tsx --test scripts/bakeoff/*.check.ts` |
 | `client/src/review/ActiveRegionStrip.test.tsx` (Iteration 15) | The mobile crop strip renders only with a matching active field, a known region and a non-PDF, safe source; `cropTransform`'s output, reproduced through the same `scale ∘ translate` composition the browser applies, centers the region's centroid in the **strip's own viewport**, not the full receipt image — the previous formula centered the whole image regardless of which field was active, verified wrong only by measuring a real rendered page |
 
 **The auth-error translation test is load-bearing for the same reason as the warning one.** Those
@@ -526,6 +534,32 @@ name it.
 ```
 node -e "const fs=require('fs'); const s=fs.readFileSync('shared/src/receipt.ts','utf8'); if(/subtotal/.test(s)) throw new Error('shared/src/receipt.ts names subtotal again; schema v2 removed it'); const r=fs.readFileSync('api/src/repositories/receipts.ts','utf8'); if(!/fromStoredFields\(row\.canonical_data\)/.test(r)) throw new Error('mapReceiptRow no longer converts stored v1 rows; every older receipt would fail as invalid_data'); console.log('ok');"
 ```
+
+### 6.25 The scalar reader stays optional and additive
+
+The reader runs on a resource that can run out of credit, and the deployed application may not have
+its variables at all. Two things keep that from becoming an outage: none of its four settings is
+required at startup, and the provider catches its rejection instead of failing the extraction.
+Either one quietly removed turns a dead reader into a dead upload.
+
+```
+node -e "const fs=require('fs'); const c=fs.readFileSync('api/src/config.ts','utf8'); if(/readRequired\(\s*.AZURE_OPENAI_/.test(c)) throw new Error('a scalar reader setting became required at startup; the API must boot without it'); const a=fs.readFileSync('api/src/providers/document-extraction/azure.ts','utf8'); if(!/scalarReader\(input, readerController\.signal\)\s*\.catch\(/.test(a)) throw new Error('the provider no longer catches a failed scalar reader; a reader fault would fail the extraction'); if(!/setTimeout\(\(\) => \{\s*readerAbandoned = true;/.test(a)) throw new Error('the reader grace timer is gone; a stalled reader would hold every extraction'); console.log('ok');"
+```
+
+The behaviour itself is proven by `azure.test.ts` (failed, malformed, stalled, absent); this guards
+the two lines those tests depend on from an edit that also edits the tests.
+
+### 6.26 No model or vendor vocabulary in the client or the shared package
+
+The scalar reader is the application's one language-model call, and like the Azure adapter it stays
+behind the provider (ROADMAP §5 rule 7). The user sees a value and, at most, the ordinary amber
+hint; nothing in the UI, the API contract or the canonical model names how the value was read.
+
+```
+node -e "const fs=require('fs'),path=require('path'); const bad=[]; const skip=path.normalize('shared/src/receipt.test.ts'); for(const root of ['client/src','shared/src']) (function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,e.name); if(e.isDirectory()) walk(f); else if(/\.(tsx?|json)$/.test(e.name)&&path.normalize(f)!==skip&&/openai|\bgpt\b|\bllm\b/i.test(fs.readFileSync(f,'utf8'))) bad.push(f);}})(root); if(bad.length) throw new Error('model vocabulary outside the provider: '+bad.join(', ')); console.log('ok');"
+```
+
+`shared/src/receipt.test.ts` is skipped because it names the vocabulary it bans.
 
 ---
 
@@ -958,6 +992,48 @@ Upload `receipt123.jpg`, `22559270.png`, `primjer-pdf-racuna.pdf`, `receiptWithT
 
 `.env` may set `PORT` to something other than 3001, which the Vite proxy does not follow: if
 `http://localhost:5173/api/health` answers 502, start the API with `PORT=3001` for the session.
+
+### 8.18 Journey - the scalar reader
+
+**These uploads are paid** (three Document Intelligence pages and one completion each, about
+$0.026 a receipt, on limited Azure credit). Estimate first, keep them to the five below, and record
+the calls and cost in the history file. Use a disposable account and delete it, its rows and its
+stored sources afterwards.
+
+Start the API and confirm its startup line says `scalarReader: true`. Upload `lira_trogir.jpg`,
+`26515835.jpg`, `0f089468f365211452db4ccf6e8da466.png`, `amelie-receipt.jpg` and
+`primjer1-hr-nopdv.pdf` from `.agents/fixtures/receipts/` through the app. For each stored row
+(read with the secret key):
+
+- `extraction_metadata.reader` is not null and names agreed and disagreed fields;
+  `raw_provider_result.readerAnswer` holds 14 keys and `readerAnalyzeResult` a page.
+- The scalars equal the measurement's merged values
+  (`node --env-file-if-exists=.env --import tsx scripts/bakeoff/score-scalar-probe.ts --verbose`).
+  A difference must be explained; the two-model reading of `lira_trogir` varies between uploads.
+- `26515835`: payment method filled, the invented buyer cleared, **no buyer inputs** and the Add
+  buyer control shown. `primjer1-hr-nopdv`: buyer filled and the block open. The Konzum receipt:
+  currency filled and `total` amber with the kuna value still shown.
+
+In a real browser at 1440 px and 390 px, in `en` and `hr`: focus each reader-supplied field and
+confirm its outline is the emphasised one **and sits on that value's own printed text** — look at
+it, an outline existing is not the check; a cleared buyer leaves no stray outline; amber appears
+only with the existing generic hint; no raw translation key; no horizontal overflow. A PDF on the
+phone layout draws its canvas a moment after "Show receipt" is opened; wait for it.
+
+Then the state the deployed app is in until its variables are entered: start the API **from Git
+Bash** with `AZURE_OPENAI_DEPLOYMENT= PORT=3001 npm run dev:api`, confirm the startup line says
+`scalarReader: false`, upload one receipt and confirm it reaches `review` with
+`extraction_metadata.reader` null. **Do not do this from PowerShell 5.1**: assigning an empty
+string to `$env:NAME` deletes the variable, `.env` then supplies the real value, and the check
+passes with the reader on. The startup line is the only proof of which state was tested.
+
+Finally grep the API log for a seller name or an OIB from the uploaded receipts — there must be
+none — and for `scalar reader unavailable`, which should not appear on a healthy run.
+
+A headless browser gives no focus events unless focus emulation is on
+(`Emulation.setFocusEmulationEnabled` over CDP); without it no outline is ever emphasised and the
+check fails for a reason that is not the product's. `agent-browser open` hung on this machine in
+iterations 27 and 29; driving headless Chrome over its DevTools port works.
 
 ---
 

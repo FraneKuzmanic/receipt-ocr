@@ -1,0 +1,1132 @@
+{
+  "analyzeResult": {
+    "apiVersion": "2024-11-30",
+    "modelId": "prebuilt-read",
+    "stringIndexType": "textElements",
+    "content": "S.A.L.N. SYSTEMS j.d.o.o. vana Ancica 3,10373 Ivanja Reka OIB: 85092357159 Operater: ĆL\nBroj Racuna: 224/STP/3\nOPP: STP\nONU: 3\nNadnevak: 31/03/2025, 23:59:47\nNacin placanja: Gotovina\nUsluga: Prijevoz putnika\nUdaljenost: 10.64 km\nVrijeme: 00:16:19 (HH:MM:SS)\nTotal: 132.72 EUR 999.98 HRK Fiksni tečaj: 7.53450kn = 1 EUR\nZKI: cf706ac762a61389c6c46af0ec9 0c5c5 JIR: 18916f95-5787-4e7f-a190-3a0 91970cfa2\nPoslovni subjekt nije u sustavu ROV-a po osnovi clanka 90. akona o PDV-u)\nPowered by: Smart Taksimetar F PRO",
+    "pages": [
+      {
+        "pageNumber": 1,
+        "angle": 0.37312188744544983,
+        "width": 632,
+        "height": 865,
+        "unit": "pixel",
+        "words": [
+          {
+            "content": "S.A.L.N.",
+            "polygon": [230, 83, 286, 81, 286, 96, 230, 97],
+            "confidence": 0.948,
+            "span": {
+              "offset": 0,
+              "length": 8
+            }
+          },
+          {
+            "content": "SYSTEMS",
+            "polygon": [296, 81, 349, 80, 349, 94, 296, 95],
+            "confidence": 0.993,
+            "span": {
+              "offset": 9,
+              "length": 7
+            }
+          },
+          {
+            "content": "j.d.o.o.",
+            "polygon": [357, 80, 418, 79, 418, 93, 357, 94],
+            "confidence": 0.853,
+            "span": {
+              "offset": 17,
+              "length": 8
+            }
+          },
+          {
+            "content": "vana",
+            "polygon": [206, 102, 237, 100, 237, 114, 206, 114],
+            "confidence": 0.992,
+            "span": {
+              "offset": 26,
+              "length": 4
+            }
+          },
+          {
+            "content": "Ancica",
+            "polygon": [245, 100, 289, 98, 289, 113, 245, 114],
+            "confidence": 0.992,
+            "span": {
+              "offset": 31,
+              "length": 6
+            }
+          },
+          {
+            "content": "3,10373",
+            "polygon": [297, 98, 351, 96, 351, 113, 297, 113],
+            "confidence": 0.992,
+            "span": {
+              "offset": 38,
+              "length": 7
+            }
+          },
+          {
+            "content": "Ivanja",
+            "polygon": [360, 96, 405, 96, 405, 113, 360, 113],
+            "confidence": 0.994,
+            "span": {
+              "offset": 46,
+              "length": 6
+            }
+          },
+          {
+            "content": "Reka",
+            "polygon": [414, 96, 446, 97, 446, 113, 413, 113],
+            "confidence": 0.988,
+            "span": {
+              "offset": 53,
+              "length": 4
+            }
+          },
+          {
+            "content": "OIB:",
+            "polygon": [258, 115, 286, 115, 286, 131, 258, 130],
+            "confidence": 0.935,
+            "span": {
+              "offset": 58,
+              "length": 4
+            }
+          },
+          {
+            "content": "85092357159",
+            "polygon": [296, 115, 382, 115, 382, 130, 296, 131],
+            "confidence": 0.995,
+            "span": {
+              "offset": 63,
+              "length": 11
+            }
+          },
+          {
+            "content": "Operater:",
+            "polygon": [283, 135, 352, 135, 352, 151, 283, 151],
+            "confidence": 0.989,
+            "span": {
+              "offset": 75,
+              "length": 9
+            }
+          },
+          {
+            "content": "ĆL",
+            "polygon": [307, 153, 323, 153, 324, 167, 307, 168],
+            "confidence": 0.625,
+            "span": {
+              "offset": 85,
+              "length": 2
+            }
+          },
+          {
+            "content": "Broj",
+            "polygon": [190, 191, 219, 191, 218, 208, 190, 208],
+            "confidence": 0.992,
+            "span": {
+              "offset": 88,
+              "length": 4
+            }
+          },
+          {
+            "content": "Racuna:",
+            "polygon": [228, 191, 280, 192, 280, 209, 228, 208],
+            "confidence": 0.992,
+            "span": {
+              "offset": 93,
+              "length": 7
+            }
+          },
+          {
+            "content": "224/STP/3",
+            "polygon": [290, 192, 363, 193, 363, 210, 290, 209],
+            "confidence": 0.992,
+            "span": {
+              "offset": 101,
+              "length": 9
+            }
+          },
+          {
+            "content": "OPP:",
+            "polygon": [189, 212, 217, 212, 217, 228, 189, 228],
+            "confidence": 0.963,
+            "span": {
+              "offset": 111,
+              "length": 4
+            }
+          },
+          {
+            "content": "STP",
+            "polygon": [227, 212, 252, 212, 251, 229, 226, 228],
+            "confidence": 0.998,
+            "span": {
+              "offset": 116,
+              "length": 3
+            }
+          },
+          {
+            "content": "ONU:",
+            "polygon": [188, 233, 216, 233, 216, 249, 188, 249],
+            "confidence": 0.981,
+            "span": {
+              "offset": 120,
+              "length": 4
+            }
+          },
+          {
+            "content": "3",
+            "polygon": [226, 233, 235, 233, 235, 249, 226, 249],
+            "confidence": 0.993,
+            "span": {
+              "offset": 125,
+              "length": 1
+            }
+          },
+          {
+            "content": "Nadnevak:",
+            "polygon": [189, 254, 254, 255, 254, 273, 188, 272],
+            "confidence": 0.992,
+            "span": {
+              "offset": 127,
+              "length": 9
+            }
+          },
+          {
+            "content": "31/03/2025,",
+            "polygon": [264, 255, 348, 256, 348, 275, 264, 274],
+            "confidence": 0.992,
+            "span": {
+              "offset": 137,
+              "length": 11
+            }
+          },
+          {
+            "content": "23:59:47",
+            "polygon": [359, 257, 424, 258, 424, 276, 358, 275],
+            "confidence": 0.995,
+            "span": {
+              "offset": 149,
+              "length": 8
+            }
+          },
+          {
+            "content": "Nacin",
+            "polygon": [188, 275, 227, 276, 226, 294, 188, 294],
+            "confidence": 0.993,
+            "span": {
+              "offset": 158,
+              "length": 5
+            }
+          },
+          {
+            "content": "placanja:",
+            "polygon": [234, 276, 302, 277, 301, 294, 233, 294],
+            "confidence": 0.988,
+            "span": {
+              "offset": 164,
+              "length": 9
+            }
+          },
+          {
+            "content": "Gotovina",
+            "polygon": [311, 277, 375, 278, 375, 295, 310, 294],
+            "confidence": 0.995,
+            "span": {
+              "offset": 174,
+              "length": 8
+            }
+          },
+          {
+            "content": "Usluga:",
+            "polygon": [191, 317, 242, 316, 242, 334, 191, 334],
+            "confidence": 0.989,
+            "span": {
+              "offset": 183,
+              "length": 7
+            }
+          },
+          {
+            "content": "Prijevoz",
+            "polygon": [251, 316, 311, 316, 311, 334, 251, 334],
+            "confidence": 0.992,
+            "span": {
+              "offset": 191,
+              "length": 8
+            }
+          },
+          {
+            "content": "putnika",
+            "polygon": [319, 316, 373, 316, 373, 333, 319, 333],
+            "confidence": 0.994,
+            "span": {
+              "offset": 200,
+              "length": 7
+            }
+          },
+          {
+            "content": "Udaljenost:",
+            "polygon": [191, 336, 273, 336, 273, 352, 191, 352],
+            "confidence": 0.991,
+            "span": {
+              "offset": 208,
+              "length": 11
+            }
+          },
+          {
+            "content": "10.64",
+            "polygon": [283, 336, 318, 335, 319, 351, 284, 352],
+            "confidence": 0.996,
+            "span": {
+              "offset": 220,
+              "length": 5
+            }
+          },
+          {
+            "content": "km",
+            "polygon": [326, 335, 342, 335, 342, 351, 326, 351],
+            "confidence": 0.998,
+            "span": {
+              "offset": 226,
+              "length": 2
+            }
+          },
+          {
+            "content": "Vrijeme:",
+            "polygon": [193, 356, 252, 355, 252, 372, 193, 373],
+            "confidence": 0.992,
+            "span": {
+              "offset": 229,
+              "length": 8
+            }
+          },
+          {
+            "content": "00:16:19",
+            "polygon": [261, 355, 319, 354, 319, 371, 260, 372],
+            "confidence": 0.993,
+            "span": {
+              "offset": 238,
+              "length": 8
+            }
+          },
+          {
+            "content": "(HH:MM:SS)",
+            "polygon": [328, 354, 400, 353, 400, 369, 328, 370],
+            "confidence": 0.977,
+            "span": {
+              "offset": 247,
+              "length": 10
+            }
+          },
+          {
+            "content": "Total:",
+            "polygon": [269, 392, 353, 393, 353, 418, 269, 419],
+            "confidence": 0.983,
+            "span": {
+              "offset": 258,
+              "length": 6
+            }
+          },
+          {
+            "content": "132.72",
+            "polygon": [244, 420, 327, 420, 327, 446, 245, 445],
+            "confidence": 0.993,
+            "span": {
+              "offset": 265,
+              "length": 6
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [343, 420, 386, 419, 385, 445, 342, 446],
+            "confidence": 0.998,
+            "span": {
+              "offset": 272,
+              "length": 3
+            }
+          },
+          {
+            "content": "999.98",
+            "polygon": [278, 447, 320, 447, 320, 460, 278, 460],
+            "confidence": 0.993,
+            "span": {
+              "offset": 276,
+              "length": 6
+            }
+          },
+          {
+            "content": "HRK",
+            "polygon": [327, 447, 350, 447, 349, 461, 327, 460],
+            "confidence": 0.996,
+            "span": {
+              "offset": 283,
+              "length": 3
+            }
+          },
+          {
+            "content": "Fiksni",
+            "polygon": [207, 463, 247, 464, 247, 479, 206, 479],
+            "confidence": 0.992,
+            "span": {
+              "offset": 287,
+              "length": 6
+            }
+          },
+          {
+            "content": "tečaj:",
+            "polygon": [255, 464, 295, 464, 295, 479, 255, 479],
+            "confidence": 0.993,
+            "span": {
+              "offset": 294,
+              "length": 6
+            }
+          },
+          {
+            "content": "7.53450kn",
+            "polygon": [303, 464, 366, 464, 366, 479, 303, 479],
+            "confidence": 0.992,
+            "span": {
+              "offset": 301,
+              "length": 9
+            }
+          },
+          {
+            "content": "=",
+            "polygon": [373, 465, 380, 465, 380, 479, 372, 479],
+            "confidence": 0.995,
+            "span": {
+              "offset": 311,
+              "length": 1
+            }
+          },
+          {
+            "content": "1",
+            "polygon": [388, 465, 393, 465, 392, 479, 388, 479],
+            "confidence": 0.996,
+            "span": {
+              "offset": 313,
+              "length": 1
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [402, 465, 424, 465, 424, 480, 401, 479],
+            "confidence": 0.995,
+            "span": {
+              "offset": 315,
+              "length": 3
+            }
+          },
+          {
+            "content": "ZKI:",
+            "polygon": [200, 519, 226, 519, 226, 534, 200, 534],
+            "confidence": 0.992,
+            "span": {
+              "offset": 319,
+              "length": 4
+            }
+          },
+          {
+            "content": "cf706ac762a61389c6c46af0ec9",
+            "polygon": [235, 519, 431, 520, 430, 535, 234, 534],
+            "confidence": 0.97,
+            "span": {
+              "offset": 324,
+              "length": 27
+            }
+          },
+          {
+            "content": "0c5c5",
+            "polygon": [200, 538, 235, 538, 235, 552, 200, 551],
+            "confidence": 0.964,
+            "span": {
+              "offset": 352,
+              "length": 5
+            }
+          },
+          {
+            "content": "JIR:",
+            "polygon": [202, 556, 227, 557, 227, 572, 202, 572],
+            "confidence": 0.977,
+            "span": {
+              "offset": 358,
+              "length": 4
+            }
+          },
+          {
+            "content": "18916f95-5787-4e7f-a190-3a0",
+            "polygon": [236, 557, 431, 559, 430, 575, 236, 572],
+            "confidence": 0.977,
+            "span": {
+              "offset": 363,
+              "length": 27
+            }
+          },
+          {
+            "content": "91970cfa2",
+            "polygon": [203, 575, 265, 576, 264, 591, 202, 590],
+            "confidence": 0.992,
+            "span": {
+              "offset": 391,
+              "length": 9
+            }
+          },
+          {
+            "content": "Poslovni",
+            "polygon": [206, 609, 259, 610, 259, 623, 205, 622],
+            "confidence": 0.672,
+            "span": {
+              "offset": 401,
+              "length": 8
+            }
+          },
+          {
+            "content": "subjekt",
+            "polygon": [267, 610, 315, 611, 315, 624, 267, 624],
+            "confidence": 0.992,
+            "span": {
+              "offset": 410,
+              "length": 7
+            }
+          },
+          {
+            "content": "nije",
+            "polygon": [322, 611, 351, 612, 351, 625, 322, 625],
+            "confidence": 0.967,
+            "span": {
+              "offset": 418,
+              "length": 4
+            }
+          },
+          {
+            "content": "u",
+            "polygon": [358, 612, 365, 612, 365, 625, 358, 625],
+            "confidence": 0.993,
+            "span": {
+              "offset": 423,
+              "length": 1
+            }
+          },
+          {
+            "content": "sustavu",
+            "polygon": [372, 612, 424, 614, 424, 626, 372, 625],
+            "confidence": 0.993,
+            "span": {
+              "offset": 425,
+              "length": 7
+            }
+          },
+          {
+            "content": "ROV-a",
+            "polygon": [207, 623, 243, 624, 243, 637, 206, 635],
+            "confidence": 0.678,
+            "span": {
+              "offset": 433,
+              "length": 5
+            }
+          },
+          {
+            "content": "po",
+            "polygon": [249, 624, 263, 625, 263, 637, 249, 637],
+            "confidence": 0.993,
+            "span": {
+              "offset": 439,
+              "length": 2
+            }
+          },
+          {
+            "content": "osnovi",
+            "polygon": [270, 625, 309, 626, 309, 638, 269, 637],
+            "confidence": 0.977,
+            "span": {
+              "offset": 442,
+              "length": 6
+            }
+          },
+          {
+            "content": "clanka",
+            "polygon": [317, 626, 359, 626, 359, 639, 317, 638],
+            "confidence": 0.992,
+            "span": {
+              "offset": 449,
+              "length": 6
+            }
+          },
+          {
+            "content": "90.",
+            "polygon": [366, 626, 388, 626, 388, 639, 366, 639],
+            "confidence": 0.934,
+            "span": {
+              "offset": 456,
+              "length": 3
+            }
+          },
+          {
+            "content": "akona",
+            "polygon": [225, 638, 259, 638, 258, 650, 224, 649],
+            "confidence": 0.963,
+            "span": {
+              "offset": 460,
+              "length": 5
+            }
+          },
+          {
+            "content": "o",
+            "polygon": [265, 638, 272, 638, 272, 650, 265, 650],
+            "confidence": 0.987,
+            "span": {
+              "offset": 466,
+              "length": 1
+            }
+          },
+          {
+            "content": "PDV-u)",
+            "polygon": [278, 638, 320, 640, 319, 651, 277, 650],
+            "confidence": 0.961,
+            "span": {
+              "offset": 468,
+              "length": 6
+            }
+          },
+          {
+            "content": "Powered",
+            "polygon": [214, 822, 262, 825, 262, 842, 213, 840],
+            "confidence": 0.994,
+            "span": {
+              "offset": 475,
+              "length": 7
+            }
+          },
+          {
+            "content": "by:",
+            "polygon": [269, 825, 287, 826, 287, 844, 269, 843],
+            "confidence": 0.899,
+            "span": {
+              "offset": 483,
+              "length": 3
+            }
+          },
+          {
+            "content": "Smart",
+            "polygon": [295, 826, 327, 827, 327, 845, 295, 844],
+            "confidence": 0.993,
+            "span": {
+              "offset": 487,
+              "length": 5
+            }
+          },
+          {
+            "content": "Taksimetar",
+            "polygon": [336, 827, 404, 828, 404, 846, 335, 845],
+            "confidence": 0.809,
+            "span": {
+              "offset": 493,
+              "length": 10
+            }
+          },
+          {
+            "content": "F",
+            "polygon": [396, 826, 402, 825, 404, 841, 397, 842],
+            "confidence": 0.211,
+            "span": {
+              "offset": 504,
+              "length": 1
+            }
+          },
+          {
+            "content": "PRO",
+            "polygon": [406, 825, 427, 823, 428, 839, 407, 841],
+            "confidence": 0.989,
+            "span": {
+              "offset": 506,
+              "length": 3
+            }
+          }
+        ],
+        "lines": [
+          {
+            "content": "S.A.L.N. SYSTEMS j.d.o.o.",
+            "polygon": [229, 82, 417, 79, 417, 92, 229, 96],
+            "spans": [
+              {
+                "offset": 0,
+                "length": 25
+              }
+            ]
+          },
+          {
+            "content": "vana Ancica 3,10373 Ivanja Reka",
+            "polygon": [205, 98, 445, 96, 445, 112, 206, 115],
+            "spans": [
+              {
+                "offset": 26,
+                "length": 31
+              }
+            ]
+          },
+          {
+            "content": "OIB: 85092357159",
+            "polygon": [257, 114, 381, 115, 381, 130, 257, 130],
+            "spans": [
+              {
+                "offset": 58,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "Operater:",
+            "polygon": [282, 134, 351, 134, 351, 150, 282, 150],
+            "spans": [
+              {
+                "offset": 75,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "ĆL",
+            "polygon": [308, 154, 323, 153, 323, 168, 307, 168],
+            "spans": [
+              {
+                "offset": 85,
+                "length": 2
+              }
+            ]
+          },
+          {
+            "content": "Broj Racuna: 224/STP/3",
+            "polygon": [189, 190, 362, 192, 362, 209, 189, 207],
+            "spans": [
+              {
+                "offset": 88,
+                "length": 22
+              }
+            ]
+          },
+          {
+            "content": "OPP: STP",
+            "polygon": [188, 211, 251, 212, 251, 228, 188, 227],
+            "spans": [
+              {
+                "offset": 111,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "ONU: 3",
+            "polygon": [188, 233, 234, 233, 233, 249, 188, 249],
+            "spans": [
+              {
+                "offset": 120,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "Nadnevak: 31/03/2025, 23:59:47",
+            "polygon": [188, 254, 423, 257, 423, 275, 188, 272],
+            "spans": [
+              {
+                "offset": 127,
+                "length": 30
+              }
+            ]
+          },
+          {
+            "content": "Nacin placanja: Gotovina",
+            "polygon": [188, 275, 374, 277, 374, 295, 187, 293],
+            "spans": [
+              {
+                "offset": 158,
+                "length": 24
+              }
+            ]
+          },
+          {
+            "content": "Usluga: Prijevoz putnika",
+            "polygon": [190, 316, 372, 316, 372, 333, 190, 333],
+            "spans": [
+              {
+                "offset": 183,
+                "length": 24
+              }
+            ]
+          },
+          {
+            "content": "Udaljenost: 10.64 km",
+            "polygon": [191, 336, 341, 334, 341, 350, 191, 352],
+            "spans": [
+              {
+                "offset": 208,
+                "length": 20
+              }
+            ]
+          },
+          {
+            "content": "Vrijeme: 00:16:19 (HH:MM:SS)",
+            "polygon": [193, 355, 399, 352, 400, 368, 193, 372],
+            "spans": [
+              {
+                "offset": 229,
+                "length": 28
+              }
+            ]
+          },
+          {
+            "content": "Total:",
+            "polygon": [268, 392, 352, 392, 352, 417, 268, 418],
+            "spans": [
+              {
+                "offset": 258,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "132.72 EUR",
+            "polygon": [244, 419, 385, 419, 385, 445, 244, 445],
+            "spans": [
+              {
+                "offset": 265,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "999.98 HRK",
+            "polygon": [277, 446, 349, 447, 349, 460, 277, 459],
+            "spans": [
+              {
+                "offset": 276,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "Fiksni tečaj: 7.53450kn = 1 EUR",
+            "polygon": [206, 463, 423, 464, 423, 479, 206, 478],
+            "spans": [
+              {
+                "offset": 287,
+                "length": 31
+              }
+            ]
+          },
+          {
+            "content": "ZKI: cf706ac762a61389c6c46af0ec9",
+            "polygon": [199, 518, 430, 519, 429, 535, 199, 533],
+            "spans": [
+              {
+                "offset": 319,
+                "length": 32
+              }
+            ]
+          },
+          {
+            "content": "0c5c5",
+            "polygon": [200, 538, 235, 538, 234, 552, 200, 551],
+            "spans": [
+              {
+                "offset": 352,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "content": "JIR: 18916f95-5787-4e7f-a190-3a0",
+            "polygon": [201, 556, 430, 558, 429, 574, 201, 572],
+            "spans": [
+              {
+                "offset": 358,
+                "length": 32
+              }
+            ]
+          },
+          {
+            "content": "91970cfa2",
+            "polygon": [202, 574, 264, 575, 264, 590, 202, 589],
+            "spans": [
+              {
+                "offset": 391,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "Poslovni subjekt nije u sustavu",
+            "polygon": [205, 608, 423, 613, 423, 626, 205, 622],
+            "spans": [
+              {
+                "offset": 401,
+                "length": 31
+              }
+            ]
+          },
+          {
+            "content": "ROV-a po osnovi clanka 90.",
+            "polygon": [206, 622, 387, 626, 387, 639, 206, 635],
+            "spans": [
+              {
+                "offset": 433,
+                "length": 26
+              }
+            ]
+          },
+          {
+            "content": "akona o PDV-u)",
+            "polygon": [224, 638, 319, 639, 319, 650, 224, 648],
+            "spans": [
+              {
+                "offset": 460,
+                "length": 14
+              }
+            ]
+          },
+          {
+            "content": "Powered by: Smart Taksimetar",
+            "polygon": [213, 822, 412, 828, 411, 846, 212, 840],
+            "spans": [
+              {
+                "offset": 475,
+                "length": 28
+              }
+            ]
+          },
+          {
+            "content": "F PRO",
+            "polygon": [396, 826, 427, 823, 427, 839, 397, 842],
+            "spans": [
+              {
+                "offset": 504,
+                "length": 5
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 0,
+            "length": 509
+          }
+        ]
+      }
+    ],
+    "paragraphs": [
+      {
+        "spans": [
+          {
+            "offset": 0,
+            "length": 87
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [205, 82, 445, 79, 446, 166, 206, 170]
+          }
+        ],
+        "content": "S.A.L.N. SYSTEMS j.d.o.o. vana Ancica 3,10373 Ivanja Reka OIB: 85092357159 Operater: ĆL"
+      },
+      {
+        "spans": [
+          {
+            "offset": 88,
+            "length": 22
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [189, 190, 362, 192, 362, 209, 189, 207]
+          }
+        ],
+        "content": "Broj Racuna: 224/STP/3"
+      },
+      {
+        "spans": [
+          {
+            "offset": 111,
+            "length": 8
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [188, 211, 251, 212, 251, 228, 188, 227]
+          }
+        ],
+        "content": "OPP: STP"
+      },
+      {
+        "spans": [
+          {
+            "offset": 120,
+            "length": 6
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [188, 233, 234, 233, 234, 249, 188, 249]
+          }
+        ],
+        "content": "ONU: 3"
+      },
+      {
+        "spans": [
+          {
+            "offset": 127,
+            "length": 30
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [188, 254, 423, 257, 423, 275, 188, 272]
+          }
+        ],
+        "content": "Nadnevak: 31/03/2025, 23:59:47"
+      },
+      {
+        "spans": [
+          {
+            "offset": 158,
+            "length": 24
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [187, 275, 374, 277, 374, 295, 187, 293]
+          }
+        ],
+        "content": "Nacin placanja: Gotovina"
+      },
+      {
+        "spans": [
+          {
+            "offset": 183,
+            "length": 24
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [190, 316, 372, 316, 372, 333, 190, 333]
+          }
+        ],
+        "content": "Usluga: Prijevoz putnika"
+      },
+      {
+        "spans": [
+          {
+            "offset": 208,
+            "length": 20
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [191, 336, 341, 334, 341, 350, 191, 352]
+          }
+        ],
+        "content": "Udaljenost: 10.64 km"
+      },
+      {
+        "spans": [
+          {
+            "offset": 229,
+            "length": 28
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [193, 355, 400, 351, 400, 368, 193, 372]
+          }
+        ],
+        "content": "Vrijeme: 00:16:19 (HH:MM:SS)"
+      },
+      {
+        "spans": [
+          {
+            "offset": 258,
+            "length": 60
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [206, 391, 423, 392, 423, 479, 206, 478]
+          }
+        ],
+        "content": "Total: 132.72 EUR 999.98 HRK Fiksni tečaj: 7.53450kn = 1 EUR"
+      },
+      {
+        "spans": [
+          {
+            "offset": 319,
+            "length": 81
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [199, 518, 430, 519, 430, 591, 199, 590]
+          }
+        ],
+        "content": "ZKI: cf706ac762a61389c6c46af0ec9 0c5c5 JIR: 18916f95-5787-4e7f-a190-3a0 91970cfa2"
+      },
+      {
+        "spans": [
+          {
+            "offset": 401,
+            "length": 73
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [205, 608, 423, 613, 422, 653, 204, 648]
+          }
+        ],
+        "content": "Poslovni subjekt nije u sustavu ROV-a po osnovi clanka 90. akona o PDV-u)"
+      },
+      {
+        "spans": [
+          {
+            "offset": 475,
+            "length": 34
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [212, 822, 427, 823, 427, 846, 212, 845]
+          }
+        ],
+        "content": "Powered by: Smart Taksimetar F PRO"
+      }
+    ],
+    "styles": [],
+    "contentFormat": "text"
+  },
+  "answer": {
+    "sellerName": "S.A.L.N. SYSTEMS j.d.o.o.",
+    "sellerAddress": "vana Ancica 3,10373 Ivanja Reka",
+    "sellerOib": "OIB: 85092357159",
+    "buyerName": null,
+    "buyerAddress": null,
+    "buyerOib": null,
+    "documentNumber": "224/STP/3",
+    "issueDate": "31/03/2025",
+    "issueTime": "23:59:47",
+    "total": "132.72",
+    "currency": "EUR",
+    "paymentMethod": "Gotovina",
+    "jir": "18916f95-5787-4e7f-a190-3a091970cfa2",
+    "zki": "cf706ac762a61389c6c46af0ec90c5c5"
+  }
+}

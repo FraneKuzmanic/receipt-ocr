@@ -11,6 +11,7 @@ import { requireAuth } from "./middleware/require-auth.js";
 import { healthRouter } from "./routes/health.js";
 import { createReceiptsRouter } from "./routes/receipts.js";
 import { createAzureProvider } from "./providers/document-extraction/azure.js";
+import { createScalarReader } from "./providers/document-extraction/scalar-reader.js";
 import type { DocumentExtractionProvider } from "./providers/document-extraction/types.js";
 
 export interface AppOptions {
@@ -25,7 +26,8 @@ export interface AppOptions {
 export function createApp(options: AppOptions = {}): Express {
   const app = express();
   const authenticator = options.authenticator ?? createSupabaseAuthenticator();
-  const extractionProvider = options.extractionProvider ?? createAzureProvider();
+  const extractionProvider =
+    options.extractionProvider ?? createAzureProvider({ scalarReader: createScalarReader() });
 
   app.use(helmet());
   app.use(cors({ origin: config.WEB_ORIGIN }));

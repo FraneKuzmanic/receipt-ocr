@@ -25,6 +25,14 @@ export interface Config {
   readonly AZURE_DI_SECONDARY_MODEL_ID: string;
   readonly AZURE_DI_LOCALE: string;
   readonly EXTRACTION_TIMEOUT_MS: number;
+  /**
+   * The scalar reader is on only when all four are set; blank any one to turn it off. None is
+   * required: the application must start, and extract with two models, without them.
+   */
+  readonly AZURE_OPENAI_ENDPOINT: string;
+  readonly AZURE_OPENAI_KEY: string;
+  readonly AZURE_OPENAI_DEPLOYMENT: string;
+  readonly AZURE_OPENAI_API_VERSION: string;
   readonly MAX_UPLOAD_BYTES: number;
   readonly MAX_PDF_PAGES: number;
 }
@@ -110,6 +118,10 @@ const parsed: Config = {
     process.env["EXTRACTION_TIMEOUT_MS"],
     90000,
   ),
+  AZURE_OPENAI_ENDPOINT: process.env["AZURE_OPENAI_ENDPOINT"]?.trim() ?? "",
+  AZURE_OPENAI_KEY: process.env["AZURE_OPENAI_KEY"]?.trim() ?? "",
+  AZURE_OPENAI_DEPLOYMENT: process.env["AZURE_OPENAI_DEPLOYMENT"]?.trim() ?? "",
+  AZURE_OPENAI_API_VERSION: process.env["AZURE_OPENAI_API_VERSION"]?.trim() ?? "",
   MAX_UPLOAD_BYTES: readCount("MAX_UPLOAD_BYTES", process.env["MAX_UPLOAD_BYTES"], 10485760),
   MAX_PDF_PAGES: readCount("MAX_PDF_PAGES", process.env["MAX_PDF_PAGES"], 10),
 };

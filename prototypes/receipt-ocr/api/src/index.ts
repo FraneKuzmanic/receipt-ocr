@@ -1,11 +1,13 @@
 import { createApp } from "./app.js";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
+import { scalarReaderConfigured } from "./providers/document-extraction/scalar-reader.js";
 
 const server = createApp().listen(config.PORT);
 
 server.once("listening", () => {
-  logger.info({ port: config.PORT }, "api listening");
+  // A reader that is off or failing is silent to the user by design, so the log says which.
+  logger.info({ port: config.PORT, scalarReader: scalarReaderConfigured() }, "api listening");
 });
 
 // Without this, a port clash surfaces as an unhandled 'error' event and a raw stack

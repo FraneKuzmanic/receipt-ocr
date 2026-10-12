@@ -38,7 +38,7 @@ Make business receipt digitization fast and reliable enough that users prefer sc
 3. **Provider-independent domain model** — Azure Document Intelligence is the chosen PoC extraction platform, but Azure-specific fields must not become the application data model.
 4. **Warnings over blocking** — the PoC should surface missing or inconsistent information without preventing the user from confirming a record.
 5. **Preserve the source** — the uploaded receipt remains available as the source of truth for human review.
-6. **PoC simplicity** — avoid company administration, accounting integrations, LLM orchestration, custom OCR training, and other premature complexity.
+6. **PoC simplicity** — avoid company administration, accounting integrations, LLM orchestration, custom OCR training, and other premature complexity. *Amended 2026-10-12 (iteration 29): one fixed-rule scalar reader (§4.7) is the single exception; it is one call with no orchestration.*
 7. **Structured for the future** — data should be useful for later API/accounting integrations even though no integration is implemented in this PoC.
 
 ---
@@ -192,6 +192,7 @@ Not every field is expected to exist on every receipt. Missing optional fields r
 
 - ❌ PaddleOCR, Tesseract, or another open-source OCR engine in the PoC.
 - ❌ LLM-based extraction, verification, or fallback in the initial implementation.
+  - *Amended 2026-10-12 (iteration 29):* an LLM now reads the **scalar fields** as a third, additive reader beside the two Azure prebuilt models, merged by a fixed per-field rule. Measured before adoption: 198 of 209 scalars right against 183, no correct value changed, no added wait (`.agents/research/scalar-llm-reader-probe.md`). **Still out of scope:** LLM verification or validation, an LLM as a fallback the extraction depends on, an LLM reading line items or VAT rows, and an LLM overruling the prebuilt models on a critical field.
 - ❌ Custom-trained Azure extraction model.
 - ❌ Mandatory multi-model Azure fallback orchestration.
 - ❌ Proprietary OCR training dataset.
@@ -588,7 +589,7 @@ Extract text and structured candidate values from receipt photos, images and PDF
 
 ### Requirements
 
-- Azure Document Intelligence is the sole OCR/document extraction platform for the initial PoC.
+- Azure Document Intelligence is the sole OCR/document extraction platform for the initial PoC. *Amended 2026-10-12 (iteration 29): it remains the only OCR. The scalar reader (§4.7) is given Document Intelligence's own OCR text and adds a language model's reading of the scalar fields.*
 - Azure credentials remain on the backend.
 - Azure-specific response fields are isolated inside the provider adapter.
 - Provider output is mapped into the canonical receipt model.
@@ -596,7 +597,7 @@ Extract text and structured candidate values from receipt photos, images and PDF
 - Handle provider errors gracefully.
 - Do not expose Azure terminology to end users.
 - Exact Azure model, confidence policy, Croatia-specific parsing, fallback behavior, and possible multi-model logic are deferred to the dedicated OCR implementation task.
-- LLM fallback is not part of the initial PoC.
+- LLM fallback is not part of the initial PoC. *Amended 2026-10-12 (iteration 29): still true. The scalar reader is additive and never load-bearing: when it is off, fails or is slow, the two-model result stands unchanged.*
 
 ---
 
@@ -644,7 +645,7 @@ Detect obvious inconsistencies and draw the user's attention to fields that dese
 - No buyer-OIB-to-company validation.
 - No company verification.
 - No duplicate-receipt detection.
-- No LLM validation in the PoC.
+- No LLM validation in the PoC. *Amended 2026-10-12 (iteration 29): unchanged. The scalar reader produces values, not validation, and raises no warning.*
 
 ---
 
@@ -813,7 +814,7 @@ Supabase is a practical recommendation, not a permanent architectural commitment
 
 ## Explicitly excluded dependencies
 
-- LLM SDKs.
+- LLM SDKs. *Amended 2026-10-12 (iteration 29): unchanged and still true. The scalar reader calls the Azure OpenAI REST endpoint with the runtime's own `fetch`; no SDK is installed.*
 - PaddleOCR.
 - Tesseract.
 - Custom ML training infrastructure.
@@ -837,6 +838,10 @@ Typical backend configuration:
 ```env
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=
 AZURE_DOCUMENT_INTELLIGENCE_KEY=
+AZURE_OPENAI_ENDPOINT=
+AZURE_OPENAI_KEY=
+AZURE_OPENAI_DEPLOYMENT=
+AZURE_OPENAI_API_VERSION=
 DATABASE_URL=
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -873,6 +878,7 @@ The PoC must:
 - Avoid logging full receipt contents or signed URLs unnecessarily.
 - Keep Azure credentials server-side.
 - Support application-level soft deletion.
+- *Amended 2026-10-12 (iteration 29):* when the scalar reader is configured, the receipt's OCR text is sent to Azure OpenAI, in the same Azure tenant as Document Intelligence. Neither that text nor the model's answer is logged.
 
 The PoC does **not** claim regulatory archive certification or production-grade retention compliance.
 
@@ -1314,7 +1320,7 @@ Approximately **2–4 working weeks** for a focused PoC implementation and evalu
 | Source documents or structured receipt data are exposed                 | High   | Private storage, authenticated ownership checks, HTTPS, backend-only credentials, authorized source access.                                            |
 | OCR/API usage creates unexpected cost                                   | Medium | Keep Azure calls server-side, impose reasonable PoC upload/rate limits, monitor usage.                                                                 |
 | Canonical schema misses fields needed by future accounting integrations | Medium | Preserve original source and extraction metadata; keep schema extensible; add integration-specific mappings later.                                     |
-| PoC expands into full accounting workflow too early                     | High   | Keep company/tenant/accountant/integration/LLM functionality explicitly out of scope.                                                                  |
+| PoC expands into full accounting workflow too early                     | High   | Keep company/tenant/accountant/integration functionality out of scope; LLM use is limited to the §4.7 scalar reader (amended 2026-10-12).              |
 | Users expect a legal archival/compliance product                        | Medium | State clearly that the PoC stores originals for review but is not a certified accounting archive.                                                      |
 
 ---
@@ -1382,7 +1388,7 @@ Money stored in dedicated columns should use PostgreSQL `numeric`/decimal-safe t
 1. Azure Document Intelligence is the selected OCR/document-extraction platform.
 2. Exact Azure model selection and fallback logic are intentionally deferred to the OCR implementation task.
 3. No open-source OCR comparison is required for the PoC.
-4. No LLM is required in the initial extraction path.
+4. No LLM is required in the initial extraction path. *Amended 2026-10-12 (iteration 29): an LLM is now in the extraction path as an additive scalar reader; the path still completes without it.*
 5. OCR is exposed through an internal provider abstraction.
 6. The application owns a canonical receipt schema.
 7. Company/tenant/accountant entities are deliberately omitted.
@@ -1442,7 +1448,7 @@ Use current secure patch releases compatible with these baselines:
 - ✅ Company/tenant/accountant complexity is excluded.
 - ✅ Buyer-OIB matching/verification is excluded.
 - ✅ Azure Document Intelligence is fixed as the OCR platform.
-- ✅ Azure model/fallback/LLM implementation details are deferred.
+- ✅ Azure model/fallback/LLM implementation details are deferred. *(Amended 2026-10-12 (iteration 29): the LLM decision was taken; see §4.7.)*
 - ✅ Canonical data model is provider-independent.
 - ✅ Original receipt documents are retained.
 - ✅ Optional line items are supported without becoming a review requirement.

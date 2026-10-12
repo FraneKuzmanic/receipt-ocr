@@ -12,7 +12,8 @@ final record. See [`PRD.md`](PRD.md) for the full product specification and
 > photograph or choose a receipt, follow asynchronous Azure extraction, then review, correct,
 > confirm, revisit, soft-delete and export confirmed receipts as CSV or JSON. Further testing and
 > iteration now happens directly against the deployed prototype rather than through another planned
-> task.
+> task. Since iteration 29 a language model reads the scalar fields as a third, optional reader beside
+> the two Azure prebuilt models; see "A third reader for scalar fields".
 
 ## Prerequisites
 
@@ -180,7 +181,9 @@ setup does not need:
   every request.
 
 Both are plain, non-secret values set directly in `render.yaml`; every other required variable
-(Supabase, Azure) is entered as a real secret through Render's dashboard, never committed.
+(Supabase, Azure) is entered as a real secret through Render's dashboard, never committed. The four
+`AZURE_OPENAI_*` variables of the scalar reader are entered there too and are optional: until they
+are, the deployed API starts normally and logs `scalarReader: false`.
 
 ### Known limitations
 
@@ -206,7 +209,7 @@ All scripts run from the repository root.
 | `npm test`             | Vitest across `shared` (node), `api` (node) and `client` (jsdom)    |
 | `npm run test:integration` | Repository, RLS, auth and private Storage tests against the hosted project |
 | `npm run test:integration:local` | The same suite against the Docker stack, for schema work |
-| `npm run score:extraction` | Replays recorded Azure fixtures offline against the production mapper and reports extraction accuracy |
+| `npm run score:extraction` | Replays recorded Azure fixtures offline against the production mapper and reports extraction accuracy; add `-- --reader` to merge the recorded scalar-reader answers too |
 | `npm run db:start`     | Starts the Docker-backed local Supabase stack                      |
 | `npm run db:stop`      | Stops the local Supabase stack without deleting its volumes        |
 | `npm run db:reset`     | Rebuilds the local database from migrations and seed               |
@@ -400,7 +403,9 @@ issue time, total, JIR) is confirmed whatever confidence the model attached to i
 the flag landed on a correct value 16 times out of 17 across the scored corpus — a date-inferred
 currency was stamped 0.5 on purpose, and a QR-confirmed date read at 0.57 was flagged anyway. The
 list is computed at read time from the current values, so receipts stored earlier lose their false
-flags too, and an edit that breaks agreement with the QR code brings the flag back.
+flags too, and an edit that breaks agreement with the QR code brings the flag back. The scalar
+reader adds two cases, recorded at extraction: a value it read the same way is not listed, and a
+critical exact-valued field it read differently is (see "A third reader for scalar fields").
 Inputs keep canonical strings after a save but accept Croatian and English locale formatting on entry.
 PATCH is allowed only in review and confirmed; it never changes status. Confirm moves only review to
 confirmed and is idempotent afterwards. Warnings are always informational, so confirmation remains
@@ -812,6 +817,98 @@ The one slower receipt was a 3.5 MB, 10 MP original uploaded twice over a home c
 remaining variable — from Render it leaves a datacenter link rather than a home uplink. Render's
 separate 30–50 s free-tier cold start still applies before any of this begins.
 
+### A third reader for scalar fields
+
+Since iteration 29 every document is read a third time, for its **14 scalar fields only** — seller,
+buyer, document number, date, time, total, currency, payment method, JIR and ZKI. Document
+Intelligence's plain-OCR model (`prebuilt-read`) returns the text, and a `gpt-4.1` deployment on
+Azure OpenAI copies those fields out of it as printed. This is the application's one use of a
+language model. It is never asked for line items or VAT rows, and it is never shown what the two
+prebuilt models read, so its reading is independent of theirs.
+
+The reader starts at the same moment as the two prebuilt models and is merged on the server before
+the receipt reaches `review`; nothing fills in afterwards. `mergeScalars` in
+`api/src/providers/document-extraction/scalar-merge.ts` holds the rule:
+
+| Field | Whose value is stored |
+| --- | --- |
+| Anything the QR code supplied or agrees with | The two models' — the QR code outranks every reader |
+| Buyer name, address, OIB | The reader's, **including empty** |
+| Payment method, issue time | The reader's when it has one, otherwise the two models' |
+| Every other scalar | The two models' when they have one, otherwise the reader's |
+
+Where both hold a value for one of those last fields and they differ, the two models' value is
+kept. **The rule is fixed per field and compares no confidence**, for the reason the two-model merge
+does not: a gate that used the reader only where the models were unsure measured worse (194 against
+198) and broke a correct document number.
+
+The buyer row is the one place a reader may blank a value, and it narrows the two-model merge's
+"never blanks" rule for those three fields only. The prebuilt models invent a buyer on retail
+receipts (`26515835`) and return the seller's tax id as the buyer's (`lira_trogir`); the reader was
+right on every buyer block in the corpus.
+
+**The reader is additive, never load-bearing.** It is off unless all four `AZURE_OPENAI_*`
+variables are set. When it is off, fails, answers with anything but the 14 fields, or is still
+running `READER_GRACE_MS` (3 s) after the two-model result is ready, the two-model result is stored
+unchanged. One completion in 192 was held 84 s by the service during measurement, which is why the
+limit exists; a throttled request is a failed reading rather than a retry, because waiting out a
+`retry-after` cannot fit inside 3 s. **A dead reader is silent to the user by design, so the log is
+where it shows**: the startup line carries `scalarReader: true|false`, and each failed or abandoned
+reading logs one `scalar reader unavailable` warning. The Azure OpenAI resource is on limited
+credit — when it runs out, that warning on every upload is the signal, and the application keeps
+working at two-model accuracy.
+
+What the reader changes beyond the values:
+
+- **Flags.** A low-confidence flag is dropped when the reader read the same value from its own OCR.
+  A disagreement raises the ordinary amber hint, with no new copy, only on `documentNumber`,
+  `issueDate`, `total` and `currency` — the critical fields that hold one exact value. `sellerName`
+  is deliberately not in that list: its disagreements are about how much of the header is the name,
+  and they landed on correct values more often than wrong ones. Agreement and disagreement are
+  recorded at extraction and are not recomputed when the user edits.
+- **Outlines.** The reader returns text, not positions, so a value it supplied is outlined where its
+  printed text is found among the reader's own OCR words
+  (`api/src/providers/document-extraction/word-search.ts`). The search ignores case, spacing,
+  diacritics and punctuation and knows the forms a date or an amount is printed in. A value printed
+  twice is outlined at its **first** occurrence — a currency read as `EUR` is outlined at the first
+  `EUR` on the page, which may be an item line rather than the total — and a value not found gets no
+  outline. A buyer the reader cleared loses the outline the model drew for it.
+- **What is stored.** `raw_provider_result` gains `readerAnalyzeResult` (the OCR response) and
+  `readerAnswer` (the 14 values as copied); `fieldModels` records `reader` for each field it filled,
+  replaced or cleared; the private extraction metadata records which fields agreed and disagreed.
+  None of this reaches an API response, and no model or vendor name reaches `shared/` or the client.
+- **Nothing for receipts already stored.** They keep their two-model reading; there is no backfill.
+  `POST /api/receipts/:id/retry` re-runs extraction with the reader.
+
+Measured on 2026-10-12 over the 15 receipts with verified scalars, three runs
+(`.agents/research/scalar-llm-reader-probe.md`): 198 of 209 scalars right against the two models'
+183, no correct value changed, the same result in every run, nothing added to the wait at p50 or
+p90, about half a cent a receipt. Its limits are part of the result: the rule was chosen on those
+same receipts, so 198 is an upper estimate; and **the number of receipts needing no critical
+correction does not move (13 of 15)**, because the two models' value is kept on every critical field.
+On the two receipts the deterministic rules were never tuned on, the reader alone read 28 of 28
+scalars and the merge reaches 24.
+
+`npm run score:extraction -- --reader` replays a recorded reading
+(`fixtures/reader/<name>.json`, 14 receipts) through the same merge, offline. Against the two-model
+score it moves payment method from 12/16 to 16/16, buyer name and address from 14/16 to 16/16 each,
+document number, issue time, seller OIB and buyer OIB to 16/16, JIR to 14/16 and ZKI to 13/15;
+seller name (13/16), seller address (11/16) and VAT rows are unchanged, and no field is lower.
+Low-confidence flags on correct values fall from 9 of 16 flags to 1 of 5. One expected warning goes
+missing — `lira_trogir`'s empty document number, which the reader fills. This is a regression gate
+rather than a reproduction of 198: some primary fixtures were recorded from a full-resolution file,
+where the measurement read the file the app uploads. **Without the flag the script scores the
+two-model path and its output must not change** — that is what the application produces whenever
+the reader is off.
+
+Five receipts uploaded through the local app on 2026-10-12 stored the values the measurement
+predicted, apart from `lira_trogir`, whose two-model reading itself differed from the recorded run.
+Extraction took 3.2–7.0 s; the reader took 3.0–4.2 s and finished before the two models every time.
+
+The prompt and field descriptions are a word-for-word copy of the measured ones, because `api/`
+may not import from `scripts/`. `scripts/bakeoff/product-parity.check.ts` fails if the copy drifts;
+changing the wording means measuring again, not editing that check.
+
 ### QR decoding
 
 Azure supplies QR payloads server-side for JPEG, PNG, HEIF and PDF sources; no QR-decoding dependency
@@ -1209,6 +1306,10 @@ first.
 | `AZURE_DI_SECONDARY_MODEL_ID`          | `prebuilt-receipt`       | Second model merged into the first; blank uses the default, `none` disables the second call |
 | `AZURE_DI_LOCALE`                      | `hr-HR`                  | Azure locale hint        |
 | `EXTRACTION_TIMEOUT_MS`                | `90000`                  | Azure extraction timeout in milliseconds |
+| `AZURE_OPENAI_ENDPOINT`                | —                       | Scalar reader, server-only. Optional as a set of four: any one blank turns the reader off |
+| `AZURE_OPENAI_KEY`                     | —                       | Scalar reader, server-only |
+| `AZURE_OPENAI_DEPLOYMENT`              | —                       | Scalar reader; the measured deployment is `gpt-4.1` |
+| `AZURE_OPENAI_API_VERSION`             | —                       | Scalar reader |
 | `SUPABASE_URL`                         | —                       | **Required at startup**  |
 | `SUPABASE_PUBLISHABLE_KEY`             | —                       | **Required at startup**; safe in a browser |
 | `SUPABASE_SECRET_KEY`                  | —                       | Task 03, **server-only** — bypasses RLS |
@@ -1250,3 +1351,9 @@ removing it in a later commit is not sufficient.
 receipt contents, raw provider results and signed URLs must never be logged. That redaction list is
 inherited by every later task — extend it rather
 than working around it.
+
+The scalar reader sends a receipt's OCR text to a second service and gets its values back, so it is
+written never to hand either to the logger at all, rather than to rely on redaction, which is one
+level deep: its errors carry an HTTP status or a fixed phrase (`scalar reader: malformed answer`),
+never a response body, a prompt, an answer or a `cause`. A JSON syntax error is replaced for that
+reason — its message quotes the text it failed on.

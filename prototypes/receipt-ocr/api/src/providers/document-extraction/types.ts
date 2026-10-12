@@ -15,7 +15,7 @@ export interface ExtractionInput {
 
 export interface ExtractionFieldMetadata {
   readonly confidence: number | null;
-  readonly source: "model" | "text" | "inferred" | "qr";
+  readonly source: "model" | "text" | "inferred" | "qr" | "reader";
 }
 
 export interface ExtractionMetadata {
@@ -24,7 +24,17 @@ export interface ExtractionMetadata {
   /** The merged second model, or null when it was disabled or unavailable for this document. */
   readonly secondaryModelId?: string | null;
   /** Which model supplied each populated canonical field. */
-  readonly fieldModels?: Record<string, "primary" | "secondary">;
+  readonly fieldModels?: Record<string, "primary" | "secondary" | "reader">;
+  /** The scalar reader's part in this extraction; null when it was off, failed or was abandoned. */
+  readonly reader?: {
+    readonly ocrModelId: string;
+    readonly deployment: string;
+    readonly latencyMs: number;
+    /** Scalars both readings hold with the same value. */
+    readonly agreed: string[];
+    /** Both hold a value, they differ, and the two-model value was kept. */
+    readonly disagreed: string[];
+  } | null;
   readonly apiVersion: string;
   readonly analyzedAt: string;
   readonly latencyMs: number;

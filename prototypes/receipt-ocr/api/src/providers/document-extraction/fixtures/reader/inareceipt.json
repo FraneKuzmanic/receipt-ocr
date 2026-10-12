@@ -1,0 +1,1044 @@
+{
+  "analyzeResult": {
+    "apiVersion": "2024-11-30",
+    "modelId": "prebuilt-read",
+    "stringIndexType": "textElements",
+    "content": "91101785052390870048\nINA\nINA - INDUSTRIJA NAFTE d.d. Zagreb, Av. V. Holjevca 10 OIB : 27759560625\nPotvrda br .:\n23024347- SU279WC1-503446097\nDatum racuna\n05.05.2023 20:40\nDatum isporuke 05.05.2023 20:40\nOsnovica bez PDV 0,40 EUR\nUkupno porez( 25%)\n0.10 EUR\nZa platiti 0,50 EUR\nZKI: . 98ac2207a287a2668511bBbf24670240 JIR: 4a32003f-8e49-4fe1-Bdf1-1dbd9f5a2405\nUKUPNO 3,77 KN (1 euro = 7,53450 kuna) Sretan put i ugodnu vožnju želi Vam INA",
+    "pages": [
+      {
+        "pageNumber": 1,
+        "angle": -1.5420000553131104,
+        "width": 480,
+        "height": 640,
+        "unit": "pixel",
+        "words": [
+          {
+            "content": "91101785052390870048",
+            "polygon": [134, 136, 305, 138, 305, 153, 134, 152],
+            "confidence": 0.641,
+            "span": {
+              "offset": 0,
+              "length": 20
+            }
+          },
+          {
+            "content": "INA",
+            "polygon": [145, 163, 292, 163, 292, 207, 144, 210],
+            "confidence": 0.662,
+            "span": {
+              "offset": 21,
+              "length": 3
+            }
+          },
+          {
+            "content": "INA",
+            "polygon": [108, 219, 134, 218, 135, 233, 108, 233],
+            "confidence": 0.992,
+            "span": {
+              "offset": 25,
+              "length": 3
+            }
+          },
+          {
+            "content": "-",
+            "polygon": [144, 218, 151, 217, 151, 232, 144, 232],
+            "confidence": 0.994,
+            "span": {
+              "offset": 29,
+              "length": 1
+            }
+          },
+          {
+            "content": "INDUSTRIJA",
+            "polygon": [162, 217, 247, 214, 247, 228, 162, 232],
+            "confidence": 0.974,
+            "span": {
+              "offset": 31,
+              "length": 10
+            }
+          },
+          {
+            "content": "NAFTE",
+            "polygon": [256, 213, 301, 211, 302, 225, 256, 228],
+            "confidence": 0.992,
+            "span": {
+              "offset": 42,
+              "length": 5
+            }
+          },
+          {
+            "content": "d.d.",
+            "polygon": [308, 211, 342, 209, 343, 223, 309, 225],
+            "confidence": 0.928,
+            "span": {
+              "offset": 48,
+              "length": 4
+            }
+          },
+          {
+            "content": "Zagreb,",
+            "polygon": [116, 237, 176, 233, 176, 249, 116, 252],
+            "confidence": 0.992,
+            "span": {
+              "offset": 53,
+              "length": 7
+            }
+          },
+          {
+            "content": "Av.",
+            "polygon": [186, 233, 210, 231, 210, 246, 186, 248],
+            "confidence": 0.912,
+            "span": {
+              "offset": 61,
+              "length": 3
+            }
+          },
+          {
+            "content": "V.",
+            "polygon": [221, 231, 240, 230, 240, 245, 221, 246],
+            "confidence": 0.989,
+            "span": {
+              "offset": 65,
+              "length": 2
+            }
+          },
+          {
+            "content": "Holjevca",
+            "polygon": [248, 229, 318, 226, 318, 240, 248, 244],
+            "confidence": 0.977,
+            "span": {
+              "offset": 68,
+              "length": 8
+            }
+          },
+          {
+            "content": "10",
+            "polygon": [328, 226, 345, 225, 345, 239, 328, 240],
+            "confidence": 0.993,
+            "span": {
+              "offset": 77,
+              "length": 2
+            }
+          },
+          {
+            "content": "OIB",
+            "polygon": [159, 251, 186, 249, 186, 262, 159, 263],
+            "confidence": 0.977,
+            "span": {
+              "offset": 80,
+              "length": 3
+            }
+          },
+          {
+            "content": ":",
+            "polygon": [197, 248, 201, 248, 201, 261, 198, 261],
+            "confidence": 0.993,
+            "span": {
+              "offset": 84,
+              "length": 1
+            }
+          },
+          {
+            "content": "27759560625",
+            "polygon": [212, 247, 313, 240, 314, 254, 212, 260],
+            "confidence": 0.989,
+            "span": {
+              "offset": 86,
+              "length": 11
+            }
+          },
+          {
+            "content": "Potvrda",
+            "polygon": [87, 288, 147, 283, 148, 296, 87, 301],
+            "confidence": 0.985,
+            "span": {
+              "offset": 98,
+              "length": 7
+            }
+          },
+          {
+            "content": "br",
+            "polygon": [157, 283, 171, 282, 172, 294, 157, 295],
+            "confidence": 0.995,
+            "span": {
+              "offset": 106,
+              "length": 2
+            }
+          },
+          {
+            "content": ".:",
+            "polygon": [176, 281, 192, 280, 192, 292, 176, 294],
+            "confidence": 0.721,
+            "span": {
+              "offset": 109,
+              "length": 2
+            }
+          },
+          {
+            "content": "23024347-",
+            "polygon": [84, 303, 162, 298, 162, 312, 85, 317],
+            "confidence": 0.977,
+            "span": {
+              "offset": 112,
+              "length": 9
+            }
+          },
+          {
+            "content": "SU279WC1-503446097",
+            "polygon": [165, 298, 334, 290, 334, 305, 165, 312],
+            "confidence": 0.988,
+            "span": {
+              "offset": 122,
+              "length": 18
+            }
+          },
+          {
+            "content": "Datum",
+            "polygon": [79, 336, 126, 335, 126, 350, 79, 352],
+            "confidence": 0.997,
+            "span": {
+              "offset": 141,
+              "length": 5
+            }
+          },
+          {
+            "content": "racuna",
+            "polygon": [136, 335, 194, 333, 194, 348, 135, 350],
+            "confidence": 0.995,
+            "span": {
+              "offset": 147,
+              "length": 6
+            }
+          },
+          {
+            "content": "05.05.2023",
+            "polygon": [219, 331, 317, 329, 317, 345, 219, 345],
+            "confidence": 0.96,
+            "span": {
+              "offset": 154,
+              "length": 10
+            }
+          },
+          {
+            "content": "20:40",
+            "polygon": [327, 329, 370, 329, 369, 345, 326, 345],
+            "confidence": 0.996,
+            "span": {
+              "offset": 165,
+              "length": 5
+            }
+          },
+          {
+            "content": "Datum",
+            "polygon": [76, 355, 125, 353, 125, 370, 77, 372],
+            "confidence": 0.997,
+            "span": {
+              "offset": 171,
+              "length": 5
+            }
+          },
+          {
+            "content": "isporuke",
+            "polygon": [134, 352, 211, 350, 211, 367, 135, 370],
+            "confidence": 0.993,
+            "span": {
+              "offset": 177,
+              "length": 8
+            }
+          },
+          {
+            "content": "05.05.2023",
+            "polygon": [221, 350, 318, 348, 318, 365, 221, 367],
+            "confidence": 0.992,
+            "span": {
+              "offset": 186,
+              "length": 10
+            }
+          },
+          {
+            "content": "20:40",
+            "polygon": [328, 348, 369, 348, 368, 364, 327, 365],
+            "confidence": 0.998,
+            "span": {
+              "offset": 197,
+              "length": 5
+            }
+          },
+          {
+            "content": "Osnovica",
+            "polygon": [74, 373, 153, 371, 153, 388, 74, 391],
+            "confidence": 0.982,
+            "span": {
+              "offset": 203,
+              "length": 8
+            }
+          },
+          {
+            "content": "bez",
+            "polygon": [163, 371, 192, 370, 192, 387, 163, 388],
+            "confidence": 0.995,
+            "span": {
+              "offset": 212,
+              "length": 3
+            }
+          },
+          {
+            "content": "PDV",
+            "polygon": [201, 370, 233, 368, 233, 386, 201, 387],
+            "confidence": 0.992,
+            "span": {
+              "offset": 216,
+              "length": 3
+            }
+          },
+          {
+            "content": "0,40",
+            "polygon": [298, 369, 335, 368, 334, 384, 298, 384],
+            "confidence": 0.68,
+            "span": {
+              "offset": 220,
+              "length": 4
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [343, 368, 368, 368, 368, 384, 342, 384],
+            "confidence": 0.992,
+            "span": {
+              "offset": 225,
+              "length": 3
+            }
+          },
+          {
+            "content": "Ukupno",
+            "polygon": [72, 394, 133, 392, 132, 411, 72, 413],
+            "confidence": 0.992,
+            "span": {
+              "offset": 229,
+              "length": 6
+            }
+          },
+          {
+            "content": "porez(",
+            "polygon": [143, 392, 199, 390, 199, 409, 143, 411],
+            "confidence": 0.989,
+            "span": {
+              "offset": 236,
+              "length": 6
+            }
+          },
+          {
+            "content": "25%)",
+            "polygon": [208, 389, 251, 388, 251, 407, 208, 409],
+            "confidence": 0.992,
+            "span": {
+              "offset": 243,
+              "length": 4
+            }
+          },
+          {
+            "content": "0.10",
+            "polygon": [298, 389, 333, 389, 333, 403, 298, 403],
+            "confidence": 0.948,
+            "span": {
+              "offset": 248,
+              "length": 4
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [341, 389, 367, 388, 367, 402, 341, 403],
+            "confidence": 0.996,
+            "span": {
+              "offset": 253,
+              "length": 3
+            }
+          },
+          {
+            "content": "Za",
+            "polygon": [71, 414, 92, 414, 92, 433, 72, 433],
+            "confidence": 0.996,
+            "span": {
+              "offset": 257,
+              "length": 2
+            }
+          },
+          {
+            "content": "platiti",
+            "polygon": [102, 414, 171, 412, 171, 430, 102, 433],
+            "confidence": 0.995,
+            "span": {
+              "offset": 260,
+              "length": 7
+            }
+          },
+          {
+            "content": "0,50",
+            "polygon": [298, 410, 332, 409, 332, 423, 298, 424],
+            "confidence": 0.656,
+            "span": {
+              "offset": 268,
+              "length": 4
+            }
+          },
+          {
+            "content": "EUR",
+            "polygon": [341, 408, 368, 408, 368, 423, 341, 423],
+            "confidence": 0.997,
+            "span": {
+              "offset": 273,
+              "length": 3
+            }
+          },
+          {
+            "content": "ZKI:",
+            "polygon": [70, 449, 96, 450, 96, 462, 70, 462],
+            "confidence": 0.943,
+            "span": {
+              "offset": 277,
+              "length": 4
+            }
+          },
+          {
+            "content": ".",
+            "polygon": [106, 451, 110, 452, 110, 462, 106, 462],
+            "confidence": 0.489,
+            "span": {
+              "offset": 282,
+              "length": 1
+            }
+          },
+          {
+            "content": "98ac2207a287a2668511bBbf24670240",
+            "polygon": [69, 464, 286, 458, 286, 471, 69, 477],
+            "confidence": 0.844,
+            "span": {
+              "offset": 284,
+              "length": 32
+            }
+          },
+          {
+            "content": "JIR:",
+            "polygon": [69, 478, 97, 478, 97, 490, 69, 490],
+            "confidence": 0.891,
+            "span": {
+              "offset": 317,
+              "length": 4
+            }
+          },
+          {
+            "content": "4a32003f-8e49-4fe1-Bdf1-1dbd9f5a2405",
+            "polygon": [68, 494, 309, 485, 309, 499, 67, 505],
+            "confidence": 0.65,
+            "span": {
+              "offset": 322,
+              "length": 36
+            }
+          },
+          {
+            "content": "UKUPNO",
+            "polygon": [64, 524, 107, 523, 107, 538, 63, 537],
+            "confidence": 0.994,
+            "span": {
+              "offset": 359,
+              "length": 6
+            }
+          },
+          {
+            "content": "3,77",
+            "polygon": [115, 523, 141, 522, 141, 538, 114, 538],
+            "confidence": 0.992,
+            "span": {
+              "offset": 366,
+              "length": 4
+            }
+          },
+          {
+            "content": "KN",
+            "polygon": [145, 522, 162, 522, 162, 537, 145, 538],
+            "confidence": 0.988,
+            "span": {
+              "offset": 371,
+              "length": 2
+            }
+          },
+          {
+            "content": "(1",
+            "polygon": [170, 521, 182, 521, 182, 537, 170, 537],
+            "confidence": 0.99,
+            "span": {
+              "offset": 374,
+              "length": 2
+            }
+          },
+          {
+            "content": "euro",
+            "polygon": [191, 520, 218, 519, 219, 535, 191, 536],
+            "confidence": 0.988,
+            "span": {
+              "offset": 377,
+              "length": 4
+            }
+          },
+          {
+            "content": "=",
+            "polygon": [223, 519, 232, 518, 232, 534, 223, 535],
+            "confidence": 0.992,
+            "span": {
+              "offset": 382,
+              "length": 1
+            }
+          },
+          {
+            "content": "7,53450",
+            "polygon": [239, 518, 284, 514, 285, 530, 240, 534],
+            "confidence": 0.695,
+            "span": {
+              "offset": 384,
+              "length": 7
+            }
+          },
+          {
+            "content": "kuna)",
+            "polygon": [289, 514, 318, 511, 319, 527, 290, 530],
+            "confidence": 0.963,
+            "span": {
+              "offset": 392,
+              "length": 5
+            }
+          },
+          {
+            "content": "Sretan",
+            "polygon": [63, 540, 106, 539, 106, 554, 63, 554],
+            "confidence": 0.961,
+            "span": {
+              "offset": 398,
+              "length": 6
+            }
+          },
+          {
+            "content": "put",
+            "polygon": [113, 539, 134, 539, 134, 554, 113, 554],
+            "confidence": 0.992,
+            "span": {
+              "offset": 405,
+              "length": 3
+            }
+          },
+          {
+            "content": "i",
+            "polygon": [139, 538, 147, 538, 147, 554, 139, 554],
+            "confidence": 0.627,
+            "span": {
+              "offset": 409,
+              "length": 1
+            }
+          },
+          {
+            "content": "ugodnu",
+            "polygon": [155, 538, 198, 536, 198, 552, 155, 553],
+            "confidence": 0.992,
+            "span": {
+              "offset": 411,
+              "length": 6
+            }
+          },
+          {
+            "content": "vožnju",
+            "polygon": [205, 535, 246, 532, 246, 548, 205, 551],
+            "confidence": 0.977,
+            "span": {
+              "offset": 418,
+              "length": 6
+            }
+          },
+          {
+            "content": "želi",
+            "polygon": [253, 532, 278, 529, 278, 545, 253, 548],
+            "confidence": 0.797,
+            "span": {
+              "offset": 425,
+              "length": 4
+            }
+          },
+          {
+            "content": "Vam",
+            "polygon": [284, 529, 300, 527, 300, 543, 284, 545],
+            "confidence": 0.985,
+            "span": {
+              "offset": 430,
+              "length": 3
+            }
+          },
+          {
+            "content": "INA",
+            "polygon": [307, 526, 326, 524, 326, 540, 307, 542],
+            "confidence": 0.992,
+            "span": {
+              "offset": 434,
+              "length": 3
+            }
+          }
+        ],
+        "lines": [
+          {
+            "content": "91101785052390870048",
+            "polygon": [133, 135, 304, 135, 304, 152, 133, 151],
+            "spans": [
+              {
+                "offset": 0,
+                "length": 20
+              }
+            ]
+          },
+          {
+            "content": "INA",
+            "polygon": [144, 163, 290, 162, 291, 207, 144, 209],
+            "spans": [
+              {
+                "offset": 21,
+                "length": 3
+              }
+            ]
+          },
+          {
+            "content": "INA - INDUSTRIJA NAFTE d.d.",
+            "polygon": [107, 218, 341, 209, 342, 224, 108, 233],
+            "spans": [
+              {
+                "offset": 25,
+                "length": 27
+              }
+            ]
+          },
+          {
+            "content": "Zagreb, Av. V. Holjevca 10",
+            "polygon": [116, 236, 344, 224, 345, 239, 116, 252],
+            "spans": [
+              {
+                "offset": 53,
+                "length": 26
+              }
+            ]
+          },
+          {
+            "content": "OIB : 27759560625",
+            "polygon": [158, 250, 313, 239, 313, 253, 159, 263],
+            "spans": [
+              {
+                "offset": 80,
+                "length": 17
+              }
+            ]
+          },
+          {
+            "content": "Potvrda br .:",
+            "polygon": [86, 288, 191, 280, 192, 292, 86, 301],
+            "spans": [
+              {
+                "offset": 98,
+                "length": 13
+              }
+            ]
+          },
+          {
+            "content": "23024347- SU279WC1-503446097",
+            "polygon": [83, 301, 333, 290, 334, 304, 84, 317],
+            "spans": [
+              {
+                "offset": 112,
+                "length": 28
+              }
+            ]
+          },
+          {
+            "content": "Datum racuna",
+            "polygon": [78, 336, 193, 333, 194, 347, 78, 351],
+            "spans": [
+              {
+                "offset": 141,
+                "length": 12
+              }
+            ]
+          },
+          {
+            "content": "05.05.2023 20:40",
+            "polygon": [219, 329, 369, 328, 369, 344, 219, 346],
+            "spans": [
+              {
+                "offset": 154,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "Datum isporuke 05.05.2023 20:40",
+            "polygon": [76, 353, 368, 348, 368, 364, 76, 371],
+            "spans": [
+              {
+                "offset": 171,
+                "length": 31
+              }
+            ]
+          },
+          {
+            "content": "Osnovica bez PDV",
+            "polygon": [73, 372, 232, 368, 232, 385, 73, 390],
+            "spans": [
+              {
+                "offset": 203,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "0,40 EUR",
+            "polygon": [297, 368, 367, 368, 368, 383, 297, 384],
+            "spans": [
+              {
+                "offset": 220,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "Ukupno porez( 25%)",
+            "polygon": [71, 393, 250, 387, 251, 406, 71, 412],
+            "spans": [
+              {
+                "offset": 229,
+                "length": 18
+              }
+            ]
+          },
+          {
+            "content": "0.10 EUR",
+            "polygon": [298, 388, 366, 388, 366, 402, 298, 403],
+            "spans": [
+              {
+                "offset": 248,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "Za platiti",
+            "polygon": [71, 414, 170, 412, 171, 431, 71, 433],
+            "spans": [
+              {
+                "offset": 257,
+                "length": 10
+              }
+            ]
+          },
+          {
+            "content": "0,50 EUR",
+            "polygon": [298, 409, 367, 407, 367, 422, 298, 424],
+            "spans": [
+              {
+                "offset": 268,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "ZKI: .",
+            "polygon": [70, 448, 110, 449, 109, 462, 70, 461],
+            "spans": [
+              {
+                "offset": 277,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "98ac2207a287a2668511bBbf24670240",
+            "polygon": [68, 463, 285, 458, 285, 470, 68, 476],
+            "spans": [
+              {
+                "offset": 284,
+                "length": 32
+              }
+            ]
+          },
+          {
+            "content": "JIR:",
+            "polygon": [67, 478, 96, 478, 96, 490, 67, 490],
+            "spans": [
+              {
+                "offset": 317,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "4a32003f-8e49-4fe1-Bdf1-1dbd9f5a2405",
+            "polygon": [67, 492, 308, 485, 309, 500, 67, 506],
+            "spans": [
+              {
+                "offset": 322,
+                "length": 36
+              }
+            ]
+          },
+          {
+            "content": "UKUPNO 3,77 KN (1 euro = 7,53450 kuna)",
+            "polygon": [63, 522, 318, 511, 318, 530, 63, 538],
+            "spans": [
+              {
+                "offset": 359,
+                "length": 38
+              }
+            ]
+          },
+          {
+            "content": "Sretan put i ugodnu vožnju želi Vam INA",
+            "polygon": [63, 539, 325, 524, 326, 544, 63, 554],
+            "spans": [
+              {
+                "offset": 398,
+                "length": 39
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 0,
+            "length": 437
+          }
+        ]
+      }
+    ],
+    "paragraphs": [
+      {
+        "spans": [
+          {
+            "offset": 0,
+            "length": 20
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [133, 135, 304, 135, 304, 152, 133, 152]
+          }
+        ],
+        "content": "91101785052390870048"
+      },
+      {
+        "spans": [
+          {
+            "offset": 21,
+            "length": 3
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [143, 163, 290, 161, 291, 207, 144, 209]
+          }
+        ],
+        "content": "INA"
+      },
+      {
+        "spans": [
+          {
+            "offset": 25,
+            "length": 72
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [107, 218, 344, 209, 346, 256, 109, 265]
+          }
+        ],
+        "content": "INA - INDUSTRIJA NAFTE d.d. Zagreb, Av. V. Holjevca 10 OIB : 27759560625"
+      },
+      {
+        "spans": [
+          {
+            "offset": 98,
+            "length": 13
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [86, 288, 191, 280, 192, 292, 86, 301]
+          }
+        ],
+        "content": "Potvrda br .:"
+      },
+      {
+        "spans": [
+          {
+            "offset": 112,
+            "length": 28
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [83, 301, 333, 290, 334, 304, 84, 317]
+          }
+        ],
+        "content": "23024347- SU279WC1-503446097"
+      },
+      {
+        "spans": [
+          {
+            "offset": 141,
+            "length": 12
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [78, 336, 193, 333, 194, 347, 78, 351]
+          }
+        ],
+        "content": "Datum racuna"
+      },
+      {
+        "spans": [
+          {
+            "offset": 154,
+            "length": 16
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [219, 329, 369, 328, 369, 344, 219, 346]
+          }
+        ],
+        "content": "05.05.2023 20:40"
+      },
+      {
+        "spans": [
+          {
+            "offset": 171,
+            "length": 31
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [76, 353, 368, 348, 368, 366, 76, 371]
+          }
+        ],
+        "content": "Datum isporuke 05.05.2023 20:40"
+      },
+      {
+        "spans": [
+          {
+            "offset": 203,
+            "length": 25
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [73, 372, 368, 365, 368, 383, 73, 390]
+          }
+        ],
+        "content": "Osnovica bez PDV 0,40 EUR"
+      },
+      {
+        "spans": [
+          {
+            "offset": 229,
+            "length": 18
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [71, 393, 250, 387, 251, 406, 71, 412]
+          }
+        ],
+        "content": "Ukupno porez( 25%)"
+      },
+      {
+        "spans": [
+          {
+            "offset": 248,
+            "length": 8
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [298, 388, 366, 388, 366, 402, 298, 403]
+          }
+        ],
+        "content": "0.10 EUR"
+      },
+      {
+        "spans": [
+          {
+            "offset": 257,
+            "length": 19
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [71, 414, 367, 407, 367, 426, 71, 433]
+          }
+        ],
+        "content": "Za platiti 0,50 EUR"
+      },
+      {
+        "spans": [
+          {
+            "offset": 277,
+            "length": 81
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [66, 448, 308, 442, 309, 500, 67, 506]
+          }
+        ],
+        "content": "ZKI: . 98ac2207a287a2668511bBbf24670240 JIR: 4a32003f-8e49-4fe1-Bdf1-1dbd9f5a2405"
+      },
+      {
+        "spans": [
+          {
+            "offset": 359,
+            "length": 78
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [62, 521, 325, 511, 326, 544, 63, 554]
+          }
+        ],
+        "content": "UKUPNO 3,77 KN (1 euro = 7,53450 kuna) Sretan put i ugodnu vožnju želi Vam INA"
+      }
+    ],
+    "styles": [],
+    "contentFormat": "text"
+  },
+  "answer": {
+    "sellerName": "INA - INDUSTRIJA NAFTE d.d. Zagreb",
+    "sellerAddress": "Av. V. Holjevca 10",
+    "sellerOib": "27759560625",
+    "buyerName": null,
+    "buyerAddress": null,
+    "buyerOib": null,
+    "documentNumber": "23024347- SU279WC1-503446097",
+    "issueDate": "05.05.2023",
+    "issueTime": "20:40",
+    "total": "0,50",
+    "currency": "EUR",
+    "paymentMethod": null,
+    "jir": "4a32003f-8e49-4fe1-Bdf1-1dbd9f5a2405",
+    "zki": "98ac2207a287a2668511bBbf24670240"
+  }
+}

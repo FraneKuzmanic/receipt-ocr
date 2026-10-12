@@ -1,0 +1,2303 @@
+{
+  "analyzeResult": {
+    "apiVersion": "2024-11-30",
+    "modelId": "prebuilt-read",
+    "stringIndexType": "textElements",
+    "content": "TRADER JOE'S\n5269 Prospect San Jose CA 95129 Store #062 - (408) 446-5055\nOPEN 8:00AM TO 9:00PM DAILY\nP BASIL 3.49\nDARKHORSE CABERNET SAUVIGNON\n7.99 T\nTHE PASS SAUVIGNON BLANC MARLE 7.99 T\nCRACKERS PITA SEA SALT 2.49\nPKG SPANISH CHEESE TAPAS SAMPL\n3.99\nPKG MOZZARELLA SMOKED 2.99\nNUT TREK MIX HANDFUL SIMPLY AL 5.99\nJUST MANGO SLICES. 2.99\nSNACK SEAWEED STRIPS ROASTED 5.94\n60Z @ 0.99/OZ\nA-TOMATOES KUMATO BROWN 1 LB 3.49\nMINI MILK CHOCOLATE BAR 1.79\nTOBLERONE BAR MILK 100 G 3.98\n2GM @ 1.99/GM\nSUBTOTAL\n$53.12\nSTATE TAX 1\n$1.40\nTOTAL\n$54.52\nVISA\n$54.52\nPurchase $ 54.52\nVISA #RXXXXXXXXXXXX0702\nAuth # 06824C Exp Date ** / **\nLane # 03 Cashier # 5150\n02/24/17 19:32 Ref/Seq # 037200\nMrch=694062 Term=001 IC=CC\nITEMS 18 G. David 02-24-2017 07:32PM 0062 03 5150 4650",
+    "pages": [
+      {
+        "pageNumber": 1,
+        "angle": 0,
+        "width": 387,
+        "height": 516,
+        "unit": "pixel",
+        "words": [
+          {
+            "content": "TRADER",
+            "polygon": [98, 20, 200, 19, 200, 41, 98, 42],
+            "confidence": 0.995,
+            "span": {
+              "offset": 0,
+              "length": 6
+            }
+          },
+          {
+            "content": "JOE'S",
+            "polygon": [209, 18, 285, 18, 285, 40, 209, 41],
+            "confidence": 0.959,
+            "span": {
+              "offset": 7,
+              "length": 5
+            }
+          },
+          {
+            "content": "5269",
+            "polygon": [128, 49, 151, 49, 151, 60, 128, 59],
+            "confidence": 0.987,
+            "span": {
+              "offset": 13,
+              "length": 4
+            }
+          },
+          {
+            "content": "Prospect",
+            "polygon": [156, 49, 203, 49, 203, 59, 156, 60],
+            "confidence": 0.992,
+            "span": {
+              "offset": 18,
+              "length": 8
+            }
+          },
+          {
+            "content": "San",
+            "polygon": [111, 61, 128, 61, 128, 73, 111, 73],
+            "confidence": 0.995,
+            "span": {
+              "offset": 27,
+              "length": 3
+            }
+          },
+          {
+            "content": "Jose",
+            "polygon": [133, 61, 156, 61, 156, 72, 134, 72],
+            "confidence": 0.987,
+            "span": {
+              "offset": 31,
+              "length": 4
+            }
+          },
+          {
+            "content": "CA",
+            "polygon": [167, 60, 179, 60, 179, 71, 167, 72],
+            "confidence": 0.996,
+            "span": {
+              "offset": 36,
+              "length": 2
+            }
+          },
+          {
+            "content": "95129",
+            "polygon": [190, 60, 220, 59, 220, 70, 190, 71],
+            "confidence": 0.996,
+            "span": {
+              "offset": 39,
+              "length": 5
+            }
+          },
+          {
+            "content": "Store",
+            "polygon": [88, 73, 117, 72, 117, 85, 88, 85],
+            "confidence": 0.997,
+            "span": {
+              "offset": 45,
+              "length": 5
+            }
+          },
+          {
+            "content": "#062",
+            "polygon": [123, 72, 145, 72, 145, 84, 122, 85],
+            "confidence": 0.994,
+            "span": {
+              "offset": 51,
+              "length": 4
+            }
+          },
+          {
+            "content": "-",
+            "polygon": [151, 72, 157, 72, 157, 84, 151, 84],
+            "confidence": 0.995,
+            "span": {
+              "offset": 56,
+              "length": 1
+            }
+          },
+          {
+            "content": "(408)",
+            "polygon": [163, 72, 190, 72, 190, 83, 163, 84],
+            "confidence": 0.948,
+            "span": {
+              "offset": 58,
+              "length": 5
+            }
+          },
+          {
+            "content": "446-5055",
+            "polygon": [196, 72, 242, 72, 242, 83, 196, 83],
+            "confidence": 0.994,
+            "span": {
+              "offset": 64,
+              "length": 8
+            }
+          },
+          {
+            "content": "OPEN",
+            "polygon": [88, 97, 111, 97, 111, 110, 88, 111],
+            "confidence": 0.989,
+            "span": {
+              "offset": 73,
+              "length": 4
+            }
+          },
+          {
+            "content": "8:00AM",
+            "polygon": [117, 97, 151, 97, 151, 110, 117, 110],
+            "confidence": 0.992,
+            "span": {
+              "offset": 78,
+              "length": 6
+            }
+          },
+          {
+            "content": "TO",
+            "polygon": [156, 97, 168, 97, 168, 110, 156, 110],
+            "confidence": 0.992,
+            "span": {
+              "offset": 85,
+              "length": 2
+            }
+          },
+          {
+            "content": "9:00PM",
+            "polygon": [174, 97, 208, 96, 208, 109, 173, 110],
+            "confidence": 0.984,
+            "span": {
+              "offset": 88,
+              "length": 6
+            }
+          },
+          {
+            "content": "DAILY",
+            "polygon": [213, 96, 243, 96, 243, 109, 213, 109],
+            "confidence": 0.994,
+            "span": {
+              "offset": 95,
+              "length": 5
+            }
+          },
+          {
+            "content": "P",
+            "polygon": [47, 123, 53, 123, 53, 134, 47, 134],
+            "confidence": 0.996,
+            "span": {
+              "offset": 101,
+              "length": 1
+            }
+          },
+          {
+            "content": "BASIL",
+            "polygon": [59, 123, 89, 122, 89, 134, 59, 134],
+            "confidence": 0.992,
+            "span": {
+              "offset": 103,
+              "length": 5
+            }
+          },
+          {
+            "content": "3.49",
+            "polygon": [235, 121, 262, 121, 262, 132, 235, 132],
+            "confidence": 0.991,
+            "span": {
+              "offset": 109,
+              "length": 4
+            }
+          },
+          {
+            "content": "DARKHORSE",
+            "polygon": [47, 134, 100, 135, 99, 147, 46, 146],
+            "confidence": 0.992,
+            "span": {
+              "offset": 114,
+              "length": 9
+            }
+          },
+          {
+            "content": "CABERNET",
+            "polygon": [106, 135, 151, 135, 151, 147, 105, 147],
+            "confidence": 0.993,
+            "span": {
+              "offset": 124,
+              "length": 8
+            }
+          },
+          {
+            "content": "SAUVIGNON",
+            "polygon": [157, 135, 210, 135, 210, 147, 157, 147],
+            "confidence": 0.992,
+            "span": {
+              "offset": 133,
+              "length": 9
+            }
+          },
+          {
+            "content": "7.99",
+            "polygon": [236, 134, 260, 134, 260, 145, 236, 145],
+            "confidence": 0.992,
+            "span": {
+              "offset": 143,
+              "length": 4
+            }
+          },
+          {
+            "content": "T",
+            "polygon": [266, 134, 273, 134, 273, 144, 266, 144],
+            "confidence": 0.992,
+            "span": {
+              "offset": 148,
+              "length": 1
+            }
+          },
+          {
+            "content": "THE",
+            "polygon": [47, 146, 65, 146, 64, 157, 47, 157],
+            "confidence": 0.998,
+            "span": {
+              "offset": 150,
+              "length": 3
+            }
+          },
+          {
+            "content": "PASS",
+            "polygon": [70, 146, 94, 146, 94, 158, 70, 158],
+            "confidence": 0.986,
+            "span": {
+              "offset": 154,
+              "length": 4
+            }
+          },
+          {
+            "content": "SAUVIGNON",
+            "polygon": [100, 146, 152, 146, 151, 158, 99, 158],
+            "confidence": 0.993,
+            "span": {
+              "offset": 159,
+              "length": 9
+            }
+          },
+          {
+            "content": "BLANC",
+            "polygon": [157, 147, 186, 147, 186, 159, 157, 158],
+            "confidence": 0.992,
+            "span": {
+              "offset": 169,
+              "length": 5
+            }
+          },
+          {
+            "content": "MARLE",
+            "polygon": [191, 147, 221, 147, 221, 159, 191, 159],
+            "confidence": 0.635,
+            "span": {
+              "offset": 175,
+              "length": 5
+            }
+          },
+          {
+            "content": "7.99",
+            "polygon": [236, 146, 260, 146, 260, 156, 236, 157],
+            "confidence": 0.992,
+            "span": {
+              "offset": 181,
+              "length": 4
+            }
+          },
+          {
+            "content": "T",
+            "polygon": [267, 146, 272, 146, 272, 156, 267, 156],
+            "confidence": 0.992,
+            "span": {
+              "offset": 186,
+              "length": 1
+            }
+          },
+          {
+            "content": "CRACKERS",
+            "polygon": [46, 158, 94, 158, 93, 170, 46, 169],
+            "confidence": 0.995,
+            "span": {
+              "offset": 188,
+              "length": 8
+            }
+          },
+          {
+            "content": "PITA",
+            "polygon": [99, 158, 123, 158, 123, 170, 99, 170],
+            "confidence": 0.991,
+            "span": {
+              "offset": 197,
+              "length": 4
+            }
+          },
+          {
+            "content": "SEA",
+            "polygon": [128, 158, 146, 158, 146, 170, 128, 170],
+            "confidence": 0.994,
+            "span": {
+              "offset": 202,
+              "length": 3
+            }
+          },
+          {
+            "content": "SALT",
+            "polygon": [152, 159, 175, 159, 175, 171, 151, 170],
+            "confidence": 0.992,
+            "span": {
+              "offset": 206,
+              "length": 4
+            }
+          },
+          {
+            "content": "2.49",
+            "polygon": [236, 157, 262, 157, 261, 168, 236, 167],
+            "confidence": 0.989,
+            "span": {
+              "offset": 211,
+              "length": 4
+            }
+          },
+          {
+            "content": "PKG",
+            "polygon": [46, 170, 64, 170, 64, 181, 46, 181],
+            "confidence": 0.989,
+            "span": {
+              "offset": 216,
+              "length": 3
+            }
+          },
+          {
+            "content": "SPANISH",
+            "polygon": [70, 170, 111, 170, 111, 182, 69, 181],
+            "confidence": 0.993,
+            "span": {
+              "offset": 220,
+              "length": 7
+            }
+          },
+          {
+            "content": "CHEESE",
+            "polygon": [117, 170, 152, 170, 151, 183, 116, 182],
+            "confidence": 0.995,
+            "span": {
+              "offset": 228,
+              "length": 6
+            }
+          },
+          {
+            "content": "TAPAS",
+            "polygon": [157, 170, 186, 171, 186, 183, 157, 183],
+            "confidence": 0.993,
+            "span": {
+              "offset": 235,
+              "length": 5
+            }
+          },
+          {
+            "content": "SAMPL",
+            "polygon": [191, 171, 220, 171, 219, 182, 191, 183],
+            "confidence": 0.995,
+            "span": {
+              "offset": 241,
+              "length": 5
+            }
+          },
+          {
+            "content": "3.99",
+            "polygon": [237, 170, 262, 170, 262, 180, 237, 180],
+            "confidence": 0.848,
+            "span": {
+              "offset": 247,
+              "length": 4
+            }
+          },
+          {
+            "content": "PKG",
+            "polygon": [45, 181, 63, 182, 63, 193, 45, 193],
+            "confidence": 0.992,
+            "span": {
+              "offset": 252,
+              "length": 3
+            }
+          },
+          {
+            "content": "MOZZARELLA",
+            "polygon": [69, 182, 128, 183, 128, 194, 69, 193],
+            "confidence": 0.992,
+            "span": {
+              "offset": 256,
+              "length": 10
+            }
+          },
+          {
+            "content": "SMOKED",
+            "polygon": [134, 183, 170, 183, 170, 194, 134, 194],
+            "confidence": 0.963,
+            "span": {
+              "offset": 267,
+              "length": 6
+            }
+          },
+          {
+            "content": "2.99",
+            "polygon": [236, 182, 261, 182, 262, 192, 236, 193],
+            "confidence": 0.683,
+            "span": {
+              "offset": 274,
+              "length": 4
+            }
+          },
+          {
+            "content": "NUT",
+            "polygon": [44, 193, 64, 193, 64, 205, 44, 204],
+            "confidence": 0.992,
+            "span": {
+              "offset": 279,
+              "length": 3
+            }
+          },
+          {
+            "content": "TREK",
+            "polygon": [69, 193, 93, 194, 92, 205, 68, 205],
+            "confidence": 0.986,
+            "span": {
+              "offset": 283,
+              "length": 4
+            }
+          },
+          {
+            "content": "MIX",
+            "polygon": [99, 194, 116, 194, 116, 206, 98, 205],
+            "confidence": 0.914,
+            "span": {
+              "offset": 288,
+              "length": 3
+            }
+          },
+          {
+            "content": "HANDFUL",
+            "polygon": [122, 194, 164, 194, 163, 206, 122, 206],
+            "confidence": 0.994,
+            "span": {
+              "offset": 292,
+              "length": 7
+            }
+          },
+          {
+            "content": "SIMPLY",
+            "polygon": [169, 194, 203, 195, 202, 206, 168, 206],
+            "confidence": 0.994,
+            "span": {
+              "offset": 300,
+              "length": 6
+            }
+          },
+          {
+            "content": "AL",
+            "polygon": [209, 195, 220, 195, 219, 207, 209, 206],
+            "confidence": 0.992,
+            "span": {
+              "offset": 307,
+              "length": 2
+            }
+          },
+          {
+            "content": "5.99",
+            "polygon": [236, 194, 261, 194, 261, 203, 236, 204],
+            "confidence": 0.987,
+            "span": {
+              "offset": 310,
+              "length": 4
+            }
+          },
+          {
+            "content": "JUST",
+            "polygon": [43, 205, 68, 205, 68, 216, 43, 216],
+            "confidence": 0.976,
+            "span": {
+              "offset": 315,
+              "length": 4
+            }
+          },
+          {
+            "content": "MANGO",
+            "polygon": [74, 205, 104, 205, 104, 217, 74, 217],
+            "confidence": 0.995,
+            "span": {
+              "offset": 320,
+              "length": 5
+            }
+          },
+          {
+            "content": "SLICES.",
+            "polygon": [110, 206, 152, 207, 152, 216, 110, 217],
+            "confidence": 0.984,
+            "span": {
+              "offset": 326,
+              "length": 7
+            }
+          },
+          {
+            "content": "2.99",
+            "polygon": [237, 206, 261, 205, 262, 215, 237, 216],
+            "confidence": 0.972,
+            "span": {
+              "offset": 334,
+              "length": 4
+            }
+          },
+          {
+            "content": "SNACK",
+            "polygon": [42, 216, 73, 216, 73, 228, 41, 228],
+            "confidence": 0.994,
+            "span": {
+              "offset": 339,
+              "length": 5
+            }
+          },
+          {
+            "content": "SEAWEED",
+            "polygon": [80, 216, 122, 217, 122, 229, 79, 228],
+            "confidence": 0.993,
+            "span": {
+              "offset": 345,
+              "length": 7
+            }
+          },
+          {
+            "content": "STRIPS",
+            "polygon": [128, 217, 163, 217, 163, 229, 128, 229],
+            "confidence": 0.993,
+            "span": {
+              "offset": 353,
+              "length": 6
+            }
+          },
+          {
+            "content": "ROASTED",
+            "polygon": [169, 217, 211, 218, 211, 230, 169, 229],
+            "confidence": 0.992,
+            "span": {
+              "offset": 360,
+              "length": 7
+            }
+          },
+          {
+            "content": "5.94",
+            "polygon": [237, 217, 262, 217, 263, 227, 237, 228],
+            "confidence": 0.976,
+            "span": {
+              "offset": 368,
+              "length": 4
+            }
+          },
+          {
+            "content": "60Z",
+            "polygon": [54, 229, 72, 229, 72, 240, 54, 240],
+            "confidence": 0.688,
+            "span": {
+              "offset": 373,
+              "length": 3
+            }
+          },
+          {
+            "content": "@",
+            "polygon": [97, 229, 104, 229, 104, 240, 96, 240],
+            "confidence": 0.975,
+            "span": {
+              "offset": 377,
+              "length": 1
+            }
+          },
+          {
+            "content": "0.99/OZ",
+            "polygon": [110, 229, 153, 230, 153, 241, 110, 240],
+            "confidence": 0.704,
+            "span": {
+              "offset": 379,
+              "length": 7
+            }
+          },
+          {
+            "content": "A-TOMATOES",
+            "polygon": [43, 241, 104, 242, 104, 253, 43, 253],
+            "confidence": 0.989,
+            "span": {
+              "offset": 387,
+              "length": 10
+            }
+          },
+          {
+            "content": "KUMATO",
+            "polygon": [110, 242, 145, 242, 145, 254, 109, 254],
+            "confidence": 0.993,
+            "span": {
+              "offset": 398,
+              "length": 6
+            }
+          },
+          {
+            "content": "BROWN",
+            "polygon": [151, 242, 181, 242, 180, 254, 151, 254],
+            "confidence": 0.963,
+            "span": {
+              "offset": 405,
+              "length": 5
+            }
+          },
+          {
+            "content": "1",
+            "polygon": [187, 242, 191, 242, 191, 254, 186, 254],
+            "confidence": 0.994,
+            "span": {
+              "offset": 411,
+              "length": 1
+            }
+          },
+          {
+            "content": "LB",
+            "polygon": [198, 242, 211, 243, 210, 254, 198, 254],
+            "confidence": 0.994,
+            "span": {
+              "offset": 413,
+              "length": 2
+            }
+          },
+          {
+            "content": "3.49",
+            "polygon": [237, 242, 260, 241, 261, 251, 237, 253],
+            "confidence": 0.818,
+            "span": {
+              "offset": 416,
+              "length": 4
+            }
+          },
+          {
+            "content": "MINI",
+            "polygon": [42, 255, 67, 254, 66, 266, 42, 266],
+            "confidence": 0.992,
+            "span": {
+              "offset": 421,
+              "length": 4
+            }
+          },
+          {
+            "content": "MILK",
+            "polygon": [73, 254, 98, 254, 97, 266, 73, 266],
+            "confidence": 0.989,
+            "span": {
+              "offset": 426,
+              "length": 4
+            }
+          },
+          {
+            "content": "CHOCOLATE",
+            "polygon": [104, 254, 158, 255, 157, 266, 103, 266],
+            "confidence": 0.992,
+            "span": {
+              "offset": 431,
+              "length": 9
+            }
+          },
+          {
+            "content": "BAR",
+            "polygon": [163, 255, 182, 255, 181, 266, 162, 266],
+            "confidence": 0.998,
+            "span": {
+              "offset": 441,
+              "length": 3
+            }
+          },
+          {
+            "content": "1.79",
+            "polygon": [238, 254, 261, 254, 261, 264, 238, 265],
+            "confidence": 0.936,
+            "span": {
+              "offset": 445,
+              "length": 4
+            }
+          },
+          {
+            "content": "TOBLERONE",
+            "polygon": [43, 266, 98, 266, 98, 279, 43, 279],
+            "confidence": 0.993,
+            "span": {
+              "offset": 450,
+              "length": 9
+            }
+          },
+          {
+            "content": "BAR",
+            "polygon": [104, 267, 121, 267, 121, 279, 103, 279],
+            "confidence": 0.995,
+            "span": {
+              "offset": 460,
+              "length": 3
+            }
+          },
+          {
+            "content": "MILK",
+            "polygon": [128, 267, 151, 267, 151, 279, 127, 279],
+            "confidence": 0.991,
+            "span": {
+              "offset": 464,
+              "length": 4
+            }
+          },
+          {
+            "content": "100",
+            "polygon": [158, 267, 175, 267, 174, 279, 158, 279],
+            "confidence": 0.988,
+            "span": {
+              "offset": 469,
+              "length": 3
+            }
+          },
+          {
+            "content": "G",
+            "polygon": [180, 267, 188, 267, 188, 279, 180, 279],
+            "confidence": 0.995,
+            "span": {
+              "offset": 473,
+              "length": 1
+            }
+          },
+          {
+            "content": "3.98",
+            "polygon": [238, 266, 263, 266, 264, 276, 238, 277],
+            "confidence": 0.99,
+            "span": {
+              "offset": 475,
+              "length": 4
+            }
+          },
+          {
+            "content": "2GM",
+            "polygon": [53, 279, 75, 279, 75, 291, 53, 291],
+            "confidence": 0.994,
+            "span": {
+              "offset": 480,
+              "length": 3
+            }
+          },
+          {
+            "content": "@",
+            "polygon": [95, 280, 103, 279, 103, 291, 95, 291],
+            "confidence": 0.583,
+            "span": {
+              "offset": 484,
+              "length": 1
+            }
+          },
+          {
+            "content": "1.99/GM",
+            "polygon": [110, 279, 153, 280, 153, 291, 110, 291],
+            "confidence": 0.992,
+            "span": {
+              "offset": 486,
+              "length": 7
+            }
+          },
+          {
+            "content": "SUBTOTAL",
+            "polygon": [40, 307, 92, 307, 92, 318, 40, 319],
+            "confidence": 0.992,
+            "span": {
+              "offset": 494,
+              "length": 8
+            }
+          },
+          {
+            "content": "$53.12",
+            "polygon": [250, 306, 289, 306, 289, 317, 250, 318],
+            "confidence": 0.991,
+            "span": {
+              "offset": 503,
+              "length": 6
+            }
+          },
+          {
+            "content": "STATE",
+            "polygon": [40, 320, 72, 320, 72, 332, 39, 332],
+            "confidence": 0.994,
+            "span": {
+              "offset": 510,
+              "length": 5
+            }
+          },
+          {
+            "content": "TAX",
+            "polygon": [78, 320, 96, 320, 96, 331, 78, 332],
+            "confidence": 0.996,
+            "span": {
+              "offset": 516,
+              "length": 3
+            }
+          },
+          {
+            "content": "1",
+            "polygon": [103, 320, 110, 320, 110, 331, 103, 331],
+            "confidence": 0.994,
+            "span": {
+              "offset": 520,
+              "length": 1
+            }
+          },
+          {
+            "content": "$1.40",
+            "polygon": [257, 318, 290, 318, 290, 331, 257, 331],
+            "confidence": 0.973,
+            "span": {
+              "offset": 522,
+              "length": 5
+            }
+          },
+          {
+            "content": "TOTAL",
+            "polygon": [41, 333, 102, 333, 101, 345, 41, 345],
+            "confidence": 0.997,
+            "span": {
+              "offset": 528,
+              "length": 5
+            }
+          },
+          {
+            "content": "$54.52",
+            "polygon": [251, 332, 290, 333, 290, 344, 251, 344],
+            "confidence": 0.993,
+            "span": {
+              "offset": 534,
+              "length": 6
+            }
+          },
+          {
+            "content": "VISA",
+            "polygon": [39, 346, 65, 346, 65, 358, 39, 357],
+            "confidence": 0.989,
+            "span": {
+              "offset": 541,
+              "length": 4
+            }
+          },
+          {
+            "content": "$54.52",
+            "polygon": [251, 346, 290, 346, 290, 358, 251, 358],
+            "confidence": 0.992,
+            "span": {
+              "offset": 546,
+              "length": 6
+            }
+          },
+          {
+            "content": "Purchase",
+            "polygon": [44, 359, 97, 360, 96, 372, 44, 372],
+            "confidence": 0.995,
+            "span": {
+              "offset": 553,
+              "length": 8
+            }
+          },
+          {
+            "content": "$",
+            "polygon": [113, 359, 121, 359, 121, 370, 113, 370],
+            "confidence": 0.926,
+            "span": {
+              "offset": 562,
+              "length": 1
+            }
+          },
+          {
+            "content": "54.52",
+            "polygon": [143, 358, 174, 358, 174, 369, 143, 369],
+            "confidence": 0.924,
+            "span": {
+              "offset": 564,
+              "length": 5
+            }
+          },
+          {
+            "content": "VISA",
+            "polygon": [45, 372, 70, 372, 70, 385, 45, 385],
+            "confidence": 0.991,
+            "span": {
+              "offset": 570,
+              "length": 4
+            }
+          },
+          {
+            "content": "#RXXXXXXXXXXXX0702",
+            "polygon": [74, 372, 188, 371, 187, 383, 74, 385],
+            "confidence": 0.94,
+            "span": {
+              "offset": 575,
+              "length": 18
+            }
+          },
+          {
+            "content": "Auth",
+            "polygon": [44, 386, 69, 386, 69, 399, 43, 399],
+            "confidence": 0.992,
+            "span": {
+              "offset": 594,
+              "length": 4
+            }
+          },
+          {
+            "content": "#",
+            "polygon": [76, 386, 82, 385, 81, 398, 76, 399],
+            "confidence": 0.968,
+            "span": {
+              "offset": 599,
+              "length": 1
+            }
+          },
+          {
+            "content": "06824C",
+            "polygon": [88, 385, 135, 385, 135, 397, 88, 398],
+            "confidence": 0.984,
+            "span": {
+              "offset": 601,
+              "length": 6
+            }
+          },
+          {
+            "content": "Exp",
+            "polygon": [136, 385, 156, 385, 156, 398, 136, 398],
+            "confidence": 0.996,
+            "span": {
+              "offset": 608,
+              "length": 3
+            }
+          },
+          {
+            "content": "Date",
+            "polygon": [162, 385, 186, 385, 186, 397, 162, 398],
+            "confidence": 0.992,
+            "span": {
+              "offset": 612,
+              "length": 4
+            }
+          },
+          {
+            "content": "**",
+            "polygon": [192, 385, 202, 384, 202, 397, 192, 397],
+            "confidence": 0.977,
+            "span": {
+              "offset": 617,
+              "length": 2
+            }
+          },
+          {
+            "content": "/",
+            "polygon": [205, 384, 208, 384, 208, 396, 205, 397],
+            "confidence": 0.988,
+            "span": {
+              "offset": 620,
+              "length": 1
+            }
+          },
+          {
+            "content": "**",
+            "polygon": [211, 384, 223, 384, 223, 396, 211, 396],
+            "confidence": 0.998,
+            "span": {
+              "offset": 622,
+              "length": 2
+            }
+          },
+          {
+            "content": "Lane",
+            "polygon": [44, 400, 69, 400, 69, 412, 44, 412],
+            "confidence": 0.988,
+            "span": {
+              "offset": 625,
+              "length": 4
+            }
+          },
+          {
+            "content": "#",
+            "polygon": [75, 400, 81, 400, 81, 412, 75, 412],
+            "confidence": 0.931,
+            "span": {
+              "offset": 630,
+              "length": 1
+            }
+          },
+          {
+            "content": "03",
+            "polygon": [88, 399, 102, 398, 102, 411, 88, 412],
+            "confidence": 0.998,
+            "span": {
+              "offset": 632,
+              "length": 2
+            }
+          },
+          {
+            "content": "Cashier",
+            "polygon": [136, 398, 180, 399, 180, 411, 136, 411],
+            "confidence": 0.994,
+            "span": {
+              "offset": 635,
+              "length": 7
+            }
+          },
+          {
+            "content": "#",
+            "polygon": [186, 399, 192, 399, 192, 411, 186, 411],
+            "confidence": 0.977,
+            "span": {
+              "offset": 643,
+              "length": 1
+            }
+          },
+          {
+            "content": "5150",
+            "polygon": [198, 399, 224, 398, 224, 411, 198, 411],
+            "confidence": 0.991,
+            "span": {
+              "offset": 645,
+              "length": 4
+            }
+          },
+          {
+            "content": "02/24/17",
+            "polygon": [42, 412, 94, 412, 94, 426, 42, 426],
+            "confidence": 0.995,
+            "span": {
+              "offset": 650,
+              "length": 8
+            }
+          },
+          {
+            "content": "19:32",
+            "polygon": [101, 412, 131, 412, 131, 425, 101, 426],
+            "confidence": 0.996,
+            "span": {
+              "offset": 659,
+              "length": 5
+            }
+          },
+          {
+            "content": "Ref/Seq",
+            "polygon": [137, 412, 180, 412, 180, 425, 137, 425],
+            "confidence": 0.992,
+            "span": {
+              "offset": 665,
+              "length": 7
+            }
+          },
+          {
+            "content": "#",
+            "polygon": [186, 412, 192, 412, 192, 425, 186, 425],
+            "confidence": 0.918,
+            "span": {
+              "offset": 673,
+              "length": 1
+            }
+          },
+          {
+            "content": "037200",
+            "polygon": [198, 412, 236, 412, 236, 425, 198, 425],
+            "confidence": 0.998,
+            "span": {
+              "offset": 675,
+              "length": 6
+            }
+          },
+          {
+            "content": "Mrch=694062",
+            "polygon": [42, 426, 112, 426, 112, 439, 42, 439],
+            "confidence": 0.989,
+            "span": {
+              "offset": 682,
+              "length": 11
+            }
+          },
+          {
+            "content": "Term=001",
+            "polygon": [118, 425, 167, 425, 166, 439, 118, 439],
+            "confidence": 0.993,
+            "span": {
+              "offset": 694,
+              "length": 8
+            }
+          },
+          {
+            "content": "IC=CC",
+            "polygon": [174, 425, 207, 425, 206, 438, 174, 439],
+            "confidence": 0.993,
+            "span": {
+              "offset": 703,
+              "length": 5
+            }
+          },
+          {
+            "content": "ITEMS",
+            "polygon": [35, 471, 67, 471, 67, 485, 35, 485],
+            "confidence": 0.992,
+            "span": {
+              "offset": 709,
+              "length": 5
+            }
+          },
+          {
+            "content": "18",
+            "polygon": [75, 471, 88, 471, 88, 485, 75, 485],
+            "confidence": 0.999,
+            "span": {
+              "offset": 715,
+              "length": 2
+            }
+          },
+          {
+            "content": "G.",
+            "polygon": [248, 472, 260, 472, 260, 486, 248, 486],
+            "confidence": 0.644,
+            "span": {
+              "offset": 718,
+              "length": 2
+            }
+          },
+          {
+            "content": "David",
+            "polygon": [268, 472, 302, 473, 302, 487, 268, 486],
+            "confidence": 0.994,
+            "span": {
+              "offset": 721,
+              "length": 5
+            }
+          },
+          {
+            "content": "02-24-2017",
+            "polygon": [34, 485, 98, 485, 98, 500, 34, 500],
+            "confidence": 0.993,
+            "span": {
+              "offset": 727,
+              "length": 10
+            }
+          },
+          {
+            "content": "07:32PM",
+            "polygon": [110, 485, 154, 485, 154, 500, 110, 500],
+            "confidence": 0.994,
+            "span": {
+              "offset": 738,
+              "length": 7
+            }
+          },
+          {
+            "content": "0062",
+            "polygon": [167, 485, 192, 486, 192, 501, 167, 501],
+            "confidence": 0.993,
+            "span": {
+              "offset": 746,
+              "length": 4
+            }
+          },
+          {
+            "content": "03",
+            "polygon": [198, 486, 211, 486, 211, 501, 198, 501],
+            "confidence": 0.997,
+            "span": {
+              "offset": 751,
+              "length": 2
+            }
+          },
+          {
+            "content": "5150",
+            "polygon": [217, 486, 243, 486, 243, 501, 217, 501],
+            "confidence": 0.992,
+            "span": {
+              "offset": 754,
+              "length": 4
+            }
+          },
+          {
+            "content": "4650",
+            "polygon": [249, 486, 277, 486, 277, 501, 249, 501],
+            "confidence": 0.992,
+            "span": {
+              "offset": 759,
+              "length": 4
+            }
+          }
+        ],
+        "lines": [
+          {
+            "content": "TRADER JOE'S",
+            "polygon": [97, 19, 284, 18, 284, 39, 97, 41],
+            "spans": [
+              {
+                "offset": 0,
+                "length": 12
+              }
+            ]
+          },
+          {
+            "content": "5269 Prospect",
+            "polygon": [127, 48, 202, 48, 202, 59, 127, 59],
+            "spans": [
+              {
+                "offset": 13,
+                "length": 13
+              }
+            ]
+          },
+          {
+            "content": "San Jose CA 95129",
+            "polygon": [110, 60, 219, 59, 220, 70, 111, 72],
+            "spans": [
+              {
+                "offset": 27,
+                "length": 17
+              }
+            ]
+          },
+          {
+            "content": "Store #062 - (408) 446-5055",
+            "polygon": [88, 72, 241, 71, 241, 83, 88, 84],
+            "spans": [
+              {
+                "offset": 45,
+                "length": 27
+              }
+            ]
+          },
+          {
+            "content": "OPEN 8:00AM TO 9:00PM DAILY",
+            "polygon": [87, 97, 243, 95, 243, 108, 87, 110],
+            "spans": [
+              {
+                "offset": 73,
+                "length": 27
+              }
+            ]
+          },
+          {
+            "content": "P BASIL",
+            "polygon": [46, 122, 88, 122, 88, 134, 46, 134],
+            "spans": [
+              {
+                "offset": 101,
+                "length": 7
+              }
+            ]
+          },
+          {
+            "content": "3.49",
+            "polygon": [235, 121, 261, 122, 262, 131, 235, 132],
+            "spans": [
+              {
+                "offset": 109,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "DARKHORSE CABERNET SAUVIGNON",
+            "polygon": [46, 134, 209, 135, 209, 147, 46, 146],
+            "spans": [
+              {
+                "offset": 114,
+                "length": 28
+              }
+            ]
+          },
+          {
+            "content": "7.99 T",
+            "polygon": [236, 133, 272, 133, 272, 144, 236, 145],
+            "spans": [
+              {
+                "offset": 143,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "THE PASS SAUVIGNON BLANC MARLE",
+            "polygon": [46, 146, 221, 146, 221, 158, 46, 157],
+            "spans": [
+              {
+                "offset": 150,
+                "length": 30
+              }
+            ]
+          },
+          {
+            "content": "7.99 T",
+            "polygon": [236, 146, 272, 145, 272, 155, 236, 157],
+            "spans": [
+              {
+                "offset": 181,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "CRACKERS PITA SEA SALT",
+            "polygon": [45, 157, 174, 158, 174, 170, 45, 169],
+            "spans": [
+              {
+                "offset": 188,
+                "length": 22
+              }
+            ]
+          },
+          {
+            "content": "2.49",
+            "polygon": [236, 157, 261, 158, 261, 168, 237, 168],
+            "spans": [
+              {
+                "offset": 211,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "PKG SPANISH CHEESE TAPAS SAMPL",
+            "polygon": [45, 169, 219, 170, 219, 182, 45, 181],
+            "spans": [
+              {
+                "offset": 216,
+                "length": 30
+              }
+            ]
+          },
+          {
+            "content": "3.99",
+            "polygon": [237, 170, 260, 170, 261, 180, 237, 180],
+            "spans": [
+              {
+                "offset": 247,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "PKG MOZZARELLA SMOKED",
+            "polygon": [44, 181, 169, 182, 169, 194, 44, 192],
+            "spans": [
+              {
+                "offset": 252,
+                "length": 21
+              }
+            ]
+          },
+          {
+            "content": "2.99",
+            "polygon": [236, 182, 261, 182, 261, 192, 236, 193],
+            "spans": [
+              {
+                "offset": 274,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "NUT TREK MIX HANDFUL SIMPLY AL",
+            "polygon": [43, 193, 219, 194, 218, 206, 43, 204],
+            "spans": [
+              {
+                "offset": 279,
+                "length": 30
+              }
+            ]
+          },
+          {
+            "content": "5.99",
+            "polygon": [236, 194, 260, 194, 261, 203, 236, 204],
+            "spans": [
+              {
+                "offset": 310,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "JUST MANGO SLICES.",
+            "polygon": [42, 204, 151, 205, 151, 217, 42, 216],
+            "spans": [
+              {
+                "offset": 315,
+                "length": 18
+              }
+            ]
+          },
+          {
+            "content": "2.99",
+            "polygon": [237, 206, 261, 205, 261, 215, 237, 216],
+            "spans": [
+              {
+                "offset": 334,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "SNACK SEAWEED STRIPS ROASTED",
+            "polygon": [41, 216, 210, 217, 210, 229, 41, 227],
+            "spans": [
+              {
+                "offset": 339,
+                "length": 28
+              }
+            ]
+          },
+          {
+            "content": "5.94",
+            "polygon": [237, 217, 262, 217, 262, 227, 237, 228],
+            "spans": [
+              {
+                "offset": 368,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "60Z",
+            "polygon": [54, 229, 72, 229, 71, 240, 55, 240],
+            "spans": [
+              {
+                "offset": 373,
+                "length": 3
+              }
+            ]
+          },
+          {
+            "content": "@ 0.99/OZ",
+            "polygon": [93, 229, 152, 229, 152, 240, 93, 240],
+            "spans": [
+              {
+                "offset": 377,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "A-TOMATOES KUMATO BROWN 1 LB",
+            "polygon": [42, 241, 210, 242, 210, 253, 42, 252],
+            "spans": [
+              {
+                "offset": 387,
+                "length": 28
+              }
+            ]
+          },
+          {
+            "content": "3.49",
+            "polygon": [237, 242, 261, 241, 261, 251, 237, 253],
+            "spans": [
+              {
+                "offset": 416,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "MINI MILK CHOCOLATE BAR",
+            "polygon": [42, 254, 181, 254, 181, 266, 42, 265],
+            "spans": [
+              {
+                "offset": 421,
+                "length": 23
+              }
+            ]
+          },
+          {
+            "content": "1.79",
+            "polygon": [238, 254, 261, 254, 261, 264, 238, 265],
+            "spans": [
+              {
+                "offset": 445,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "TOBLERONE BAR MILK 100 G",
+            "polygon": [43, 266, 187, 266, 187, 279, 43, 278],
+            "spans": [
+              {
+                "offset": 450,
+                "length": 24
+              }
+            ]
+          },
+          {
+            "content": "3.98",
+            "polygon": [238, 266, 262, 266, 263, 276, 238, 277],
+            "spans": [
+              {
+                "offset": 475,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "2GM",
+            "polygon": [53, 279, 74, 279, 73, 291, 53, 291],
+            "spans": [
+              {
+                "offset": 480,
+                "length": 3
+              }
+            ]
+          },
+          {
+            "content": "@ 1.99/GM",
+            "polygon": [95, 279, 152, 279, 152, 291, 95, 291],
+            "spans": [
+              {
+                "offset": 484,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "SUBTOTAL",
+            "polygon": [39, 306, 91, 306, 91, 318, 39, 318],
+            "spans": [
+              {
+                "offset": 494,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "$53.12",
+            "polygon": [250, 305, 289, 305, 289, 317, 250, 318],
+            "spans": [
+              {
+                "offset": 503,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "STATE TAX 1",
+            "polygon": [39, 319, 109, 319, 109, 331, 39, 332],
+            "spans": [
+              {
+                "offset": 510,
+                "length": 11
+              }
+            ]
+          },
+          {
+            "content": "$1.40",
+            "polygon": [255, 318, 289, 319, 289, 330, 255, 331],
+            "spans": [
+              {
+                "offset": 522,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "content": "TOTAL",
+            "polygon": [40, 332, 101, 332, 101, 345, 40, 344],
+            "spans": [
+              {
+                "offset": 528,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "content": "$54.52",
+            "polygon": [250, 332, 289, 332, 289, 344, 250, 344],
+            "spans": [
+              {
+                "offset": 534,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "VISA",
+            "polygon": [39, 346, 65, 346, 65, 358, 39, 357],
+            "spans": [
+              {
+                "offset": 541,
+                "length": 4
+              }
+            ]
+          },
+          {
+            "content": "$54.52",
+            "polygon": [251, 345, 289, 345, 289, 357, 251, 357],
+            "spans": [
+              {
+                "offset": 546,
+                "length": 6
+              }
+            ]
+          },
+          {
+            "content": "Purchase",
+            "polygon": [43, 359, 96, 359, 96, 371, 43, 371],
+            "spans": [
+              {
+                "offset": 553,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "$",
+            "polygon": [114, 359, 121, 359, 120, 370, 113, 370],
+            "spans": [
+              {
+                "offset": 562,
+                "length": 1
+              }
+            ]
+          },
+          {
+            "content": "54.52",
+            "polygon": [143, 358, 174, 358, 174, 369, 142, 369],
+            "spans": [
+              {
+                "offset": 564,
+                "length": 5
+              }
+            ]
+          },
+          {
+            "content": "VISA #RXXXXXXXXXXXX0702",
+            "polygon": [44, 372, 187, 370, 187, 383, 44, 385],
+            "spans": [
+              {
+                "offset": 570,
+                "length": 23
+              }
+            ]
+          },
+          {
+            "content": "Auth # 06824C",
+            "polygon": [43, 386, 134, 385, 134, 397, 43, 398],
+            "spans": [
+              {
+                "offset": 594,
+                "length": 13
+              }
+            ]
+          },
+          {
+            "content": "Exp Date ** / **",
+            "polygon": [134, 385, 222, 384, 222, 396, 134, 397],
+            "spans": [
+              {
+                "offset": 608,
+                "length": 16
+              }
+            ]
+          },
+          {
+            "content": "Lane # 03",
+            "polygon": [43, 400, 101, 398, 102, 411, 43, 412],
+            "spans": [
+              {
+                "offset": 625,
+                "length": 9
+              }
+            ]
+          },
+          {
+            "content": "Cashier # 5150",
+            "polygon": [133, 398, 223, 398, 223, 410, 133, 410],
+            "spans": [
+              {
+                "offset": 635,
+                "length": 14
+              }
+            ]
+          },
+          {
+            "content": "02/24/17 19:32 Ref/Seq # 037200",
+            "polygon": [42, 411, 235, 411, 235, 425, 42, 426],
+            "spans": [
+              {
+                "offset": 650,
+                "length": 31
+              }
+            ]
+          },
+          {
+            "content": "Mrch=694062 Term=001 IC=CC",
+            "polygon": [41, 425, 206, 425, 206, 438, 41, 439],
+            "spans": [
+              {
+                "offset": 682,
+                "length": 26
+              }
+            ]
+          },
+          {
+            "content": "ITEMS 18",
+            "polygon": [35, 470, 87, 470, 87, 484, 35, 484],
+            "spans": [
+              {
+                "offset": 709,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "G. David",
+            "polygon": [247, 472, 301, 472, 301, 486, 247, 485],
+            "spans": [
+              {
+                "offset": 718,
+                "length": 8
+              }
+            ]
+          },
+          {
+            "content": "02-24-2017 07:32PM 0062 03 5150 4650",
+            "polygon": [34, 484, 276, 485, 276, 500, 34, 499],
+            "spans": [
+              {
+                "offset": 727,
+                "length": 36
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 0,
+            "length": 763
+          }
+        ]
+      }
+    ],
+    "paragraphs": [
+      {
+        "spans": [
+          {
+            "offset": 0,
+            "length": 12
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [97, 19, 284, 18, 284, 40, 97, 41]
+          }
+        ],
+        "content": "TRADER JOE'S"
+      },
+      {
+        "spans": [
+          {
+            "offset": 13,
+            "length": 59
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [88, 48, 241, 47, 241, 83, 88, 84]
+          }
+        ],
+        "content": "5269 Prospect San Jose CA 95129 Store #062 - (408) 446-5055"
+      },
+      {
+        "spans": [
+          {
+            "offset": 73,
+            "length": 27
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [87, 97, 243, 95, 243, 108, 87, 110]
+          }
+        ],
+        "content": "OPEN 8:00AM TO 9:00PM DAILY"
+      },
+      {
+        "spans": [
+          {
+            "offset": 101,
+            "length": 12
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [46, 122, 262, 121, 262, 133, 46, 134]
+          }
+        ],
+        "content": "P BASIL 3.49"
+      },
+      {
+        "spans": [
+          {
+            "offset": 114,
+            "length": 28
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [46, 134, 209, 135, 209, 147, 46, 146]
+          }
+        ],
+        "content": "DARKHORSE CABERNET SAUVIGNON"
+      },
+      {
+        "spans": [
+          {
+            "offset": 143,
+            "length": 6
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [236, 133, 272, 133, 272, 145, 236, 145]
+          }
+        ],
+        "content": "7.99 T"
+      },
+      {
+        "spans": [
+          {
+            "offset": 150,
+            "length": 37
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [46, 146, 272, 145, 272, 158, 46, 159]
+          }
+        ],
+        "content": "THE PASS SAUVIGNON BLANC MARLE 7.99 T"
+      },
+      {
+        "spans": [
+          {
+            "offset": 188,
+            "length": 27
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [45, 157, 261, 157, 261, 170, 45, 170]
+          }
+        ],
+        "content": "CRACKERS PITA SEA SALT 2.49"
+      },
+      {
+        "spans": [
+          {
+            "offset": 216,
+            "length": 30
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [45, 169, 219, 170, 219, 182, 45, 181]
+          }
+        ],
+        "content": "PKG SPANISH CHEESE TAPAS SAMPL"
+      },
+      {
+        "spans": [
+          {
+            "offset": 247,
+            "length": 4
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [237, 170, 261, 170, 261, 180, 237, 180]
+          }
+        ],
+        "content": "3.99"
+      },
+      {
+        "spans": [
+          {
+            "offset": 252,
+            "length": 26
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [44, 181, 261, 182, 261, 194, 44, 193]
+          }
+        ],
+        "content": "PKG MOZZARELLA SMOKED 2.99"
+      },
+      {
+        "spans": [
+          {
+            "offset": 279,
+            "length": 35
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [43, 193, 261, 194, 261, 206, 43, 205]
+          }
+        ],
+        "content": "NUT TREK MIX HANDFUL SIMPLY AL 5.99"
+      },
+      {
+        "spans": [
+          {
+            "offset": 315,
+            "length": 23
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [42, 204, 261, 205, 261, 218, 42, 217]
+          }
+        ],
+        "content": "JUST MANGO SLICES. 2.99"
+      },
+      {
+        "spans": [
+          {
+            "offset": 339,
+            "length": 33
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [41, 216, 262, 217, 262, 229, 41, 228]
+          }
+        ],
+        "content": "SNACK SEAWEED STRIPS ROASTED 5.94"
+      },
+      {
+        "spans": [
+          {
+            "offset": 373,
+            "length": 13
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [54, 229, 152, 229, 152, 240, 54, 240]
+          }
+        ],
+        "content": "60Z @ 0.99/OZ"
+      },
+      {
+        "spans": [
+          {
+            "offset": 387,
+            "length": 33
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [42, 241, 261, 241, 261, 253, 42, 253]
+          }
+        ],
+        "content": "A-TOMATOES KUMATO BROWN 1 LB 3.49"
+      },
+      {
+        "spans": [
+          {
+            "offset": 421,
+            "length": 28
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [42, 254, 261, 254, 261, 266, 42, 266]
+          }
+        ],
+        "content": "MINI MILK CHOCOLATE BAR 1.79"
+      },
+      {
+        "spans": [
+          {
+            "offset": 450,
+            "length": 29
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [43, 266, 263, 266, 263, 279, 43, 279]
+          }
+        ],
+        "content": "TOBLERONE BAR MILK 100 G 3.98"
+      },
+      {
+        "spans": [
+          {
+            "offset": 480,
+            "length": 13
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [53, 279, 152, 279, 152, 291, 53, 291]
+          }
+        ],
+        "content": "2GM @ 1.99/GM"
+      },
+      {
+        "spans": [
+          {
+            "offset": 494,
+            "length": 8
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [39, 306, 91, 306, 91, 318, 39, 318]
+          }
+        ],
+        "content": "SUBTOTAL"
+      },
+      {
+        "spans": [
+          {
+            "offset": 503,
+            "length": 6
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [250, 305, 289, 305, 289, 318, 250, 318]
+          }
+        ],
+        "content": "$53.12"
+      },
+      {
+        "spans": [
+          {
+            "offset": 510,
+            "length": 11
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [39, 319, 109, 319, 109, 332, 39, 332]
+          }
+        ],
+        "content": "STATE TAX 1"
+      },
+      {
+        "spans": [
+          {
+            "offset": 522,
+            "length": 5
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [255, 318, 289, 318, 289, 331, 255, 331]
+          }
+        ],
+        "content": "$1.40"
+      },
+      {
+        "spans": [
+          {
+            "offset": 528,
+            "length": 5
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [40, 332, 101, 332, 101, 345, 40, 345]
+          }
+        ],
+        "content": "TOTAL"
+      },
+      {
+        "spans": [
+          {
+            "offset": 534,
+            "length": 6
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [250, 332, 289, 332, 289, 344, 250, 344]
+          }
+        ],
+        "content": "$54.52"
+      },
+      {
+        "spans": [
+          {
+            "offset": 541,
+            "length": 4
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [39, 346, 65, 346, 65, 358, 39, 358]
+          }
+        ],
+        "content": "VISA"
+      },
+      {
+        "spans": [
+          {
+            "offset": 546,
+            "length": 6
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [251, 345, 289, 345, 289, 357, 251, 357]
+          }
+        ],
+        "content": "$54.52"
+      },
+      {
+        "spans": [
+          {
+            "offset": 553,
+            "length": 16
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [43, 359, 174, 358, 174, 370, 43, 372]
+          }
+        ],
+        "content": "Purchase $ 54.52"
+      },
+      {
+        "spans": [
+          {
+            "offset": 570,
+            "length": 23
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [44, 372, 187, 370, 187, 383, 44, 385]
+          }
+        ],
+        "content": "VISA #RXXXXXXXXXXXX0702"
+      },
+      {
+        "spans": [
+          {
+            "offset": 594,
+            "length": 30
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [43, 386, 222, 384, 222, 396, 43, 398]
+          }
+        ],
+        "content": "Auth # 06824C Exp Date ** / **"
+      },
+      {
+        "spans": [
+          {
+            "offset": 625,
+            "length": 24
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [43, 399, 223, 397, 223, 410, 43, 412]
+          }
+        ],
+        "content": "Lane # 03 Cashier # 5150"
+      },
+      {
+        "spans": [
+          {
+            "offset": 650,
+            "length": 31
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [42, 411, 235, 411, 235, 426, 42, 426]
+          }
+        ],
+        "content": "02/24/17 19:32 Ref/Seq # 037200"
+      },
+      {
+        "spans": [
+          {
+            "offset": 682,
+            "length": 26
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [41, 425, 206, 425, 206, 439, 41, 439]
+          }
+        ],
+        "content": "Mrch=694062 Term=001 IC=CC"
+      },
+      {
+        "spans": [
+          {
+            "offset": 709,
+            "length": 54
+          }
+        ],
+        "boundingRegions": [
+          {
+            "pageNumber": 1,
+            "polygon": [34, 470, 301, 471, 301, 500, 34, 499]
+          }
+        ],
+        "content": "ITEMS 18 G. David 02-24-2017 07:32PM 0062 03 5150 4650"
+      }
+    ],
+    "styles": [],
+    "contentFormat": "text"
+  },
+  "answer": {
+    "sellerName": "TRADER JOE'S",
+    "sellerAddress": "5269 Prospect San Jose CA 95129",
+    "sellerOib": null,
+    "buyerName": null,
+    "buyerAddress": null,
+    "buyerOib": null,
+    "documentNumber": null,
+    "issueDate": "02/24/17",
+    "issueTime": "19:32",
+    "total": "54.52",
+    "currency": "$",
+    "paymentMethod": "VISA",
+    "jir": null,
+    "zki": null
+  }
+}

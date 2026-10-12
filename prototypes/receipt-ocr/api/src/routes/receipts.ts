@@ -29,6 +29,7 @@ import {
   type DocumentExtractionProvider,
 } from "../providers/document-extraction/types.js";
 import { mapStoredSourceRegions } from "../providers/document-extraction/source-regions.js";
+import { FLAGGED_DISAGREEMENT_FIELDS } from "../providers/document-extraction/scalar-merge.js";
 
 const idSchema = z.uuid();
 
@@ -358,7 +359,14 @@ function failureReason(status: string, metadata: unknown): ReceiptFailureReason 
  *
  * - a value read from the receipt's text, inferred from its date or taken from its QR code has no
  *   model confidence to be low, and flagging those marked correct values as doubtful;
- * - a value the receipt's QR code agrees with is confirmed, whatever the model's confidence.
+ * - a value the receipt's QR code agrees with is confirmed, whatever the model's confidence;
+ * - a value the scalar reader read the same way, from its own OCR of the document, is likewise
+ *   vouched for (it cleared 8–9 of the 10 flags sitting on correct values, and 0–2 of the 4 on
+ *   wrong ones).
+ *
+ * One more case is listed although no confidence is low: the scalar reader read a different value
+ * for a critical field that holds one exact value. The two-model value is kept, and the reviewer is
+ * asked to look. Agreement and disagreement are recorded at extraction and not recomputed.
  *
  * Evaluated at read time against the current values, so a correction that breaks agreement with the
  * QR code brings the flag back, and receipts stored before this rule lose their false flags too.
@@ -371,16 +379,36 @@ export function lowConfidenceFields(
   const fields = (metadata as Record<string, unknown>)["fields"];
   if (fields === null || typeof fields !== "object" || Array.isArray(fields)) return [];
 
-  return Object.entries(fields).flatMap(([field, value]) => {
+  const reader = (metadata as Record<string, unknown>)["reader"];
+  const agreed = readerList(reader, "agreed");
+
+  const doubtful = Object.entries(fields).flatMap(([field, value]) => {
     if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
     const { confidence, source } = value as Record<string, unknown>;
     return source === "model" &&
       typeof confidence === "number" &&
       confidence < LOW_CONFIDENCE_THRESHOLD &&
-      !corroborated.includes(field)
+      !corroborated.includes(field) &&
+      !agreed.includes(field)
       ? [field]
       : [];
   });
+  const disputed = readerList(reader, "disagreed").filter(
+    (field) =>
+      FLAGGED_DISAGREEMENT_FIELDS.includes(field) &&
+      !corroborated.includes(field) &&
+      !doubtful.includes(field),
+  );
+  return [...doubtful, ...disputed];
+}
+
+/** A row stored before the scalar reader existed, or read without it, has no such list. */
+function readerList(reader: unknown, key: "agreed" | "disagreed"): string[] {
+  if (reader === null || typeof reader !== "object" || Array.isArray(reader)) return [];
+  const list = (reader as Record<string, unknown>)[key];
+  return Array.isArray(list)
+    ? list.filter((value): value is string => typeof value === "string")
+    : [];
 }
 
 // Only the flat scalar fields. `vatBreakdown`/`items` are deliberately excluded: their row

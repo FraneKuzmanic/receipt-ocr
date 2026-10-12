@@ -10,6 +10,8 @@ import {
   extractFiscalQr,
 } from "../api/src/providers/document-extraction/azure.js";
 import { categorizePaymentMethod } from "../api/src/providers/document-extraction/payment-method.js";
+import { mergeScalars } from "../api/src/providers/document-extraction/scalar-merge.js";
+import { normalizeScalars } from "../api/src/providers/document-extraction/scalar-reader.js";
 import { stripContentMarkers } from "../api/src/providers/document-extraction/content-markers.js";
 import { hasUnreadVatSignal } from "../api/src/providers/document-extraction/tax-signals.js";
 import { lowConfidenceFields } from "../api/src/routes/receipts.js";
@@ -18,6 +20,10 @@ import { matches } from "./bakeoff/compare.js";
 
 const FIXTURES_DIR = "api/src/providers/document-extraction/fixtures";
 const SECONDARY_FIXTURES_DIR = "api/src/providers/document-extraction/fixtures/secondary";
+const READER_FIXTURES_DIR = "api/src/providers/document-extraction/fixtures/reader";
+// Without the flag this scores the two-model path, and its output must not change: it is the
+// regression gate for what the application produces when the scalar reader is off.
+const WITH_READER = process.argv.includes("--reader");
 const EXPECTED_DIR = ".agents/fixtures/expected";
 const EXPECTED_WARNINGS = ".agents/fixtures/expected-warnings.json";
 const CRITICAL_FIELDS = ["sellerName", "documentNumber", "issueDate", "total", "currency"] as const;
@@ -45,6 +51,7 @@ interface ScoreRow {
 }
 
 const expectedWarnings = await loadExpectedWarnings();
+let receiptsMerged = 0;
 const scoredRows = await loadRows();
 const smallRows = scoredRows.filter((row) => row.smallImage);
 
@@ -52,6 +59,7 @@ console.log(
   JSON.stringify(
     {
       fixturesScored: scoredRows.length,
+      ...(WITH_READER ? { reader: { receiptsMerged } } : {}),
       all: report(scoredRows),
       smallImages: { receipts: smallRows.map((row) => row.name), ...report(smallRows) },
       recordedProviderLatencyMs: await scoreLatency(),
@@ -95,11 +103,18 @@ async function loadRows(): Promise<ScoreRow[]> {
       primary,
       secondaryFixture === null ? null : readModel(secondaryFixture),
     );
-    const fields = merged.fields;
     const qr =
       extractFiscalQr(fixture.analyzeResult) ??
       (secondaryFixture === null ? null : extractFiscalQr(secondaryFixture));
-    applyQrJir(fields, merged.metadata, qr);
+    applyQrJir(merged.fields, merged.metadata, qr);
+    // A recorded reading of the same receipt, merged as the provider merges a live one.
+    const answer = WITH_READER ? await loadReaderAnswer(name) : null;
+    const scalars =
+      answer === null
+        ? null
+        : mergeScalars({ ...merged, qr }, { printed: answer, fields: normalizeScalars(answer) });
+    if (scalars !== null) receiptsMerged += 1;
+    const fields = scalars?.fields ?? merged.fields;
     // Replay the production warning pipeline too, rather than scoring a mapper-shaped copy.
     const warnings = computeWarnings({
       fields,
@@ -113,7 +128,10 @@ async function loadRows(): Promise<ScoreRow[]> {
       expected,
       fields,
       warnings,
-      flagged: lowConfidenceFields({ fields: merged.metadata }, qrCorroboratedFields(fields, qr)),
+      flagged: lowConfidenceFields(
+        { fields: scalars?.metadata ?? merged.metadata, reader: scalars },
+        qrCorroboratedFields(fields, qr),
+      ),
       smallImage:
         page?.unit === "pixel" && page.width !== undefined && page.width < SMALL_IMAGE_WIDTH,
     });
@@ -254,6 +272,17 @@ async function loadSecondary(name: string): Promise<AnalyzeResultOutput | null> 
       await readFile(join(SECONDARY_FIXTURES_DIR, name), "utf8"),
     ) as RecordedOperation;
     return fixture.analyzeResult ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function loadReaderAnswer(name: string): Promise<Record<string, string | null> | null> {
+  try {
+    const fixture = JSON.parse(await readFile(join(READER_FIXTURES_DIR, name), "utf8")) as {
+      answer?: Record<string, string | null>;
+    };
+    return fixture.answer ?? null;
   } catch {
     return null;
   }
