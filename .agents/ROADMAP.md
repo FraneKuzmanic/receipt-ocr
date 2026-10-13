@@ -209,6 +209,14 @@ still gets a plan and a history file, numbered in the same sequence for continui
 | 27  | Plan B: an LLM pass and Content Understanding, measured against the production engine (a measurement; the product is unchanged) | [plan](plans/plan-b-llm-pass-content-understanding-measurement.md) | [history](history/27-plan-b-llm-pass-content-understanding-measurement.md) · [result](research/plan-b-engines.md) |
 | 28  | Scalar probe: an LLM as a third, parallel reader of scalar fields (a measurement; the product is unchanged) | _none — user asked for the probe to be run directly from the [handoff](specs/scalar-llm-reader-probe.md)_ | [history](history/28-scalar-llm-reader-probe.md) · [result](research/scalar-llm-reader-probe.md) |
 | 29  | Scalar reader: an LLM as a third, parallel reader of the scalar fields, merged by a fixed rule (the first LLM in the application) | [plan](plans/llm-scalar-reader.md) | [history](history/29-llm-scalar-reader.md) |
+| 30  | Source outlines missing until a reload (a load-order race between the image and its regions) | _none — user reported a live defect and asked for a diagnosis, then the fix_ | [history](history/30-source-outline-load-race.md) |
+
+**Amendment from iteration 30 — a one-shot event handler must not decide from data that arrives by
+another request.** The image's `onLoad` compared its ratio with the regions response once; when the
+image won the race the outlines stayed hidden until a reload. Store the fact the event reports and
+derive the decision at render, as `PdfSource` already did. The race was five iterations old and
+only began to lose when iteration 29 made the regions response slower: a change that shifts timing
+can expose a defect it did not write.
 
 **Amendment from iteration 29 — an LLM reads the scalar fields, and only those.** PRD §4.7, §7.6 and
 §8 and rule 10 below ruled an LLM out; they are amended in place, dated, with the iteration 28 probe

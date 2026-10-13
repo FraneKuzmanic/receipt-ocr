@@ -159,8 +159,15 @@ function ImageSource({
   onRetry,
   alt,
 }: ImageSourceProps) {
-  const [overlaySafe, setOverlaySafe] = useState(false);
+  // The image and the regions are separate requests and either can finish first, so the loaded
+  // ratio is kept and compared on every render. Deciding once inside `onLoad` left the outlines
+  // hidden until a reload whenever the image won the race.
+  const [renderedRatio, setRenderedRatio] = useState<number | null>(null);
   const page = regions?.pages[0];
+  const overlaySafe =
+    renderedRatio !== null &&
+    aspectRatio !== undefined &&
+    Math.abs(renderedRatio - aspectRatio) < 0.01;
 
   return (
     <ZoomableSourceViewport
@@ -181,13 +188,9 @@ function ImageSource({
           alt={alt}
           draggable={false}
           className="block size-full"
-          onLoad={(event) => {
-            const renderedRatio =
-              event.currentTarget.naturalWidth / event.currentTarget.naturalHeight;
-            setOverlaySafe(
-              aspectRatio !== undefined && Math.abs(renderedRatio - aspectRatio) < 0.01,
-            );
-          }}
+          onLoad={(event) =>
+            setRenderedRatio(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)
+          }
           onError={onRetry}
         />
       )}
